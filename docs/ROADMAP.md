@@ -6,7 +6,7 @@
 | M1 safe chat | Implemented offline | Four native APIs, secrets/consents/session contracts; live account checks optional |
 | M2 visual assistance | Manual import/analysis implemented | Safe atomic Gaming Mode acquisition and automatic visual hardware validation remain open |
 | M3 voice/delivery | Implemented; Linux packaging verified | Real audio routing/IPC and Deck ABI |
-| M3.1 international redesign | Implemented offline | English default, complete Italian, independent languages, guided Decky screens; real controller review |
+| M3.1 international redesign | Implemented offline | Decky Pilot branding, English default, complete Italian, independent UI/assistant languages with assistant speech, guided Decky screens; real controller review |
 | M4 Steam Deck | NOT RUN | HARDWARE_VALIDATION, source-backed capture safety criteria, performance measurements |
 | M5 evolution | Open | Streaming and verified controller shortcuts |
 | M6 optional work | Open | STT/OCR/retrieval/profiles with dedicated consent/limits/tests |

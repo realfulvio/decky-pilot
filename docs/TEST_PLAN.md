@@ -33,3 +33,9 @@ Shared JSON Schema fixtures and actual backend records/events are validated in P
 [Hardware checklist](HARDWARE_VALIDATION.md): actual SteamOS/Decky/Python ABI/UID, install/load, controller/keyboard, Steam detection, picker, QAM toast, TTS routing/IPC and CPU/RAM/frame-rate/sleep-resume measurements. [Capture safety criteria](CAPTURE_VERIFICATION.md) require a safe acquisition mechanism before a hardware enablement test. Optional live provider smoke requires separate explicit permission/credentials and has not been run.
 
 Branding revision additionally verifies explicit language/consent/key/history preservation, assistant-language speech independent of UI/legacy voice field, official-docs cloud image admission and no silent model substitution. Original raster branding is preserved; the hand-drawn menu SVG was visually inspected at 20/24/32 pixels in the browser. Production Decky controller and actual API account access remain deferred.
+
+## Final branding implementation evidence
+
+Commit `c27050bef0c4b59a0019e382b166669d251b4059` passed [PR Linux run 38311241604](https://github.com/realfulvio/decky-pilot/actions/runs/38311241604) and its push workflow: **134 Python tests with no skips, 16 frontend, 13 tooling and six browser tests**. Lint/types/Ruff/secret scan, zero-advisory audit, build/vendor/package and isolated extracted ZIP runtime all passed. The uploaded artifact contains install/source ZIPs and checksums; the installable archive has 194 allowlisted files. Current PR checks must also pass after documentation/gallery updates.
+
+Original logo/icon bytes were compared with `1b5cc03` and match exactly. Ten English offline gallery screenshots were visually reviewed (Play/Game/welcome/guided setup/service-sharing/languages/image approval/pending/720-pixel answer/voice), with explicit synthetic and unavailable-capture states. Regeneration records its committed source revision alongside the images.

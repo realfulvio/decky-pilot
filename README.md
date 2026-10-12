@@ -54,7 +54,7 @@ python scripts/verify_package.py artifacts/deckpilot-0.1.0.zip
 python scripts/verify_package.py artifacts/deckpilot-0.1.0.zip --runtime
 ```
 
-`corepack pnpm preview` serves the offline harness on `127.0.0.1:5173`. Its sample replies, delay/error buttons and DOM controls are for review; production injects real Decky components. Neither preview nor keyboard tests certify Steam controller behavior. Backend fixtures block provider networking and use synthetic data. No real key is needed for tests. With the preview server running, `node scripts/capture_gallery.mjs` saves eight reproducible English screenshots plus source metadata under `artifacts/gallery/`; use `PLAYWRIGHT_CHANNEL=chromium` on Linux.
+`corepack pnpm preview` serves the offline harness on `127.0.0.1:5173`. Its sample replies, delay/error buttons and DOM controls are for review; production injects real Decky components. Neither preview nor keyboard tests certify Steam controller behavior. Backend fixtures block provider networking and use synthetic data. No real key is needed for tests. With the preview server running, `node scripts/capture_gallery.mjs` saves ten reproducible English screenshots plus source metadata under `artifacts/gallery/`; use `PLAYWRIGHT_CHANNEL=chromium` on Linux.
 
 [Test evidence](docs/TEST_PLAN.md), [API sources](docs/API_VERIFICATION.md), [hardware checklist](docs/HARDWARE_VALIDATION.md), [handoff](docs/CODEX_HANDOFF.md).
 
