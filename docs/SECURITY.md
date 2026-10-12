@@ -5,6 +5,8 @@ Decky plugins share a local environment. Manifest flags are empty; inspected Loa
 | Threat | Implemented control | Limit |
 |---|---|---|
 | Key/log leakage | Separate backend secrets, public configured booleans, safe localized error codes, no remote bodies/logged contents, cleared key inputs | Plaintext local files/process memory remain accessible to their user |
+| OAuth substitution/replay | Own temporary loopback, state/nonce/PKCE, issued client, signed JWT/JWKS issuer/audience/expiry/sub checks; validate before active account replacement | Real account/device eligibility NOT RUN; one backend instance per credential directory |
+| Expired plan or incompatible vision | Serialized refresh/revoke, selected-account catalog, independent image gate and usage-limit pause | Remote revocation can fail; local clearing cannot retract sent data; no paid/provider fallback |
 | RPC/consent manipulation | Backend method/field allowlists, type/range checks, authoritative settings; chat cannot choose recipient | Same-user plugins are not separate trusted sandboxes |
 | Path/symlink abuse | Byte upload; basename-only dedicated image root; owner/parent/symlink checks and POSIX O_NOFOLLOW | No protection promised against all same-UID filesystem races |
 | SSRF/DNS/redirect | Fixed HTTPS cloud hosts, explicitly authorized Ollama host, all addresses validated and pinned, metadata/link-local/CGNAT/translation blocked; no redirect/proxy | LAN/loopback allowed intentionally; no firewall/tunnel setup |

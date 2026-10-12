@@ -26,5 +26,8 @@ Closed means implemented and verified offline/CI, not hardware certified. IDs ar
 | DP-020 | P2 STT/OCR/retrieval/profiles | Open: separately scoped permissions/limits/sources/tests |
 | DP-021 | P0 international UI | Closed offline: shared complete en/it catalogs, independent UI/assistant language settings and preserved legacy fields, guided simple Decky UI; hardware navigation pending |
 | DP-022 | P0 review gallery | Existing PR #2 coordinated with PR #1, English offline images; never presented as actual Deck capture |
+| DP-023 | P0 ChatGPT plan access | Implemented offline: official OSS OAuth, dynamic client, JWT/JWKS, refresh/revoke/limits and account catalog; real eligibility/browser/device acceptance NOT RUN |
+| DP-024 | P0 xAI/Grok and returned catalogs | Implemented offline: native Responses/language-model modalities, six catalog routes and bounded pagination; live provider acceptance NOT RUN |
+| DP-025 | P0 situation and clarification | Implemented offline: structured observations/deductions, one question and retained player answer, fresh-frame gates/menu/loading abstention; real model-quality/device evaluation NOT RUN |
 
 Remote: `https://github.com/realfulvio/decky-pilot.git`. MVP branch `codex/deckpilot-mvp`, [PR #1](https://github.com/realfulvio/decky-pilot/pull/1). Gallery branch `docs/ui-gallery`, [PR #2](https://github.com/realfulvio/decky-pilot/pull/2), based on the MVP. Neither is merged.
