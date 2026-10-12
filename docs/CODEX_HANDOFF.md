@@ -1,5 +1,7 @@
 # Codex handoff
 
+**Read [WORK_CHECKPOINT](WORK_CHECKPOINT.md) first.** The owner subsequently authorized public visibility after audit and presentation-only main publication. That authorization supersedes the historical private-only constraints below; no merge, store publication or device installation is authorized. Current bilingual READMEs/gallery/assets are published independently of the application code.
+
 Workspace: `C:/Users/Admin/deckpilot`. Existing branch: `codex/deckpilot-mvp`, base `main`. Remote **available and verified** (same repository ID 1416105266, renamed by the owner from `realfulvio/deckpilot`; old links redirect): `https://github.com/realfulvio/decky-pilot.git`.
 
 - Existing MVP: [PR #1](https://github.com/realfulvio/decky-pilot/pull/1), head `codex/deckpilot-mvp`, base `main`.

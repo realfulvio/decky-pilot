@@ -1,5 +1,15 @@
 # Test plan and evidence
 
+## Resumed delivery, 13 October 2026
+
+Current local verification: **146 Python passed, no skips; 22 frontend; 13 tooling; six browser tests**. Both symlink cases execute on this workstation now. Frozen install, ESLint/TypeScript/Ruff, zero-advisory audit, secret scan, build, pinned vendor and package verification pass. Installable archive: 224 allowlisted files. Final source/package ZIPs must be regenerated after the delivery commit; current Linux CI also runs the isolated extracted-package runtime smoke.
+
+Added regressions cover OpenAI incomplete/max_output_tokens text and usage retention without increased budget/retries, rejection of other incomplete/failed states and empty reasoning-only output, context revision/session/removal, detected Steam game in Game/onboarding, and draft preservation during unchanged polling/settings updates. Regressions failed before fixes.
+
+Presentation: twenty actual browser screenshots (ten full views plus ten direct panel captures) from committed source `d192330cc36816c7e15d522932de0c1202c240d1`; synthetic fixtures, no device/API/audio. Both README languages and gallery use GitHub Markdown API output for visual QA at 1200/390 pixels, all images decode, 39 relative links resolve, and no page overflow occurs. The single-column gallery keeps phone text readable. Concept cover and editable workflow diagrams are distinctly labelled. Original brand PNG bytes remain intact.
+
+Public-history audit: all reachable blobs/commits and historical raster images, with author/path/source/PR review. No credential/private image finding remains; an exact `user:pass@localhost` SSRF rejection fixture is documented as synthetic. Repeat history scan after final commits. WORK_CHECKPOINT records final CI/publication evidence. Main contains only the presentation, while both PRs remain open and unmerged.
+
 Review date: 12 October 2026. Local workstation: Windows, Node 24.20.0, pnpm 10.28.2, Python 3.13.15, Microsoft Edge browser. CI: Ubuntu 24.04, Node 24.20.0, Python 3.11.7, Chromium. Steam Deck: **NOT RUN**.
 
 | Check | Latest local evidence | Coverage |
