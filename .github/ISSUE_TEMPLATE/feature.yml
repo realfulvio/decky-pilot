@@ -1,0 +1,15 @@
+name: Proposta funzionalità
+description: Caso d'uso e criteri verificabili
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problema e contesto
+    validations:
+      required: true
+  - type: textarea
+    id: criteria
+    attributes:
+      label: Criteri di accettazione, dipendenze e consensi necessari
+    validations:
+      required: true
