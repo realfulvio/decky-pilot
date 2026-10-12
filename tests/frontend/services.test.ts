@@ -10,6 +10,21 @@ import { FakeBridge } from '../../src/harness/fakeBridge';
 import { AudioPresenter } from '../../src/services/audioPresenter';
 import type { AssistantResult } from '../../src/domain/types';
 describe('contracts and presenters', () => {
+  it('stores only the player clarification, never generated Help me now instructions', async () => {
+    const bridge = new FakeBridge();
+    const result: AssistantResult = {...fixture.result as AssistantResult, situation:{observations:[],inferences:[],goal:'',obstacle:'',steps:[],clarification:'Which objective?',phase:'unknown',useful:true}};
+    bridge.status.requests = [{...fixture.request,kind:'manual',state:'completed',result}];
+    const controller = new Controller(bridge,{show() {},clear() {}},{async play() {},stop() {}});
+    await controller.start();
+    await controller.helpNow();
+    const first = bridge.calls.find(call => call.method === 'start_assistant_request');
+    expect(first?.payload).not.toHaveProperty('clarificationReply');
+    bridge.status.requests = [{...fixture.request,kind:'manual',state:'completed',result}];
+    await controller.refresh();
+    await controller.helpNow(undefined,'Open the door');
+    expect(bridge.calls.filter(call => call.method === 'start_assistant_request').pop()?.payload).toHaveProperty('clarificationReply','Open the door');
+    await controller.close();
+  });
   it('preserves manual corrections until Steam reports a different running game', async () => {
     const bridge = new FakeBridge();
     bridge.status.context = {...bridge.status.context!,source:'manual',title:'Player correction',appId:'123'};

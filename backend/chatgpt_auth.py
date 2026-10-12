@@ -81,7 +81,10 @@ class ChatGPTAuth:
         self.pending = None
         if self.server:
             self.server.close()
-            await self.server.wait_closed()
+            # Python 3.13 waits for accepted connections too. The callback must send
+            # its response and close its own writer before that wait can finish.
+            if not self.handlers:
+                await self.server.wait_closed()
             self.server = None
         if self.timer and self.timer is not asyncio.current_task():
             self.timer.cancel()

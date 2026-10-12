@@ -115,6 +115,20 @@ async def test_catalog_errors_never_invent_models(data):
     assert adapter.catalog is None
 
 
+async def test_claude_catalog_follows_bounded_cursor_without_changing_host():
+    class Pages(FakeTransport):
+        async def request(self, url, headers, body=None, **kwargs):
+            self.data = {"data": [{"id": "first", "display_name": "First"}], "has_more": True, "last_id": "first"} if "?" not in url else {
+                "data": [{"id": "second", "display_name": "Second"}], "has_more": False}
+            return await super().request(url, headers, body, **kwargs)
+    transport = Pages()
+    adapter = Registry(transport).get("claude")
+    result = await discover(adapter, {**DEFAULTS, "remoteConsent": True}, {"claude": "synthetic"})
+    assert [model["label"] for model in result["models"]] == ["First", "Second"]
+    assert transport.calls[-1]["url"] == "https://api.anthropic.com/v1/models?after_id=first"
+    assert not result["partial"]
+
+
 async def test_grok_real_rest_image_shape_and_unsupported_gate():
     transport = FakeTransport(
         {
@@ -250,6 +264,7 @@ async def test_clarification_answer_retained_no_repeat_and_game_change(tmp_path,
     assert service.records["situation"]["result"]["situation"]["clarification"]
     assert service.history[-1]["content"].endswith("Which objective is active?")
     reply = {**request, "requestId": "reply", "text": "I want to open the door"}
+    reply["clarificationReply"] = "I want to open the door"
     reply.pop("imageRef")
     transport.data["output"][0]["content"][0]["text"] = json.dumps(
         scene(observations=[], clarification="", steps=["Try the nearby lever."])
@@ -258,6 +273,15 @@ async def test_clarification_answer_retained_no_repeat_and_game_change(tmp_path,
     await service.request_task
     assert service.history[-2]["content"] == "I want to open the door"
     assert "Which objective is active?" in str(transport.calls[-1]["body"]["input"])
+    assert service.clarification_answers[-1]["playerAnswer"] == "I want to open the door"
+    service.history[:] = [{"role": "user", "content": "Later conversation"}] * 20
+    await service.rpc("start_assistant_request", {**reply, "requestId": "later", "text": "Next step?", "clarificationReply": ""})
+    assert service.active is None
+    later = {**reply, "requestId": "later", "text": "Next step?"}
+    later.pop("clarificationReply")
+    await service.rpc("start_assistant_request", later)
+    await service.request_task
+    assert "I want to open the door" in str(transport.calls[-1]["body"]["input"])
     await service.rpc("set_game_context", {"title": "Other game"})
     assert (
         not service.history and not service.last_clarification and not service.auto_session_consent
@@ -265,6 +289,9 @@ async def test_clarification_answer_retained_no_repeat_and_game_change(tmp_path,
     assert (await service.rpc("start_assistant_request", request))["error"][
         "code"
     ] == "CONTEXT_STALE"
+    assert not service.clarification_answers and not service.pending_clarification
+    await service.rpc("delete_local_data", {"confirm": True})
+    assert not service.clarification_answers
     await service.close()
 
 
@@ -300,6 +327,8 @@ async def test_automatic_abstains_for_menus_loading_and_no_new_advice(
     assert await service.tick()
     await service.request_task
     assert not service.history and service.next_auto == 180
+    if phase in ("menu", "loading"):
+        assert service.paused
     clock.now = 179
     service.last_tick = 179
     assert await service.tick() is None

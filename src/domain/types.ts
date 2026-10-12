@@ -16,6 +16,7 @@ export interface GameContext {
 export interface AssistantRequest {
   requestId: string; sessionId: string; contextRevision: number; kind: 'manual' | 'auto_hint';
   text: string; imageRef?: string;
+  clarificationReply?: string;
 }
 export interface AssistantResult {
   situation?: {observations: string[]; inferences: string[]; goal: string; obstacle: string; steps: string[]; clarification: string; phase: 'gameplay' | 'menu' | 'loading' | 'unknown'; useful: boolean};

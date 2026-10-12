@@ -68,6 +68,8 @@ class Service:
         self.last_hint_revision = -1
         self.auto_seen = set()
         self.last_clarification = ""
+        self.pending_clarification = ""
+        self.clarification_answers = []
         self.scene_phase = "unknown"
         self.next_auto = clock() + self.config.settings["hintIntervalSeconds"]
         self.retry_until = 0
@@ -265,6 +267,8 @@ class Service:
                 self.last_hint_revision = -1
                 self.auto_seen.clear()
                 self.last_clarification = ""
+                self.pending_clarification = ""
+                self.clarification_answers.clear()
                 self.scene_phase = "unknown"
                 self.paused = False
                 self.auto_session_consent = False
@@ -297,7 +301,7 @@ class Service:
             return await self.start_request(payload)
 
     async def start_request(self, payload, auto=False):
-        fields(payload, ("requestId", "sessionId", "contextRevision", "kind", "text", "imageRef"))
+        fields(payload, ("requestId", "sessionId", "contextRevision", "kind", "text", "imageRef", "clarificationReply"))
         request_id = string(payload.get("requestId"), 100, 1)
         require(bool(request_id) and all(c.isalnum() or c in "_-" for c in request_id))
         require(self.context is not None, "CONTEXT_STALE")
@@ -317,6 +321,10 @@ class Service:
         if provider.id in ("chatgpt", "grok"):
             await discover(provider, settings, secrets)
             require(any(model["id"] == settings["model"] for model in provider.catalog), "MODEL_UNAVAILABLE")
+        reply = None
+        if "clarificationReply" in payload:
+            reply = string(payload["clarificationReply"], 1000, 1)
+            require(bool(self.pending_clarification), "CONTEXT_STALE")
         image = None
         if payload.get("imageRef"):
             ref = string(payload["imageRef"], 100, 1)
@@ -324,6 +332,11 @@ class Service:
             require(provider.capabilities(settings)["images"], "IMAGE_UNSUPPORTED")
             image = self.images.take(ref, self.context["sessionId"], self.destination())
         context = dict(self.context)
+        if reply is not None:
+            self.clarification_answers.append({"question": self.pending_clarification, "playerAnswer": reply})
+            self.clarification_answers = self.clarification_answers[-4:]
+            self.pending_clarification = ""
+        context["clarifications"] = list(self.clarification_answers)
         system, messages = build_context(context, self.history, text, settings["spoiler"], auto, settings["responseLanguage"])
         record = {"requestId": request_id, "sessionId": context["sessionId"],
                   "contextRevision": context["revision"], "kind": "auto_hint" if auto else "manual",
@@ -368,6 +381,8 @@ class Service:
             situation = parsed.get("situation")
             if situation:
                 self.scene_phase = situation["phase"]
+                if situation["phase"] in ("menu", "loading"):
+                    self.paused = True
                 question = " ".join(situation["clarification"].casefold().split())
                 if record["kind"] == "auto_hint" and (not situation["useful"] or
                         situation["phase"] != "gameplay" or question):
@@ -377,6 +392,7 @@ class Service:
                     raise RpcError("CONTEXT_NEEDED")
                 if question:
                     self.last_clarification = question
+                    self.pending_clarification = situation["clarification"]
             normalized = " ".join(answer.casefold().split())
             if record["kind"] == "auto_hint" and normalized in self.auto_seen:
                 record["state"] = "duplicate"
@@ -675,6 +691,8 @@ class Service:
             await self.cancel_active()
             await self.stop_voice()
             self.history.clear()
+            self.pending_clarification = self.last_clarification = ""
+            self.clarification_answers.clear()
             self.records.clear()
             self.images.clear()
             if self.context:
@@ -696,6 +714,8 @@ class Service:
             self.auto_session_consent = False
             self.auto_visual = False
             self.history.clear()
+            self.pending_clarification = self.last_clarification = ""
+            self.clarification_answers.clear()
             self.records.clear()
             self.archive.clear()
             self.auto_seen.clear()

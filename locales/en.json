@@ -189,5 +189,6 @@
   "error.REVOCATION_UNCONFIRMED": "Local tokens cleared. Remote revocation could not be confirmed; disconnect Decky Pilot in ChatGPT Settings.",
   "error.CONTEXT_NEEDED": "More context is needed. Answer the previous question or update the game objective.",
   "catalogModel": "Installed catalog model",
-  "clarificationTitle": "One quick question"
+  "clarificationTitle": "One quick question",
+  "activeChatGPT": "Active ChatGPT account: {account}"
 }

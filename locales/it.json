@@ -189,5 +189,6 @@
   "error.REVOCATION_UNCONFIRMED": "Token locali eliminati. Revoca remota non confermata; scollega Decky Pilot nelle impostazioni ChatGPT.",
   "error.CONTEXT_NEEDED": "Serve più contesto. Rispondi alla domanda precedente o aggiorna l’obiettivo del gioco.",
   "catalogModel": "Modello installato nel catalogo",
-  "clarificationTitle": "Una breve domanda"
+  "clarificationTitle": "Una breve domanda",
+  "activeChatGPT": "Account ChatGPT attivo: {account}"
 }

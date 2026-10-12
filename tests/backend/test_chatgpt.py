@@ -203,6 +203,26 @@ async def test_returning_client_mismatch_preserves_verified_registration(tmp_pat
     await auth.close()
 
 
+async def test_actual_loopback_callback_with_simulated_identity_service(tmp_path):
+    transport = OAuthTransport()
+    auth = ChatGPTAuth(PrivateStore(tmp_path), transport)
+    await auth.begin()
+    callback = urlsplit(auth.pending["redirect_uri"])
+    now = int(time.time())
+    transport.claims = {"iss": ISSUER, "aud": "issued-client", "sub": "synthetic-account",
+                        "iat": now, "exp": now + 3600, "nonce": auth.pending["nonce"]}
+    reader, writer = await asyncio.open_connection("127.0.0.1", callback.port)
+    target = f"/auth/callback?state={auth.pending['state']}&code=synthetic&client_id=issued-client"
+    writer.write(f"GET {target} HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n".encode())
+    await writer.drain()
+    response = await asyncio.wait_for(reader.read(), 5)
+    assert response.startswith(b"HTTP/1.1 200") and b"synthetic-access" not in response
+    assert auth.public()["connected"] and auth.server is None
+    writer.close()
+    await writer.wait_closed()
+    await auth.close()
+
+
 @pytest.mark.parametrize(
     "ending,code",
     [

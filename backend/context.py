@@ -29,6 +29,8 @@ def build_context(context, history, text, spoiler, auto=False, language="en"):
         system += translate("autoPolicy", language)
     system += SCHEMA_INSTRUCTION
     data = {key: context[key] for key in ("title", "appId", "objective", "location", "userNotes")}
+    if context.get("clarifications"):
+        data["playerClarifications"] = context["clarifications"]
     # Budget deterministic: max 12 history messages, at most 8000 history characters.
     budget, recent = 8000, []
     for entry in reversed(history[-12:]):
