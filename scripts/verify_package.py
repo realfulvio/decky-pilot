@@ -1,6 +1,8 @@
 import hashlib
 import json
+import subprocess
 import sys
+import tempfile
 from pathlib import Path, PurePosixPath
 from zipfile import ZipFile
 
@@ -41,5 +43,55 @@ def verify(path):
     print(f"Verified {len(names)} files: Decky layout, runtime ABI, no development/private files")
 
 
+def verify_runtime(path):
+    """Execute the extracted deliverable, never dependencies from the checkout/venv."""
+    if not sys.platform.startswith("linux") or sys.version_info[:2] != (3, 11):
+        raise ValueError("Packaged runtime smoke requires Linux CPython 3.11")
+    with tempfile.TemporaryDirectory(prefix="deckpilot-package-") as temporary:
+        with ZipFile(path) as archive:
+            archive.extractall(temporary)
+        root = Path(temporary) / "DeckPilot"
+        code = '''
+import asyncio, importlib.util, io, sys
+from pathlib import Path
+from types import SimpleNamespace
+root = Path(sys.argv[1]).resolve()
+sys.path[:0] = [str(root / "py_modules"), str(root)]
+from PIL import Image, _imaging
+assert Path(Image.__file__).is_relative_to(root / "py_modules")
+assert Path(_imaging.__file__).is_relative_to(root / "py_modules")
+data = io.BytesIO()
+Image.new("RGB", (2, 2), "navy").save(data, format="PNG")
+data.seek(0)
+with Image.open(data) as decoded:
+    decoded.load()
+    assert decoded.size == (2, 2)
+async def emit(*args):
+    pass
+sys.modules["decky"] = SimpleNamespace(
+    DECKY_PLUGIN_SETTINGS_DIR=str(root / "smoke-settings"),
+    DECKY_PLUGIN_RUNTIME_DIR=str(root / "smoke-runtime"), emit=emit)
+spec = importlib.util.spec_from_file_location("deckpilot_packaged", root / "main.py")
+module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
+async def smoke():
+    plugin = module.Plugin()
+    try:
+        await plugin._migration()
+        await plugin._main()
+        status = await plugin.rpc("get_status", {})
+        assert status["ok"] and status["data"]["settings"]["provider"] is None
+    finally:
+        await plugin._unload()
+    assert plugin.service is None
+asyncio.run(smoke())
+print("Extracted ZIP runtime passed: vendored Pillow encode/decode and offline plugin lifecycle")
+'''
+        subprocess.run([sys.executable, "-I", "-c", code, str(root)],
+                       cwd=temporary, check=True, timeout=30)
+
+
 if __name__ == "__main__":
     verify(sys.argv[1])
+    if "--runtime" in sys.argv[2:]:
+        verify_runtime(sys.argv[1])
