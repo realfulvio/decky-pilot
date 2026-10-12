@@ -52,14 +52,22 @@ try {
   await button('Stop').scrollIntoViewIfNeeded(); await shot('08-play-720.png');
   await load(); await page.setViewportSize({width:1280,height:800});
   await button('Preview ChatGPT setup').click(); await button('Get started').click(); await button('Next').click();
-  await page.getByLabel('AI service', {exact:true}).scrollIntoViewIfNeeded(); await shot('11-ai-connection.png');
+  await page.getByRole('combobox', {name:'AI service',exact:true}).scrollIntoViewIfNeeded(); await shot('11-ai-connection.png');
   await button('Continue with ChatGPT').scrollIntoViewIfNeeded(); await shot('14-chatgpt-sign-in.png');
   await load(); await button('Preview capture controls (simulated)').click(); await button('Help me now').click();
   await button('Capture game image').scrollIntoViewIfNeeded(); await shot('12-capture-consent.png');
   await load(); await button('Preview clarification').click();
   await page.getByText('Which objective are you trying to complete?', {exact:false}).scrollIntoViewIfNeeded(); await shot('13-clarification.png');
+  await load();
+  await page.locator('.dp-scroll').evaluate(element => {
+    const heading = [...element.querySelectorAll('h2')].find(item => item.textContent === 'Your next step');
+    const card = heading?.closest('.dp-card');
+    if (!card) throw new Error('Answer card missing');
+    element.scrollTop += card.getBoundingClientRect().top - element.getBoundingClientRect().top;
+  });
+  await shot('15-contextual-answer.png');
   if (errors.length) throw new Error('Gallery encountered browser errors');
   const commit = execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
-  await writeFile(join(output,'source.json'),JSON.stringify({commit,mode:'actual React browser harness; synthetic data, AI replies and capture availability; no sign-in, live inference, speech or device capture',images:28,fullViewportImages:14,panelImages:14,browser:process.env.PLAYWRIGHT_CHANNEL === 'chromium' ? 'Chromium' : 'Microsoft Edge',capturedAt:new Date().toISOString()},null,2)+'\n');
-  process.stdout.write(`Saved fourteen English views and fourteen panel screenshots from ${commit} to ${output}\n`);
+  await writeFile(join(output,'source.json'),JSON.stringify({commit,mode:'actual React browser harness; synthetic data, AI replies and capture availability; no sign-in, live inference, speech or device capture',images:30,fullViewportImages:15,panelImages:15,browser:process.env.PLAYWRIGHT_CHANNEL === 'chromium' ? 'Chromium' : 'Microsoft Edge',capturedAt:new Date().toISOString()},null,2)+'\n');
+  process.stdout.write(`Saved fifteen English views and fifteen panel screenshots from ${commit} to ${output}\n`);
 } finally { await browser.close(); }
