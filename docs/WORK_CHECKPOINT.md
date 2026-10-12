@@ -27,6 +27,8 @@ Updated 13 October 2026. Resume here before the historical CODEX_HANDOFF.
 
 ## Final remote steps
 
+Main presentation is pushed at `3db36bb` (33 presentation files, no application code). Gallery is pushed at `1083353`, based on the MVP. Both PRs are conflict-free; both original review threads are resolved after reproducing regression coverage. No merge commits exist. Shared gallery line endings were normalized to avoid an add/add review conflict. The public-history recheck covers 24 commits / 262 blobs / 32 decoded raster images. Final Linux runs are in progress; query current GitHub checks rather than assuming a previous head covers this one.
+
 1. Push normal commits to MVP/gallery/main, update existing PR metadata and verify final Linux CI (including isolated extracted-package runtime).
 2. Repeat reachable-history audit for all final refs.
 3. After checks pass, set visibility PUBLIC using existing explicit owner authorization and verify anonymous README/assets. Record resulting visibility/evidence here.
