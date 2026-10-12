@@ -12,6 +12,8 @@ Public-history audit: all reachable blobs/commits and historical raster images, 
 
 Actual Linux delivery runs [MVP 38315477004](https://github.com/realfulvio/decky-pilot/actions/runs/38315477004), [push 38315471465](https://github.com/realfulvio/decky-pilot/actions/runs/38315471465) and [gallery 38315386247](https://github.com/realfulvio/decky-pilot/actions/runs/38315386247) passed with 146 backend/22 frontend/13 tooling/six browser tests, no skips, clean audit and successful extracted ZIP/native Pillow lifecycle. The repository was then made PUBLIC as explicitly authorized. Actual anonymous GitHub README rendering verifies all nine images in each language at 1200/390 pixels. Subsequent final documentation/relative-image URL commits must also have green current checks.
 
+Final relative-image/diagram fixes and publication evidence passed [MVP PR 38315934418](https://github.com/realfulvio/decky-pilot/actions/runs/38315934418), [push 38315928211](https://github.com/realfulvio/decky-pilot/actions/runs/38315928211) and [gallery 38315935922](https://github.com/realfulvio/decky-pilot/actions/runs/38315935922). Actual public main is presentation-only; no merge commits exist. WORK_CHECKPOINT and the PRs' current checks track the final evidence-only documentation follow-up.
+
 Review date: 12 October 2026. Local workstation: Windows, Node 24.20.0, pnpm 10.28.2, Python 3.13.15, Microsoft Edge browser. CI: Ubuntu 24.04, Node 24.20.0, Python 3.11.7, Chromium. Steam Deck: **NOT RUN**.
 
 | Check | Latest local evidence | Coverage |
