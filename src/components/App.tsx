@@ -174,6 +174,7 @@ function SettingsPanel({controller, controls: C, mode, openExternal}: Props & {m
   const [models, setModels] = useState<{id: string; label: string; images: boolean}[]>([]);
   const [partial, setPartial] = useState(false);
   const [account, setAccount] = useState(status?.chatgpt?.active ?? '');
+  useEffect(() => {setAccount(status?.chatgpt?.active ?? '');}, [status?.chatgpt?.active]);
   useEffect(() => {setModels([]);setPartial(false);}, [draft.provider, status?.chatgpt?.active, status?.chatgpt?.connected]);
   useEffect(() => {if(draft.provider) setModels(status?.catalogs?.[draft.provider] ?? []);}, [draft.provider,status?.catalogs]);
   const loadModels = async () => {
@@ -202,12 +203,14 @@ function SettingsPanel({controller, controls: C, mode, openExternal}: Props & {m
       <p className="dp-subtle">{t('catalogConsent')}</p>{partial && <p>{t('catalogPartial')}</p>}
       <p className="dp-subtle">{t('modelAvailability')}</p>
       {draft.provider === 'chatgpt' ? <div className="dp-card"><p>{t('chatgptPlan')}</p>
+        {status?.chatgpt?.active && <p>{t('activeChatGPT',{account:status.chatgpt.accounts.find(value => value.id === status.chatgpt?.active)?.label ?? 'ChatGPT'})}</p>}
         <C.Select label={t('chatgptAccount')} value={account} options={[{value:'',label:t('newAccount')}, ...(status?.chatgpt?.accounts ?? []).map(value => ({value:value.id,label:`${value.label} · ${value.registration}`}))]} onChange={setAccount} />
         <C.Button onClick={() => {void signIn();}}>{t('continueChatGPT')}</C.Button>
         <p role="status">{t(status?.chatgpt?.connected ? 'accountConnected' : 'accountDisconnected')}</p>
         <p className="dp-subtle">{t('chatgptHardware')}</p>
         {status?.chatgpt?.state === 'pending' && <C.Button onClick={() => {void controller.act('cancel_chatgpt_sign_in');}}>{t('cancelSignIn')}</C.Button>}
         {status?.chatgpt?.error && <p role="alert">{translate(draft.uiLanguage, ('error.' + status.chatgpt.error) as MessageKey)}</p>}
+        {status?.catalogError && <p role="alert">{translate(draft.uiLanguage, ('error.' + status.catalogError) as MessageKey)}</p>}
         <C.Button onClick={() => {void controller.act('disconnect_chatgpt');}}>{t('disconnectAccount')}</C.Button>
         <a href="https://chatgpt.com/settings/usage" target="_blank" rel="noreferrer">{t('planUsage')}</a>
       </div> : draft.provider === 'ollama' ? <><C.Input label={t('ollamaEndpoint')} value={draft.ollamaEndpoint} onChange={v => change('ollamaEndpoint', v)} /><p className="dp-subtle">{t('httpPrivacy')}</p></> : <><p className="dp-subtle">{t('apiBilling')}</p><C.Input label={t('apiKey')} secret value={key} onChange={setKey} />

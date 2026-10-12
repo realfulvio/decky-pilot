@@ -112,19 +112,21 @@ export class Controller {
       return undefined;
     }
   }
-  async send(text: string, image?: PreparedImage) {
+  async send(text: string, image?: PreparedImage, playerReply = text) {
     const context = this.state.status?.context;
     if (!context) { this.update({error: 'gameRequired'}); return false; }
     const result = await this.act('start_assistant_request', {
       requestId: crypto.randomUUID().replace(/-/g, ''), sessionId: context.sessionId,
-      contextRevision: context.revision, kind: 'manual', text, ...(image ? {imageRef: image.imageRef} : {})
+      contextRevision: context.revision, kind: 'manual', text, ...(image ? {imageRef: image.imageRef} : {}),
+      ...([...this.state.status!.requests].reverse().find(record => record.state === 'completed' && isCurrent(record, context))?.result?.situation?.clarification && playerReply.trim()
+        ? {clarificationReply:playerReply.trim()} : {})
     });
     return result !== undefined;
   }
   async helpNow(image?: PreparedImage, question = '') {
     const language = this.state.status?.settings.responseLanguage ?? 'en';
     const prompt = translate(language, image ? 'visualPrompt' : 'hintPrompt');
-    return this.send(question.trim() ? `${prompt}\n${question.trim()}` : prompt, image);
+    return this.send(question.trim() ? `${prompt}\n${question.trim()}` : prompt, image, question);
   }
   async updateSettings(settings: Partial<Settings>) { return this.act<Settings>('update_settings', settings); }
   async setContext(context: Partial<GameContext> & {newSession?: boolean}) { return this.act<GameContext>('set_game_context', context); }
