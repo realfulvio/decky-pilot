@@ -17,7 +17,10 @@ export default definePlugin(() => {
   void controller.start().then(() => { if (!dismounted) contextAdapter.start(); });
   return {
     name: PRODUCT_NAME, titleView: <div className={staticClasses.Title}>{PRODUCT_NAME}</div>,
-    content: <App closeMenus={() => Router.CloseSideMenus()} controller={controller} controls={deckyControls} detectGame={() => detectGame(Router)} pickImage={async () => {
+    content: <App openExternal={url => {
+      if (!url.startsWith('https://auth.openai.com/api/accounts/authorize?')) throw new Error('Unexpected authorization origin');
+      SteamClient.System.OpenInSystemBrowser(url);
+    }} closeMenus={() => Router.CloseSideMenus()} controller={controller} controls={deckyControls} detectGame={() => detectGame(Router)} pickImage={async () => {
       const root = controller.snapshot().status?.capabilities.importRoot;
       if (!root) return null;
       const selected = await openFilePicker(FileSelectionType.FILE, root, true, false, undefined, ['png', 'jpg', 'jpeg'], false, false, 1);

@@ -3,6 +3,7 @@ import json
 from .errors import fields, require, string
 
 from .i18n import LANGUAGES, translate
+from .situation import SCHEMA_INSTRUCTION
 
 
 def validate_context(value):
@@ -26,6 +27,7 @@ def build_context(context, history, text, spoiler, auto=False, language="en"):
         spoiler=spoiler, spoilerPolicy=translate("spoilerPolicy." + spoiler, language))
     if auto:
         system += translate("autoPolicy", language)
+    system += SCHEMA_INSTRUCTION
     data = {key: context[key] for key in ("title", "appId", "objective", "location", "userNotes")}
     # Budget deterministic: max 12 history messages, at most 8000 history characters.
     budget, recent = 8000, []

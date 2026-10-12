@@ -39,6 +39,7 @@ jobs:
       - run: python scripts/scan_secrets.py
       - run: python scripts/verify_presentation.py
       - run: node scripts/audit.mjs
+      - run: python scripts/audit_python.py
       - run: pnpm build
       - run: python scripts/vendor.py
       - run: python scripts/package.py

@@ -15,11 +15,12 @@ export function fixtureStatus(): Status {
       popupDurationMs: 6000, hintIntervalSeconds: 90, voiceEnabled: true, ttsEngine: 'local',
       ttsConsent: false, ttsModel: 'gpt-4o-mini-tts', ttsVoice: 'coral', volume: 0.8,
       persistentHistory: false, imagesEnabled: false, autoHints: false, ollamaTimeoutSeconds: 90,
-      configured: {openai: false, gemini: false, claude: false, ollama: false}
+      configured: {chatgpt: false, openai: false, gemini: false, claude: false, grok: false, ollama: false}
     }
   };
 }
 export class FakeBridge implements Bridge {
+  catalog = [{id:'gpt-4.1',label:'GPT-4.1 (simulated catalog)',images:true,verification:'synthetic_fixture'}];
   status = fixtureStatus();
   calls: {method: string; payload: Record<string, unknown>}[] = [];
   listeners = new Map<string, Set<(value: unknown) => void>>();
@@ -35,6 +36,10 @@ export class FakeBridge implements Bridge {
     // Never store key values, even in preview instrumentation.
     this.calls.push({method, payload: {...payload, ...(method === 'set_api_key' ? {key: '[redacted]'} : {})}});
     if (method === 'set_capture_guard') return {blocked: payload.blocked} as T;
+    if (method === 'observe_active_game') return {observed:true} as T;
+    if (method === 'list_models') return {models: this.catalog,partial:false} as T;
+    if (method === 'begin_chatgpt_sign_in') return {authorizationUrl:'https://auth.openai.com/api/accounts/authorize?preview=synthetic'} as T;
+    if (method === 'disconnect_chatgpt' || method === 'cancel_chatgpt_sign_in') return {revocationConfirmed:false} as T;
     if (method === 'prepare_capture') throw new SafeError('CAPTURE_UNAVAILABLE');
     if (method === 'get_status') return structuredClone(this.status) as T;
     if (method === 'update_settings') {

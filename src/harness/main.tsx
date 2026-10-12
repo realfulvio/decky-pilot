@@ -7,6 +7,8 @@ import { Controller } from '../services/controller';
 import { translate } from '../domain/i18n';
 import { PRODUCT_NAME } from '../domain/brand';
 import logo from '../../assets/brand/decky-pilot-logo-dark.png';
+import fixture from '../../tests/fixtures/contract.json';
+import type {AssistantResult} from '../domain/types';
 const bridge = new FakeBridge();
 bridge.status.settings.provider = 'openai';
 bridge.status.settings.model = 'gpt-4.1-2025-04-14';
@@ -14,7 +16,12 @@ bridge.status.settings.configured.openai = true;
 bridge.status.settings.remoteConsent = true;
 bridge.status.settings.visionConfirmed = true;
 bridge.status.settings.imagesEnabled = true;
-bridge.status.history = [{role: 'user', content: 'The door has three symbols. Which one should I choose?', at: 0}, {role: 'assistant', content: 'From your notes: try matching a door symbol with the wall markings. Share a game image to compare them.', at: 0}];
+const syntheticAnswer = 'Visible (synthetic scene):\nA door with three symbols and a lever.\n\nPossible explanation:\nThe lever may respond to the matching symbol.\n\nNext steps:\n1. Compare the door symbols with the nearby markings.\n2. Try the matching symbol, then the lever.\n\nThis is a simulated response, not live AI analysis.';
+const previewAnswer = (answer: string) => {
+  bridge.status.history = [{role:'user',content:'How do I open the door?',at:0},{role:'assistant',content:answer,at:0}];
+  bridge.status.requests = [{requestId:fixture.result.requestId,sessionId:bridge.status.context!.sessionId,contextRevision:bridge.status.context!.revision,kind:'manual',state:'completed',result:{...fixture.result,answer,sessionId:bridge.status.context!.sessionId,contextRevision:bridge.status.context!.revision} as AssistantResult}];
+};
+previewAnswer(syntheticAnswer);
 const controller = new Controller(bridge, {show() {}, clear() {}}, {async play() {}, stop() {}});
 await controller.start();
 function Preview() {
@@ -23,7 +30,11 @@ function Preview() {
   return <><header><strong>{PRODUCT_NAME}</strong><span>{t('harnessBadge')}</span></header>
     <main><article><div className="eyebrow">{PRODUCT_NAME}</div><h1>{t('harnessTitle')}</h1><p>{t('harnessIntro')}</p>
       <img src={logo} alt={PRODUCT_NAME} width={350} style={{maxWidth:'100%',height:'auto',borderRadius:12,marginTop:24}} />
-      <div className="preview-tools"><button onClick={() => { bridge.failNext = true; }}>{t('harnessError')}</button><button onClick={() => { bridge.delay = !bridge.delay; }}>{t('harnessDelay')}</button><button onClick={() => { bridge.status = fixtureStatus(); void controller.refresh(); }}>{t('harnessOnboard')}</button></div>
-    </article><aside><App controller={controller} controls={harnessControls} /></aside></main></>;
+      <div className="preview-tools"><button onClick={() => { bridge.failNext = true; }}>{t('harnessError')}</button><button onClick={() => { bridge.delay = !bridge.delay; }}>{t('harnessDelay')}</button><button onClick={() => { bridge.status = fixtureStatus(); void controller.refresh(); }}>{t('harnessOnboard')}</button>
+        <button onClick={() => {bridge.status.settings.provider='chatgpt';bridge.status.settings.model='';bridge.status.chatgpt={state:'idle',connected:false,active:null,accounts:[]};void controller.refresh();}}>Preview ChatGPT setup</button>
+        <button onClick={() => {previewAnswer('Visible (synthetic scene):\nA door with three symbols.\n\nPossible explanation:\nThe route is unclear.\n\nWhich objective are you trying to complete?\n\nSimulated clarification; no live model.');void controller.refresh();}}>Preview clarification</button>
+        <button onClick={() => {bridge.status.capabilities.capture=true;bridge.status.settings.captureEnabled=true;void controller.refresh();}}>Preview capture controls (simulated)</button>
+      </div>
+    </article><aside><App openExternal={() => { /* Offline harness never opens a real sign-in. */ }} controller={controller} controls={harnessControls} /></aside></main></>;
 }
 createRoot(document.getElementById('root')!).render(<Preview />);

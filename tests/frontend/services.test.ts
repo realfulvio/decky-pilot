@@ -4,12 +4,28 @@ import schema from '../../contracts/rpc-v1.schema.json';
 import fixture from '../fixtures/contract.json';
 import { isResult } from '../../src/domain/validation';
 import { PopupPresenter } from '../../src/services/popupPresenter';
-import { detectGame } from '../../src/services/gameContextAdapter';
+import { detectGame, GameContextAdapter } from '../../src/services/gameContextAdapter';
 import { Controller } from '../../src/services/controller';
 import { FakeBridge } from '../../src/harness/fakeBridge';
 import { AudioPresenter } from '../../src/services/audioPresenter';
 import type { AssistantResult } from '../../src/domain/types';
 describe('contracts and presenters', () => {
+  it('preserves manual corrections until Steam reports a different running game', async () => {
+    const bridge = new FakeBridge();
+    bridge.status.context = {...bridge.status.context!,source:'manual',title:'Player correction',appId:'123'};
+    const controller = new Controller(bridge,{show() {},clear() {}},{async play() {},stop() {}});
+    await controller.start();
+    const router = {RunningApps:[{appid:'123',display_name:'Detected'}],MainRunningApp:{appid:'123',display_name:'Detected'}};
+    const adapter = new GameContextAdapter(controller,router);
+    await adapter.sync();
+    expect(bridge.status.context?.title).toBe('Player correction');
+    router.MainRunningApp = {appid:'456',display_name:'Another game'};
+    router.RunningApps = [router.MainRunningApp];
+    await adapter.sync();
+    expect(bridge.status.context?.title).toBe('Another game');
+    expect(bridge.status.context?.source).toBe('steam_internal');
+    await controller.close();
+  });
   it('shared fixtures validate in TypeScript and Python', () => {
     for (const [kind, value] of Object.entries(fixture)) {
       const ajv = new Ajv();

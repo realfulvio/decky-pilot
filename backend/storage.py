@@ -6,7 +6,7 @@ from pathlib import Path
 
 from .errors import RpcError, require, string
 
-PROVIDERS = ("openai", "gemini", "claude", "ollama")
+PROVIDERS = ("chatgpt", "openai", "gemini", "claude", "grok", "ollama")
 DEFAULTS = {
     "uiLanguage": "en", "responseLanguage": "en", "ttsLanguage": "en", "captureEnabled": False,
     "schemaVersion": 1, "provider": None, "model": "", "remoteConsent": False,
@@ -115,7 +115,7 @@ class Configuration:
             raise RpcError("STORAGE_ERROR") from exc
         self.settings = {**DEFAULTS, **saved}
         self.secrets = store.read("secrets.json", {})
-        require(isinstance(self.secrets, dict) and set(self.secrets) <= set(PROVIDERS),
+        require(isinstance(self.secrets, dict) and set(self.secrets) <= set(PROVIDERS) - {"chatgpt", "ollama"},
                 "STORAGE_ERROR")
         require(all(isinstance(v, str) and 1 <= len(v) <= 4096 for v in self.secrets.values()),
                 "STORAGE_ERROR")
@@ -136,7 +136,7 @@ class Configuration:
         return self.public()
 
     def set_key(self, provider, key):
-        require(provider in PROVIDERS and provider != "ollama")
+        require(provider in PROVIDERS and provider not in ("ollama", "chatgpt"))
         string(key, 4096, 1)
         require("\n" not in key and "\r" not in key)
         secrets = {**self.secrets, provider: key}

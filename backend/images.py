@@ -61,6 +61,7 @@ class Images:
         ref = secrets.token_urlsafe(24)
         self.items[ref] = {"bytes": result, "mime": "image/jpeg", "session": session,
                            "destination": destination, "approved": False,
+                           "preparedAt": self.clock(),
                            "expires": self.clock() + 300}
         return {"imageRef": ref, "preview": "data:image/jpeg;base64," +
                 base64.b64encode(result).decode("ascii"), "width": clean.width,
@@ -79,6 +80,7 @@ class Images:
         item = self.items.get(ref)
         require(item is not None and item["approved"] and item["session"] == session and
                 item["destination"] == destination, "CONSENT_REQUIRED")
+        require(self.clock() - item["preparedAt"] <= 45, "CONTEXT_STALE")
         return self.items.pop(ref)
 
     def discard(self, ref):

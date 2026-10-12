@@ -7,7 +7,7 @@ export function isResult(value: unknown): value is AssistantResult {
     ['requestId', 'sessionId', 'model', 'answer', 'popupText', 'speechText'].every(
       k => typeof value[k] === 'string') && typeof value.contextRevision === 'number' &&
     Number.isInteger(value.contextRevision) && typeof value.provider === 'string' &&
-    ['openai', 'gemini', 'claude', 'ollama'].includes(value.provider) &&
+    ['chatgpt', 'openai', 'gemini', 'claude', 'grok', 'ollama'].includes(value.provider) &&
     (value.answer as string).length <= 16000 && (value.popupText as string).length <= 240 &&
     (value.speechText as string).length <= 1000 && isObject(value.usage);
 }
