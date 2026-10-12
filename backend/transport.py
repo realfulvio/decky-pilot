@@ -8,11 +8,12 @@ import ssl
 import threading
 import time
 from dataclasses import dataclass
-from urllib.parse import urlsplit
+from urllib.parse import parse_qs, urlsplit
 
 from .errors import RpcError, require, string
 
-CLOUD_HOSTS = {"api.openai.com", "generativelanguage.googleapis.com", "api.anthropic.com"}
+CLOUD_HOSTS = {"api.openai.com", "auth.openai.com", "api.x.ai",
+               "generativelanguage.googleapis.com", "api.anthropic.com"}
 
 
 def validate_endpoint(endpoint):
@@ -104,15 +105,21 @@ class Transport:
                       limit=2_000_000, method="POST"):
         require(not self.closed, "CANCELLED")
         parsed = urlsplit(url)
-        require(parsed.hostname and not parsed.username and not parsed.password and
-                not parsed.fragment and not parsed.query)
+        require(parsed.hostname and not parsed.username and not parsed.password and not parsed.fragment)
+        if parsed.query:
+            permitted = {("api.anthropic.com", "/v1/models"): "after_id",
+                         ("generativelanguage.googleapis.com", "/v1beta/models"): "pageToken"}
+            key = permitted.get((parsed.hostname, parsed.path))
+            query = parse_qs(parsed.query, strict_parsing=True)
+            require(method == "GET" and key and set(query) == {key} and len(query[key]) == 1 and
+                    0 < len(query[key][0]) <= 2000)
         if private:
             validate_endpoint(f"{parsed.scheme}://{parsed.netloc}")
         else:
             require(parsed.scheme == "https" and parsed.hostname in CLOUD_HOSTS)
         cancelled = threading.Event()
         holder = []
-        payload = None if body is None else json.dumps(body).encode("utf-8")
+        payload = body if isinstance(body, bytes) else None if body is None else json.dumps(body).encode("utf-8")
         try:
             async with asyncio.timeout(deadline):
                 return await asyncio.to_thread(self._request, parsed, headers, payload, private,
@@ -156,7 +163,7 @@ class Transport:
                 raise RpcError("NETWORK_ERROR") from last_error
             require(not cancelled.is_set(), "CANCELLED")
             connection.sock.settimeout(max(0.1, end - time.monotonic()))
-            connection.request(method, parsed.path or "/", body=payload,
+            connection.request(method, (parsed.path or "/") + ("?" + parsed.query if parsed.query else ""), body=payload,
                                headers={"Content-Type": "application/json", "Accept": "*/*",
                                         "Connection": "close", **headers})
             response = connection.getresponse()

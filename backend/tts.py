@@ -4,6 +4,7 @@ import shutil
 
 from .errors import RpcError, require
 from .transport import check_response
+from .i18n import translate
 
 
 class TTS:
@@ -22,15 +23,20 @@ class TTS:
         if settings["ttsEngine"] == "openai":
             require(settings["ttsConsent"], "CONSENT_REQUIRED")
             require(secrets.get("openai"), "NOT_CONFIGURED")
+            # This model documents the instructions field for pronunciation.
+            # Latest product decision: assistant response language also governs speech.
+            require(settings["ttsModel"] == "gpt-4o-mini-tts", "VOICE_UNAVAILABLE")
             response = await self.transport.request("https://api.openai.com/v1/audio/speech",
                 {"Authorization": f"Bearer {secrets['openai']}"},
                 {"model": settings["ttsModel"], "voice": settings["ttsVoice"],
-                 "input": text, "response_format": "wav"}, limit=8_000_000, deadline=45)
+                 "input": text, "response_format": "wav",
+                 "instructions": translate("speechInstruction", settings["responseLanguage"])},
+                limit=8_000_000, deadline=45)
             audio = check_response(response).body
         else:
             require(bool(self.executable), "VOICE_UNAVAILABLE")
             try:
-                self.process = await self.spawn(self.executable, "-v", "it", "--stdout", "--stdin",
+                self.process = await self.spawn(self.executable, "-v", settings["responseLanguage"], "--stdout", "--stdin",
                     stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE,
                     stderr=asyncio.subprocess.DEVNULL)
                 async with asyncio.timeout(30):

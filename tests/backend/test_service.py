@@ -17,7 +17,7 @@ async def configured(tmp_path, clock, transport):
     service = Service(tmp_path, transport=transport, clock=clock, emit=emit)
     await service.rpc("update_settings", {"provider": "ollama", "model": "configured-model"})
     await service.rpc("update_settings", {"endpointConsent": True})
-    result = await service.rpc("set_game_context", {"title": "Synthetic puzzle", "objective": "Aprire la porta"})
+    result = await service.rpc("set_game_context", {"title": "Synthetic puzzle", "objective": "Open the door"})
     assert result["ok"]
     return service, events
 
@@ -40,8 +40,8 @@ async def test_chat_complete_idempotent_and_safe_rpc(tmp_path, clock, transport)
     await finish(service)
     assert len(transport.calls) == 1
     status = (await service.rpc("get_status", {}))["data"]
-    assert status["history"][-1]["content"] == "Apri la porta blu."
-    assert status["requests"][0]["result"]["popupText"] == "Apri la porta blu."
+    assert status["history"][-1]["content"] == "Open the blue door."
+    assert status["requests"][0]["result"]["popupText"] == "Open the blue door."
     assert any(name == "assistant_result" for name, _ in events)
     assert (await service.rpc("__dict__", {}))["error"]["code"] == "INVALID_INPUT"
     assert (await service.rpc("start_assistant_request", request(service, "x", provider="fake")))["error"]["code"] == "INVALID_INPUT"
@@ -54,7 +54,7 @@ async def test_no_calls_without_configuration_or_consent(tmp_path, clock, transp
     service = Service(tmp_path, transport=transport, clock=clock)
     await service.start()
     assert not transport.calls
-    assert (await service.rpc("set_auto_hints", {"enabled": True}))["error"]["code"] == "NOT_CONFIGURED"
+    assert (await service.rpc("set_auto_hints", {"enabled": True}))["error"]["code"] == "CONSENT_REQUIRED"
     await service.rpc("set_game_context", {"title": "Unknown emulator"})
     assert (await service.rpc("start_assistant_request", request(service)))["error"]["code"] == "NOT_CONFIGURED"
     await service.close()
@@ -94,8 +94,11 @@ async def tick_at(service, clock, seconds):
 
 
 async def test_scheduler_0_89_90_fresh_context_lock_pause_no_repeats(tmp_path, clock, transport):
+    transport.data = {"message": {"content": json.dumps({"observations": [], "inferences": [],
+        "goal": "Open the door", "obstacle": "Closed door", "steps": ["Try the lever."],
+        "clarification": "", "phase": "gameplay", "useful": True})}}
     service, _ = await configured(tmp_path, clock, transport)
-    await service.rpc("set_auto_hints", {"enabled": True})
+    await service.rpc("set_auto_hints", {"enabled": True, "consent": True, "sessionId": service.context["sessionId"]})
     assert await service.tick() is None
     await tick_at(service, clock, 89)
     assert not transport.calls and not service.active
@@ -107,7 +110,7 @@ async def test_scheduler_0_89_90_fresh_context_lock_pause_no_repeats(tmp_path, c
     await tick_at(service, clock, 180)
     assert len(transport.calls) == 1
     old_revision = service.context["revision"]
-    await service.rpc("set_game_context", {"title": "Synthetic puzzle", "objective": "Aprire la porta"})
+    await service.rpc("set_game_context", {"title": "Synthetic puzzle", "objective": "Open the door"})
     assert service.context["revision"] == old_revision  # heartbeat isn't fresh gameplay
     await service.rpc("set_game_context", {"title": "Synthetic puzzle", "objective": "Nuova stanza"})
     await service.tick()
@@ -122,7 +125,7 @@ async def test_scheduler_0_89_90_fresh_context_lock_pause_no_repeats(tmp_path, c
 
 async def test_scheduler_resume_stale_title_only_and_budget(tmp_path, clock, transport):
     service, _ = await configured(tmp_path, clock, transport)
-    await service.rpc("set_auto_hints", {"enabled": True})
+    await service.rpc("set_auto_hints", {"enabled": True, "consent": True, "sessionId": service.context["sessionId"]})
     clock.now = 90
     assert await service.tick() is None  # resume waits a full interval
     assert service.next_auto == 180
@@ -133,7 +136,7 @@ async def test_scheduler_resume_stale_title_only_and_budget(tmp_path, clock, tra
     service.auto_attempts = 20
     await tick_at(service, clock, 350)
     assert not transport.calls
-    await service.rpc("set_auto_hints", {"resetBudget": True})
+    await service.rpc("set_auto_hints", {"resetBudget": True, "enabled": True, "consent": True, "sessionId": service.context["sessionId"]})
     await tick_at(service, clock, 440)
     await finish(service)
     assert len(transport.calls) == 1
@@ -143,7 +146,7 @@ async def test_scheduler_resume_stale_title_only_and_budget(tmp_path, clock, tra
 async def test_failures_reserve_cooldown_and_pause(tmp_path, clock):
     transport = FakeTransport(error=RpcError("RATE_LIMITED", 180_000))
     service, _ = await configured(tmp_path, clock, transport)
-    await service.rpc("set_auto_hints", {"enabled": True})
+    await service.rpc("set_auto_hints", {"enabled": True, "consent": True, "sessionId": service.context["sessionId"]})
     await tick_at(service, clock, 90)
     await finish(service)
     assert service.next_auto == 180 and service.retry_until == 270
@@ -169,6 +172,8 @@ def test_context_policy_and_budget(spoiler):
     assert "IGNORE SYSTEM" in messages[-1]["content"]
     assert len(messages) <= 13 and sum(len(m["content"]) for m in messages[:-1]) <= 8000
     assert len(popup_text("a " * 1000)) <= 240
+    assert popup_text("a " * 1000).endswith("Open Decky Pilot.")
+    assert popup_text("a " * 1000, "it").endswith("Apri Decky Pilot.")
 
 
 async def test_history_retention_delete_and_input_validation(tmp_path, clock, transport):

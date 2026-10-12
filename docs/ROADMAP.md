@@ -1,13 +1,14 @@
 # Roadmap
 
-| Milestone | Stato | Gate |
+| Milestone | Status | Remaining gate |
 |---|---|---|
-| M0 fondamenta | Implementata localmente | Fonti/API/versioni, build/import/test, lockfile/workflow; CI remota da osservare |
-| M1 chat sicura | Implementata/testata offline | Quattro REST, settings/secrets,RPC/schema,sessioni,UI |
-| M2 assistenza | Implementata/testata offline | Cooldown,pause,dedup,spoiler,popup,contesto,immagini monouso |
-| M3 voce/consegna | Implementata localmente | TTS/cleanup/package/docs; push/PR richiedono remote effettivo |
-| M4 Steam Deck | Aperta/NON ESEGUITA | Checklist con evidenze, import Linux/ABI/controller/audio/IPC, review eccezione audit |
-| M5 evoluzione | Aperta | Capture documentata, streaming dedicato, shortcut verificati |
-| M6 opzionali | Aperta | STT push-to-talk,OCR,retrieval/profili; consensi e test prima dell'attivazione |
+| M0 foundations | Implemented, Linux CI verified | Keep pins/audit/package checks passing |
+| M1 safe chat | Implemented offline | Four native APIs, secrets/consents/session contracts; live account checks optional |
+| M2 visual assistance | Manual import/analysis implemented | Safe atomic Gaming Mode acquisition and automatic visual hardware validation remain open |
+| M3 voice/delivery | Implemented; Linux packaging verified | Real audio routing/IPC and Deck ABI |
+| M3.1 international redesign | Implemented offline | Decky Pilot branding, English default, complete Italian, independent UI/assistant languages with assistant speech, guided Decky screens; real controller review |
+| M4 Steam Deck | NOT RUN | HARDWARE_VALIDATION, source-backed capture safety criteria, performance measurements |
+| M5 evolution | Open | Streaming and verified controller shortcuts |
+| M6 optional work | Open | STT/OCR/retrieval/profiles with dedicated consent/limits/tests |
 
-Nessuna release/store o dichiarazione production-ready prima del gate hardware. La mancanza della Deck non ha impedito implementazione/test/packaging MVP.
+Review is on existing PR #1; PR #2 supplies the separate gallery. No merge, store publication or production-ready claim before the hardware gate. The absence of a Deck does not prevent implementation, offline tests, CI and review artifacts.

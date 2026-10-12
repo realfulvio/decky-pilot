@@ -1,6 +1,7 @@
-export type ProviderId = 'openai' | 'gemini' | 'claude' | 'ollama';
+export type ProviderId = 'chatgpt' | 'openai' | 'gemini' | 'claude' | 'grok' | 'ollama';
 export type SpoilerLevel = 'none' | 'hints' | 'full_solutions';
 export interface Settings {
+  uiLanguage: 'en' | 'it'; responseLanguage: 'en' | 'it'; ttsLanguage: 'en' | 'it'; captureEnabled: boolean;
   schemaVersion: 1; provider: ProviderId | null; model: string; remoteConsent: boolean;
   ollamaEndpoint: string; endpointConsent: boolean; visionConfirmed: boolean; spoiler: SpoilerLevel;
   popupDurationMs: number; hintIntervalSeconds: number; voiceEnabled: boolean; ttsEngine: 'local' | 'openai';
@@ -15,8 +16,10 @@ export interface GameContext {
 export interface AssistantRequest {
   requestId: string; sessionId: string; contextRevision: number; kind: 'manual' | 'auto_hint';
   text: string; imageRef?: string;
+  clarificationReply?: string;
 }
 export interface AssistantResult {
+  situation?: {observations: string[]; inferences: string[]; goal: string; obstacle: string; steps: string[]; clarification: string; phase: 'gameplay' | 'menu' | 'loading' | 'unknown'; useful: boolean};
   schemaVersion: 1; requestId: string; sessionId: string; contextRevision: number; provider: ProviderId;
   model: string; answer: string; popupText: string; speechText: string;
   usage: {inputTokens?: number; outputTokens?: number};
@@ -31,11 +34,14 @@ export interface VoiceState {
   contextRevision?: number; mime?: string; audioBase64?: string; error?: RpcError;
 }
 export interface Status {
+  catalogs?: Partial<Record<ProviderId, {id: string; label: string; images: boolean; verification: string}[] | null>>;
+  catalogError?: string | null;
+  chatgpt?: {state: string; error?: string | null; connected: boolean; active: string | null; accounts: {id: string; label: string; registration: number}[]};
   schemaVersion: 1; settings: Settings; context: GameContext | null;
   history: {role: 'user' | 'assistant'; content: string; at: number}[];
   requests: RequestState[]; active: string | null; tts: VoiceState;
   pendingImageRef?: string | null;
-  auto: {paused: boolean; attempts: number; limit: number; errors: number};
+  auto: {paused: boolean; attempts: number; limit: number; errors: number; sessionConsent?: boolean; visual?: boolean};
   capabilities: {capture: boolean; images: boolean; importRoot?: string; tts: {local: boolean; openai: boolean; syntheticVoice: boolean}};
   diagnostics: Record<string, string | boolean | number>;
 }

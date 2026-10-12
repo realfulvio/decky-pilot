@@ -9,6 +9,9 @@ import time
 import uuid
 from datetime import datetime, timezone
 
+from .capture import GameCapture
+from .catalog import discover
+from .chatgpt_auth import ChatGPTAuth
 from .context import build_context, validate_context
 from .errors import RpcError, fields, require, string
 from .images import Images
@@ -16,27 +19,38 @@ from .providers import Registry
 from .storage import Configuration, DEFAULTS, PrivateStore
 from .transport import Transport
 from .tts import TTS
+from .i18n import translate
+from .situation import interpret
 
 
-def popup_text(answer):
+def popup_text(answer, language="en"):
     normalized = " ".join(answer.split())
     if len(normalized) <= 180:
         return normalized
-    return normalized[:170].rsplit(" ", 1)[0] + "… Apri DeckPilot."
+    return normalized[:170].rsplit(" ", 1)[0] + "… " + translate("openPanel", language)
 
 
 class Service:
     def __init__(self, root, emit=None, transport=None, clock=time.monotonic,
-                 wall_clock=time.time, tts=None, import_root=None):
+                 wall_clock=time.time, tts=None, import_root=None, capture=None):
         self.store = PrivateStore(root)
         self.config = Configuration(self.store)
         self.transport = transport or Transport()
+        self.chatgpt = ChatGPTAuth(self.store, self.transport, wall_clock)
+        self.chatgpt.on_change = self.account_changed
+        self.chatgpt.on_connected = self.account_connected
+        self.catalog_error = None
         self.registry = Registry(self.transport)
         self.clock, self.wall_clock = clock, wall_clock
         self.emit_callback = emit
         self.images = Images(clock)
         self.import_store = PrivateStore(import_root or self.store.root / "import-images")
         self.tts = tts or TTS(self.transport)
+        self.capture = capture or GameCapture(self.import_store.root.parent / "capture-images")
+        self.capture_task = None
+        self.capture_blocked = True
+        self.auto_session_consent = False
+        self.auto_visual = False
         self.lock = asyncio.Lock()
         self.context = None
         self.context_time = 0
@@ -53,6 +67,10 @@ class Service:
         self.auto_errors = 0
         self.last_hint_revision = -1
         self.auto_seen = set()
+        self.last_clarification = ""
+        self.pending_clarification = ""
+        self.clarification_answers = []
+        self.scene_phase = "unknown"
         self.next_auto = clock() + self.config.settings["hintIntervalSeconds"]
         self.retry_until = 0
         self.last_tick = clock()
@@ -109,13 +127,17 @@ class Service:
 
     async def get_status(self, payload):
         fields(payload, ())
-        return {"schemaVersion": 1, "settings": self.config.public(), "context": self.context,
+        return {"schemaVersion": 1, "settings": self.public_settings(), "context": self.context,
+                "chatgpt": self.chatgpt.public(),
+                "catalogs": {name: provider.catalog for name, provider in self.registry.adapters.items()},
+                "catalogError": self.catalog_error,
                 "history": self.history[-100:], "requests": list(self.records.values())[-100:],
                 "pendingImageRef": next(iter(self.images.items), None),
                 "active": self.active, "tts": self.tts_state,
                 "auto": {"paused": self.paused, "attempts": self.auto_attempts,
-                         "limit": 20, "errors": self.auto_errors},
-                "capabilities": {"capture": False, "images": self.images.available,
+                         "limit": 20, "errors": self.auto_errors,
+                         "sessionConsent": self.auto_session_consent, "visual": self.auto_visual},
+                "capabilities": {"capture": await self.capture.probe(), "images": self.images.available,
                                  "importRoot": str(self.import_store.root),
                                  "tts": self.tts.capabilities()},
                 "diagnostics": {"storage": "plaintext_private_files", "hardwareValidated": False,
@@ -125,12 +147,72 @@ class Service:
 
     async def get_settings(self, payload):
         fields(payload, ())
-        return self.config.public()
+        return self.public_settings()
+
+    def public_settings(self):
+        result = self.config.public()
+        result["configured"]["chatgpt"] = self.chatgpt.public()["connected"]
+        return result
+
+    async def credentials(self, settings):
+        result = dict(self.config.secrets)
+        if settings["provider"] == "chatgpt":
+            result["chatgpt"] = await self.chatgpt.access_token()
+        return result
+
+    async def account_changed(self):
+        async with self.lock:
+            await self.cancel_active()
+            await self.stop_voice()
+            self.images.clear()
+            for provider in self.registry.adapters.values():
+                provider.catalog = None
+            self.auto_session_consent = False
+            self.registry.get("chatgpt").catalog = None
+            if self.config.settings["provider"] == "chatgpt":
+                self.config.update({"remoteConsent": False, "visionConfirmed": False, "autoHints": False})
+
+    async def account_connected(self):
+        # Sign-in grants catalog access, but never inference or screen-sharing consent.
+        async with self.lock:
+            self.catalog_error = None
+            settings = {**self.config.settings, "provider": "chatgpt", "remoteConsent": True}
+            try:
+                await discover(self.registry.get("chatgpt"), settings, await self.credentials(settings))
+            except Exception as error:
+                self.catalog_error = error.code if isinstance(error, RpcError) else "NETWORK_ERROR"
+
+    async def begin_chatgpt_sign_in(self, payload):
+        fields(payload, ("accountId",))
+        return await self.chatgpt.begin(payload.get("accountId"))
+
+    async def disconnect_chatgpt(self, payload):
+        fields(payload, ())
+        await self.account_changed()
+        return await self.chatgpt.disconnect()
+
+    async def cancel_chatgpt_sign_in(self, payload):
+        fields(payload, ())
+        await self.chatgpt.cancel()
+        self.chatgpt.state = "idle"
+        return {"cancelled": True}
+
+    async def list_models(self, payload):
+        fields(payload, ("provider", "consent"))
+        require(payload.get("consent") is True, "CONSENT_REQUIRED")
+        async with self.lock:
+            require(not self.active, "BUSY")
+            provider_id = payload.get("provider")
+            require(provider_id in self.registry.adapters)
+            settings = {**self.config.settings, "provider": provider_id,
+                        "remoteConsent": True, "endpointConsent": True}
+            return await discover(self.registry.get(provider_id), settings, await self.credentials(settings))
 
     async def update_settings(self, payload):
         # Serialize revocation with generation admission. Any settings edit invalidates images.
         async with self.lock:
             result = self.config.update(payload)
+            self.auto_session_consent = False
             await self.cancel_active()
             await self.stop_voice()
             self.images.clear()
@@ -146,14 +228,19 @@ class Service:
         fields(payload, ("provider", "key"))
         async with self.lock:
             result = self.config.set_key(payload.get("provider"), payload.get("key"))
+            self.registry.get(payload["provider"]).catalog = None
+            self.auto_session_consent = False
             await self.cancel_active()
             await self.stop_voice()
+            self.images.clear()
             return result
 
     async def delete_api_key(self, payload):
         fields(payload, ("provider",))
         async with self.lock:
             result = self.config.delete_key(payload.get("provider"))
+            self.registry.get(payload["provider"]).catalog = None
+            self.auto_session_consent = False
             await self.cancel_active()
             await self.stop_voice()
             self.images.clear()
@@ -179,7 +266,13 @@ class Service:
                 self.auto_attempts = self.auto_errors = 0
                 self.last_hint_revision = -1
                 self.auto_seen.clear()
+                self.last_clarification = ""
+                self.pending_clarification = ""
+                self.clarification_answers.clear()
+                self.scene_phase = "unknown"
                 self.paused = False
+                self.auto_session_consent = False
+                self.auto_visual = False
                 self.next_auto = self.clock() + self.config.settings["hintIntervalSeconds"]
                 self.records.clear()
             self.context_time = self.clock()
@@ -187,8 +280,19 @@ class Service:
                             "sessionId": str(uuid.uuid4()) if new else previous["sessionId"],
                             "revision": 1 if new else previous["revision"] + 1,
                             "observedAt": datetime.fromtimestamp(self.wall_clock(), timezone.utc).isoformat()}
+            if data["source"] == "unknown":
+                self.paused = True
+                self.auto_session_consent = False
             await self.emit("context_changed", self.context)
             return self.context
+
+    async def observe_active_game(self, payload):
+        fields(payload, ("appId",))
+        async with self.lock:
+            require(self.context and self.context["source"] == "steam_internal" and
+                    payload.get("appId") == self.context["appId"], "CONTEXT_STALE")
+            self.context_time = self.clock()
+            return {"observed": True}
 
     async def start_assistant_request(self, payload):
         async with self.lock:
@@ -197,7 +301,7 @@ class Service:
             return await self.start_request(payload)
 
     async def start_request(self, payload, auto=False):
-        fields(payload, ("requestId", "sessionId", "contextRevision", "kind", "text", "imageRef"))
+        fields(payload, ("requestId", "sessionId", "contextRevision", "kind", "text", "imageRef", "clarificationReply"))
         request_id = string(payload.get("requestId"), 100, 1)
         require(bool(request_id) and all(c.isalnum() or c in "_-" for c in request_id))
         require(self.context is not None, "CONTEXT_STALE")
@@ -210,9 +314,17 @@ class Service:
         require(self.clock() >= self.retry_until, "RATE_LIMITED")
         text = string(payload.get("text"), 4000, 1)
         require(bool(text))
-        settings, secrets = copy.deepcopy(self.config.settings), dict(self.config.secrets)
+        settings = copy.deepcopy(self.config.settings)
+        secrets = await self.credentials(settings)
         provider = self.registry.get(settings["provider"])
         provider.validate_config(settings, secrets)
+        if provider.id in ("chatgpt", "grok"):
+            await discover(provider, settings, secrets)
+            require(any(model["id"] == settings["model"] for model in provider.catalog), "MODEL_UNAVAILABLE")
+        reply = None
+        if "clarificationReply" in payload:
+            reply = string(payload["clarificationReply"], 1000, 1)
+            require(bool(self.pending_clarification), "CONTEXT_STALE")
         image = None
         if payload.get("imageRef"):
             ref = string(payload["imageRef"], 100, 1)
@@ -220,7 +332,12 @@ class Service:
             require(provider.capabilities(settings)["images"], "IMAGE_UNSUPPORTED")
             image = self.images.take(ref, self.context["sessionId"], self.destination())
         context = dict(self.context)
-        system, messages = build_context(context, self.history, text, settings["spoiler"], auto)
+        if reply is not None:
+            self.clarification_answers.append({"question": self.pending_clarification, "playerAnswer": reply})
+            self.clarification_answers = self.clarification_answers[-4:]
+            self.pending_clarification = ""
+        context["clarifications"] = list(self.clarification_answers)
+        system, messages = build_context(context, self.history, text, settings["spoiler"], auto, settings["responseLanguage"])
         record = {"requestId": request_id, "sessionId": context["sessionId"],
                   "contextRevision": context["revision"], "kind": "auto_hint" if auto else "manual",
                   "state": "pending"}
@@ -236,6 +353,21 @@ class Service:
     async def generate(self, record, context, settings, secrets, provider, system, messages, image, text):
         request_id = record["requestId"]
         try:
+            if record["kind"] == "auto_hint" and self.auto_visual:
+                require(self.auto_session_consent and not self.capture_blocked, "CONSENT_REQUIRED")
+                raw = await self.capture.capture(context)
+                require(self.auto_session_consent and not self.capture_blocked and self.context and
+                        self.context["sessionId"] == context["sessionId"] and
+                        self.context["revision"] == context["revision"], "CONTEXT_STALE")
+                digest = hashlib.sha256(raw).hexdigest()
+                if digest in self.auto_seen:
+                    record["state"] = "duplicate"
+                    return
+                self.auto_seen.add(digest)
+                prepared = self.images.prepare(base64.b64encode(raw).decode("ascii"), "image/png",
+                    context["sessionId"], self.destination())
+                self.images.approve(prepared["imageRef"], context["sessionId"], self.destination())
+                image = self.images.take(prepared["imageRef"], context["sessionId"], self.destination())
             async with asyncio.timeout(settings["ollamaTimeoutSeconds"] if provider.id == "ollama" else 45):
                 output = await provider.generate(settings, secrets, system, messages, image,
                                                  record["kind"] == "auto_hint")
@@ -243,6 +375,24 @@ class Service:
                     context["sessionId"], context["revision"]):
                 raise RpcError("CONTEXT_STALE")
             answer = output["answer"]
+            parsed = interpret(answer, settings["responseLanguage"], bool(image), record["kind"] == "auto_hint")
+            output.update(parsed)
+            answer = output["answer"]
+            situation = parsed.get("situation")
+            if situation:
+                self.scene_phase = situation["phase"]
+                if situation["phase"] in ("menu", "loading"):
+                    self.paused = True
+                question = " ".join(situation["clarification"].casefold().split())
+                if record["kind"] == "auto_hint" and (not situation["useful"] or
+                        situation["phase"] != "gameplay" or question):
+                    record["state"] = "duplicate"
+                    return
+                if question and question == self.last_clarification:
+                    raise RpcError("CONTEXT_NEEDED")
+                if question:
+                    self.last_clarification = question
+                    self.pending_clarification = situation["clarification"]
             normalized = " ".join(answer.casefold().split())
             if record["kind"] == "auto_hint" and normalized in self.auto_seen:
                 record["state"] = "duplicate"
@@ -253,7 +403,7 @@ class Service:
             result = {"schemaVersion": 1, "requestId": request_id,
                       "sessionId": context["sessionId"], "contextRevision": context["revision"],
                       "provider": provider.id, "model": settings["model"], **output,
-                      "popupText": popup_text(answer), "speechText": answer[:1000]}
+                      "popupText": popup_text(answer, settings["responseLanguage"]), "speechText": answer[:1000]}
             record.update(state="completed", result=result)
             self.history.extend([
                 {"role": "user", "content": text, "at": self.wall_clock()},
@@ -262,20 +412,23 @@ class Service:
             self.persist_history()
             await self.emit("assistant_result", result)
         except asyncio.CancelledError:
-            record.update(state="cancelled", error=RpcError("CANCELLED").payload())
+            record.update(state="cancelled", error=RpcError("CANCELLED").payload(self.config.settings["uiLanguage"]))
         except Exception as exc:
             error = exc if isinstance(exc, RpcError) else RpcError(
                 "TIMEOUT" if isinstance(exc, TimeoutError) else "INTERNAL_ERROR")
-            record.update(state="error", error=error.payload())
+            record.update(state="error", error=error.payload(self.config.settings["uiLanguage"]))
             if error.code == "RATE_LIMITED":
                 self.retry_until = self.clock() + (error.retry_after_ms or 90000) / 1000
+            if error.code == "PLAN_LIMIT":
+                self.paused = True
+                self.retry_until = self.clock() + 90
             if record["kind"] == "auto_hint":
                 self.auto_errors += 1
                 if self.auto_errors >= 3:
                     self.paused = True
             await self.emit("assistant_error", {"requestId": request_id,
                 "sessionId": record["sessionId"], "contextRevision": record["contextRevision"],
-                "error": error.payload()})
+                "error": error.payload(self.config.settings["uiLanguage"])})
         finally:
             if self.active == request_id:
                 self.active = None
@@ -283,6 +436,10 @@ class Service:
             await self.emit("request_state", record)
 
     async def cancel_active(self):
+        if self.capture_task and not self.capture_task.done():
+            self.capture_task.cancel()
+            await asyncio.gather(self.capture_task, return_exceptions=True)
+        self.capture_task = None
         if self.request_task and not self.request_task.done():
             self.request_task.cancel()
             await asyncio.gather(self.request_task, return_exceptions=True)
@@ -300,13 +457,25 @@ class Service:
             return dict(record)
 
     async def set_auto_hints(self, payload):
-        fields(payload, ("enabled", "paused", "resetBudget"))
-        require(all(type(v) is bool for v in payload.values()))
+        fields(payload, ("enabled", "paused", "resetBudget", "sessionId", "consent", "visual"))
+        require(all(type(v) is bool for k, v in payload.items() if k != "sessionId"))
         async with self.lock:
             if "enabled" in payload:
                 if payload["enabled"]:
+                    require(self.context and payload.get("sessionId") == self.context["sessionId"] and
+                            payload.get("consent") is True, "CONSENT_REQUIRED")
+                    if payload.get("visual"):
+                        require(self.config.settings["captureEnabled"] and
+                                self.config.settings["imagesEnabled"], "CONSENT_REQUIRED")
+                        require(await self.capture.probe(), "CAPTURE_UNAVAILABLE")
+                        require(self.registry.get(self.config.settings["provider"]).capabilities(
+                            self.config.settings)["images"], "IMAGE_UNSUPPORTED")
                     self.registry.get(self.config.settings["provider"]).validate_config(
-                        self.config.settings, self.config.secrets)
+                        self.config.settings, await self.credentials(self.config.settings))
+                    self.auto_visual = payload.get("visual", False)
+                    self.auto_session_consent = True
+                else:
+                    self.auto_session_consent = False
                 self.config.update({"autoHints": payload["enabled"]})
             if "paused" in payload:
                 self.paused = payload["paused"]
@@ -329,11 +498,12 @@ class Service:
             self.last_tick = now
             ctx = self.context
             if (self.closed or not self.config.settings["autoHints"] or self.paused or not ctx or
+                not self.auto_session_consent or (self.auto_visual and self.capture_blocked) or
                 self.active or ctx["source"] == "unknown" or
                 self.tts_state["state"] not in ("idle", "error") or
                 now < max(self.next_auto, self.retry_until) or self.auto_attempts >= 20 or
-                self.last_hint_revision == ctx["revision"] or now - self.context_time > 300 or
-                not any(ctx[k] for k in ("objective", "location", "userNotes"))):
+                (not self.auto_visual and self.last_hint_revision == ctx["revision"]) or now - self.context_time > 300 or
+                (not self.auto_visual and not any(ctx[k] for k in ("objective", "location", "userNotes")))):
                 return None
             # Reserve before creating a task. Failures consume the cooldown and budget too.
             self.next_auto = now + self.config.settings["hintIntervalSeconds"]
@@ -342,7 +512,8 @@ class Service:
             try:
                 return await self.start_request({"requestId": uuid.uuid4().hex,
                     "sessionId": ctx["sessionId"], "contextRevision": ctx["revision"],
-                    "text": "Suggerisci un prossimo passo usando solo il contesto aggiornato."}, auto=True)
+                    "text": translate("visualPrompt" if self.auto_visual else "hintPrompt",
+                                      self.config.settings["responseLanguage"])}, auto=True)
             except RpcError:
                 self.auto_errors += 1
                 if self.auto_errors >= 3:
@@ -360,6 +531,50 @@ class Service:
     async def start(self):
         if not self.scheduler:
             self.scheduler = asyncio.create_task(self.run_scheduler())
+
+    async def set_capture_guard(self, payload):
+        fields(payload, ("blocked",))
+        require(type(payload.get("blocked")) is bool)
+        # Set immediately, before awaiting any lock or cancelling capture.
+        self.capture_blocked = payload["blocked"]
+        if self.capture_blocked:
+            if self.capture_task and not self.capture_task.done():
+                self.capture_task.cancel()
+            if self.auto_visual and self.active:
+                await self.cancel_active()
+        return {"blocked": self.capture_blocked}
+
+    async def prepare_capture(self, payload):
+        fields(payload, ("sessionId", "confirmGameplay"))
+        async with self.lock:
+            require(payload.get("confirmGameplay") is True and not self.capture_blocked,
+                    "CAPTURE_BLOCKED")
+            require(self.config.settings["captureEnabled"] and self.config.settings["imagesEnabled"],
+                    "CONSENT_REQUIRED")
+            require(self.context and payload.get("sessionId") == self.context["sessionId"], "CONTEXT_STALE")
+            require(not self.active and not self.capture_task, "BUSY")
+            provider = self.registry.get(self.config.settings["provider"])
+            credentials = await self.credentials(self.config.settings)
+            provider.validate_config(self.config.settings, credentials)
+            if provider.id in ("chatgpt", "grok"):
+                await discover(provider, self.config.settings, credentials)
+            require(provider.capabilities(self.config.settings)["images"], "IMAGE_UNSUPPORTED")
+            context, destination = dict(self.context), self.destination()
+            task = self.capture_task = asyncio.create_task(self.capture.capture(context))
+        try:
+            raw = await task
+            async with self.lock:
+                require(not self.capture_blocked and self.context and
+                        (self.context["sessionId"], self.context["revision"]) ==
+                        (context["sessionId"], context["revision"]) and
+                        destination == self.destination(), "CONTEXT_STALE")
+                return await asyncio.to_thread(self.images.prepare, base64.b64encode(raw).decode("ascii"),
+                    "image/png", context["sessionId"], destination)
+        except asyncio.CancelledError as exc:
+            raise RpcError("CANCELLED") from exc
+        finally:
+            if self.capture_task is task:
+                self.capture_task = None
 
     async def prepare_image(self, payload):
         fields(payload, ("dataBase64", "mime", "sessionId"))
@@ -424,7 +639,7 @@ class Service:
         require(self.context is not None, "CONTEXT_STALE")
         return await self.start_assistant_request({"requestId": uuid.uuid4().hex,
             "sessionId": self.context["sessionId"], "contextRevision": self.context["revision"],
-            "text": "Rispondi brevemente: connessione API verificata."})
+            "text": translate("connectionPrompt", settings["responseLanguage"])})
 
     async def start_tts(self, payload):
         fields(payload, ("requestId", "sessionId"))
@@ -452,7 +667,7 @@ class Service:
             pass
         except Exception as exc:
             error = exc if isinstance(exc, RpcError) else RpcError("VOICE_UNAVAILABLE")
-            self.tts_state = {**state, "state": "error", "error": error.payload()}
+            self.tts_state = {**state, "state": "error", "error": error.payload(self.config.settings["uiLanguage"])}
             await self.emit("tts_state", self.tts_state)
 
     async def stop_voice(self):
@@ -476,6 +691,8 @@ class Service:
             await self.cancel_active()
             await self.stop_voice()
             self.history.clear()
+            self.pending_clarification = self.last_clarification = ""
+            self.clarification_answers.clear()
             self.records.clear()
             self.images.clear()
             if self.context:
@@ -494,13 +711,20 @@ class Service:
             await self.stop_voice()
             self.images.clear()
             self.context = None
+            self.auto_session_consent = False
+            self.auto_visual = False
             self.history.clear()
+            self.pending_clarification = self.last_clarification = ""
+            self.clarification_answers.clear()
             self.records.clear()
             self.archive.clear()
             self.auto_seen.clear()
             self.auto_attempts = self.auto_errors = 0
             self.retry_until = 0
-            for name in ("settings.json", "secrets.json", "history.json"):
+            await self.chatgpt.close()
+            self.chatgpt.data["accounts"].clear()
+            self.chatgpt.data["active"] = None
+            for name in ("settings.json", "secrets.json", "history.json", "chatgpt-auth.json"):
                 self.store.delete(name)
             self.config.settings = dict(DEFAULTS)
             self.config.secrets.clear()
@@ -516,13 +740,16 @@ class Service:
         await self.cancel_active()
         await self.stop_voice()
         self.images.clear()
+        await self.chatgpt.close()
         await self.transport.close()
 
     async def rpc(self, method, payload):
         allowed = {"get_status", "get_settings", "update_settings", "set_api_key", "delete_api_key",
                    "set_game_context", "start_assistant_request", "cancel_request", "set_auto_hints",
                    "prepare_image", "prepare_import_image", "approve_image_send", "discard_image", "test_provider",
-                   "start_tts", "stop_tts", "clear_history", "delete_local_data"}
+                   "prepare_capture", "set_capture_guard", "start_tts", "stop_tts", "clear_history", "delete_local_data",
+                   "begin_chatgpt_sign_in", "cancel_chatgpt_sign_in", "disconnect_chatgpt", "list_models",
+                   "observe_active_game"}
         try:
             require(not self.closed, "CANCELLED")
             require(isinstance(method, str) and method in allowed)
@@ -530,4 +757,4 @@ class Service:
             return {"ok": True, "data": await getattr(self, method)(payload)}
         except Exception as exc:
             error = exc if isinstance(exc, RpcError) else RpcError("INTERNAL_ERROR")
-            return {"ok": False, "error": error.payload()}
+            return {"ok": False, "error": error.payload(self.config.settings["uiLanguage"])}

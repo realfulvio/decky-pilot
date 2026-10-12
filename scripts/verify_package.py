@@ -1,6 +1,8 @@
 import hashlib
 import json
+import subprocess
 import sys
+import tempfile
 from pathlib import Path, PurePosixPath
 from zipfile import ZipFile
 
@@ -8,6 +10,9 @@ REQUIRED = {"DeckPilot/main.py", "DeckPilot/plugin.json", "DeckPilot/package.jso
             "DeckPilot/backend/service.py", "DeckPilot/backend/providers.py", "DeckPilot/LICENSE",
             "DeckPilot/py_modules/PIL/_imaging.cpython-311-x86_64-linux-gnu.so",
             "DeckPilot/py_modules/deckpilot-vendor.json"}
+REQUIRED |= {"DeckPilot/locales/en.json", "DeckPilot/locales/it.json"}
+REQUIRED |= {"DeckPilot/assets/brand/decky-pilot-logo-dark.png", "DeckPilot/assets/brand/decky-pilot-menu.svg",
+             "DeckPilot/contracts/vision-models.json"}
 REQUIRED |= {"DeckPilot/docs/licenses/decky-api-LGPL-2.1.txt", "DeckPilot/third_party/decky-api/src/index.ts"}
 
 
@@ -28,8 +33,10 @@ def verify(path):
         if manifest.get("flags") != [] or manifest.get("api_version") != 1:
             raise ValueError("Unexpected privileges or API version")
         bundle = archive.read("DeckPilot/dist/index.js").decode()
-        if "SP_REACT" not in bundle or "HARNESS OFFLINE" in bundle or "FakeBridge" in bundle:
+        if "SP_REACT" not in bundle or "FakeBridge" in bundle:
             raise ValueError("React bundling or harness contamination")
+        if "Decky Pilot" not in bundle or not any(name.startswith("DeckPilot/dist/") and name.endswith(".svg") for name in names):
+            raise ValueError("Public branding or bundled menu asset missing")
         vendor = json.loads(archive.read("DeckPilot/py_modules/deckpilot-vendor.json"))
         if vendor["sha256"] != "23d27a3e0307ec2244cc51e7287b919aa68d097504ebe19df4e76a98a3eea5bd":
             raise ValueError("Unexpected runtime wheel")
@@ -41,5 +48,61 @@ def verify(path):
     print(f"Verified {len(names)} files: Decky layout, runtime ABI, no development/private files")
 
 
+def verify_runtime(path):
+    """Execute the extracted deliverable, never dependencies from the checkout/venv."""
+    if not sys.platform.startswith("linux") or sys.version_info[:2] != (3, 11):
+        raise ValueError("Packaged runtime smoke requires Linux CPython 3.11")
+    with tempfile.TemporaryDirectory(prefix="deckpilot-package-") as temporary:
+        with ZipFile(path) as archive:
+            archive.extractall(temporary)
+        root = Path(temporary) / "DeckPilot"
+        code = '''
+import asyncio, importlib.util, io, sys
+from pathlib import Path
+from types import SimpleNamespace
+root = Path(sys.argv[1]).resolve()
+sys.path[:0] = [str(root / "py_modules"), str(root)]
+from PIL import Image, _imaging
+import jwt
+from cryptography.hazmat.primitives.asymmetric import rsa
+assert Path(jwt.__file__).is_relative_to(root / "py_modules")
+key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+token = jwt.encode({"sub": "synthetic"}, key, algorithm="RS256")
+assert jwt.decode(token, key.public_key(), algorithms=["RS256"])["sub"] == "synthetic"
+assert Path(Image.__file__).is_relative_to(root / "py_modules")
+assert Path(_imaging.__file__).is_relative_to(root / "py_modules")
+data = io.BytesIO()
+Image.new("RGB", (2, 2), "navy").save(data, format="PNG")
+data.seek(0)
+with Image.open(data) as decoded:
+    decoded.load()
+    assert decoded.size == (2, 2)
+async def emit(*args):
+    pass
+sys.modules["decky"] = SimpleNamespace(
+    DECKY_PLUGIN_SETTINGS_DIR=str(root / "smoke-settings"),
+    DECKY_PLUGIN_RUNTIME_DIR=str(root / "smoke-runtime"), emit=emit)
+spec = importlib.util.spec_from_file_location("deckpilot_packaged", root / "main.py")
+module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
+async def smoke():
+    plugin = module.Plugin()
+    try:
+        await plugin._migration()
+        await plugin._main()
+        status = await plugin.rpc("get_status", {})
+        assert status["ok"] and status["data"]["settings"]["provider"] is None
+    finally:
+        await plugin._unload()
+    assert plugin.service is None
+asyncio.run(smoke())
+print("Extracted ZIP runtime passed: vendored Pillow encode/decode and offline plugin lifecycle")
+'''
+        subprocess.run([sys.executable, "-I", "-c", code, str(root)],
+                       cwd=temporary, check=True, timeout=30)
+
+
 if __name__ == "__main__":
     verify(sys.argv[1])
+    if "--runtime" in sys.argv[2:]:
+        verify_runtime(sys.argv[1])
