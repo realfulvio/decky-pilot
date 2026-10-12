@@ -111,6 +111,7 @@ class Service:
         fields(payload, ())
         return {"schemaVersion": 1, "settings": self.config.public(), "context": self.context,
                 "history": self.history[-100:], "requests": list(self.records.values())[-100:],
+                "pendingImageRef": next(iter(self.images.items), None),
                 "active": self.active, "tts": self.tts_state,
                 "auto": {"paused": self.paused, "attempts": self.auto_attempts,
                          "limit": 20, "errors": self.auto_errors},
