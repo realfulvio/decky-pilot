@@ -1,47 +1,272 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#", "$id": "https://deckpilot.invalid/rpc-v1",
-  "title": "DeckPilot RPC v1", "definitions": {
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://deckpilot.invalid/rpc-v1",
+  "title": "DeckPilot RPC v1",
+  "definitions": {
     "request": {
-      "type": "object", "additionalProperties": false,
-      "required": ["requestId", "sessionId", "contextRevision", "kind", "text"],
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requestId",
+        "sessionId",
+        "contextRevision",
+        "kind",
+        "text"
+      ],
       "properties": {
-        "requestId": {"type": "string", "minLength": 1, "maxLength": 100, "pattern": "^[A-Za-z0-9_-]+$"},
-        "sessionId": {"type": "string", "minLength": 1},
-        "contextRevision": {"type": "integer", "minimum": 1},
-        "kind": {"enum": ["manual", "auto_hint"]},
-        "text": {"type": "string", "minLength": 1, "maxLength": 4000},
-        "imageRef": {"type": "string", "minLength": 1, "maxLength": 100}
+        "requestId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "sessionId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "contextRevision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "kind": {
+          "enum": [
+            "manual",
+            "auto_hint"
+          ]
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4000
+        },
+        "imageRef": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "clarificationReply": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        }
       }
     },
     "result": {
-      "type": "object", "additionalProperties": false,
-      "required": ["schemaVersion", "requestId", "sessionId", "contextRevision", "provider", "model", "answer", "popupText", "speechText", "usage"],
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "requestId",
+        "sessionId",
+        "contextRevision",
+        "provider",
+        "model",
+        "answer",
+        "popupText",
+        "speechText",
+        "usage"
+      ],
       "properties": {
-        "schemaVersion": {"const": 1}, "requestId": {"type": "string"}, "sessionId": {"type": "string"},
-        "contextRevision": {"type": "integer", "minimum": 1},
-        "provider": {"enum": ["openai", "gemini", "claude", "ollama"]}, "model": {"type": "string"},
-        "answer": {"type": "string", "minLength": 1, "maxLength": 16000},
-        "popupText": {"type": "string", "maxLength": 240}, "speechText": {"type": "string", "maxLength": 1000},
-        "usage": {"type": "object", "additionalProperties": false, "properties": {
-          "inputTokens": {"type": "integer", "minimum": 0}, "outputTokens": {"type": "integer", "minimum": 0}
-        }}
+        "schemaVersion": {
+          "const": 1
+        },
+        "requestId": {
+          "type": "string"
+        },
+        "sessionId": {
+          "type": "string"
+        },
+        "contextRevision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "provider": {
+          "enum": [
+            "chatgpt",
+            "openai",
+            "gemini",
+            "claude",
+            "grok",
+            "ollama"
+          ]
+        },
+        "model": {
+          "type": "string"
+        },
+        "answer": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 16000
+        },
+        "popupText": {
+          "type": "string",
+          "maxLength": 240
+        },
+        "speechText": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "usage": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "inputTokens": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "outputTokens": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "situation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "observations",
+            "inferences",
+            "goal",
+            "obstacle",
+            "steps",
+            "clarification",
+            "phase",
+            "useful"
+          ],
+          "properties": {
+            "observations": {
+              "type": "array",
+              "maxItems": 6,
+              "items": {
+                "type": "string",
+                "maxLength": 600
+              }
+            },
+            "inferences": {
+              "type": "array",
+              "maxItems": 6,
+              "items": {
+                "type": "string",
+                "maxLength": 600
+              }
+            },
+            "steps": {
+              "type": "array",
+              "maxItems": 5,
+              "items": {
+                "type": "string",
+                "maxLength": 600
+              }
+            },
+            "goal": {
+              "type": "string",
+              "maxLength": 600
+            },
+            "obstacle": {
+              "type": "string",
+              "maxLength": 600
+            },
+            "clarification": {
+              "type": "string",
+              "maxLength": 180
+            },
+            "phase": {
+              "enum": [
+                "gameplay",
+                "menu",
+                "loading",
+                "unknown"
+              ]
+            },
+            "useful": {
+              "type": "boolean"
+            }
+          }
+        }
       }
     },
     "context": {
-      "type": "object", "additionalProperties": false,
-      "required": ["gameKey", "appId", "title", "source", "sessionId", "revision", "observedAt", "objective", "location", "userNotes"],
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gameKey",
+        "appId",
+        "title",
+        "source",
+        "sessionId",
+        "revision",
+        "observedAt",
+        "objective",
+        "location",
+        "userNotes"
+      ],
       "properties": {
-        "gameKey": {"type": "string"}, "appId": {"type": "string", "pattern": "^[0-9]{0,20}$"},
-        "title": {"type": "string", "minLength": 1, "maxLength": 200},
-        "source": {"enum": ["manual", "steam_internal", "unknown"]}, "sessionId": {"type": "string"},
-        "revision": {"type": "integer", "minimum": 1}, "observedAt": {"type": "string"},
-        "objective": {"type": "string", "maxLength": 4000}, "location": {"type": "string", "maxLength": 4000},
-        "userNotes": {"type": "string", "maxLength": 4000}
+        "gameKey": {
+          "type": "string"
+        },
+        "appId": {
+          "type": "string",
+          "pattern": "^[0-9]{0,20}$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "source": {
+          "enum": [
+            "manual",
+            "steam_internal",
+            "unknown"
+          ]
+        },
+        "sessionId": {
+          "type": "string"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "observedAt": {
+          "type": "string"
+        },
+        "objective": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "location": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "userNotes": {
+          "type": "string",
+          "maxLength": 4000
+        }
       }
     },
     "error": {
-      "type": "object", "additionalProperties": false, "required": ["code", "message", "retryable"],
-      "properties": {"code": {"type": "string"}, "message": {"type": "string"}, "retryable": {"type": "boolean"}, "retryAfterMs": {"type": "integer", "minimum": 0}}
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "message",
+        "retryable"
+      ],
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "retryable": {
+          "type": "boolean"
+        },
+        "retryAfterMs": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
     }
   }
 }

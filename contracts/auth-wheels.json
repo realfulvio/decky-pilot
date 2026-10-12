@@ -1,0 +1,6 @@
+[
+  {"wheel":"pyjwt-2.15.1-py3-none-any.whl","url":"https://files.pythonhosted.org/packages/50/ca/44de4e75f8aadc457f0634be3b542815078ded46dca30efb960edeecad6e/pyjwt-2.15.1-py3-none-any.whl","sha256":"42d59d631f7768a1028a64c7ff581a9bf7519804daf91fc5b6c56e30eec5e193"},
+  {"wheel":"cryptography-50.0.2-cp311-abi3-manylinux_2_28_x86_64.whl","url":"https://files.pythonhosted.org/packages/1a/f1/b474e930c4d910328780e3940da76f5aa5cbc48ce1fc14e44d239d9ea9db/cryptography-50.0.2-cp311-abi3-manylinux_2_28_x86_64.whl","sha256":"4061c0079120205fb760c58acab6443e217307dcf05e3702cf970e0689972856"},
+  {"wheel":"cffi-2.0.0-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl","url":"https://files.pythonhosted.org/packages/d7/91/500d892b2bf36529a75b77958edfcd5ad8e2ce4064ce2ecfeab2125d72d1/cffi-2.0.0-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl","sha256":"8941aaadaf67246224cee8c3803777eed332a19d909b47e29c9842ef1e79ac26"},
+  {"wheel":"pycparser-2.23-py3-none-any.whl","url":"https://files.pythonhosted.org/packages/a0/e3/59cd50310fc9b59512193629e1984c1f95e5c8ae6e5d8c69532ccc65a7fe/pycparser-2.23-py3-none-any.whl","sha256":"e5c6e8d3fbad53479cab09ac03729e0a9faf2bee3db8208a550daf5af81a5934"}
+]

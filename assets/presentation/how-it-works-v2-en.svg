@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="390" viewBox="0 0 1200 390" role="img" aria-labelledby="title desc">
+<title id="title">Decky Pilot: from your game to useful help</title><desc id="desc">Concept workflow: identify and confirm the game, press Help me now, consent separately to capture and sharing, combine a recent image with session context, receive useful steps or one clarification and optional voice. Automatic capture is currently disabled pending safe integration and Steam Deck validation.</desc>
+<defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#10273c"/><stop offset="1" stop-color="#081521"/></linearGradient></defs>
+<rect width="1200" height="390" rx="20" fill="url(#bg)"/>
+<g font-family="Segoe UI,Arial,sans-serif"><text x="30" y="40" fill="#8ae4cf" font-size="15" letter-spacing="2">YOUR GAME → YOUR SCREEN → YOUR NEXT STEP</text>
+<g fill="#163448" stroke="#4d7689"><rect x="30" y="66" width="218" height="215" rx="14"/><rect x="261" y="66" width="218" height="215" rx="14"/><rect x="492" y="66" width="218" height="215" rx="14"/><rect x="723" y="66" width="218" height="215" rx="14"/><rect x="954" y="66" width="218" height="215" rx="14"/></g>
+<g fill="#88e2ce" font-size="34" font-weight="700"><text x="49" y="113">01</text><text x="280" y="113">02</text><text x="511" y="113">03</text><text x="742" y="113">04</text><text x="973" y="113">05</text></g>
+<g fill="#f4f8fc" font-size="21" font-weight="700"><text x="49" y="151">Open your game</text><text x="280" y="151">Help me now</text><text x="511" y="151">Your permission</text><text x="742" y="151">Read the moment</text><text x="973" y="151">A useful next step</text></g>
+<g fill="#ccdde8" font-size="17"><text x="49" y="186">Steam title, if available.</text><text x="49" y="213">Confirm or correct it.</text><text x="49" y="244">Non-Steam? Add a title.</text>
+<text x="280" y="186">Ask about this moment.</text><text x="280" y="213">Add what you tried</text><text x="280" y="240">or want to achieve.</text>
+<text x="511" y="186">Capture consent.</text><text x="511" y="213">Separate send consent.</text><text x="511" y="244">Your chosen AI only.</text>
+<text x="742" y="186">Recent image + session.</text><text x="742" y="213">Visible observations</text><text x="742" y="240">and labelled deductions.</text>
+<text x="973" y="186">Steps or one question.</text><text x="973" y="213">Optional voice.</text><text x="973" y="244">Pause automatic help.</text></g>
+<rect x="30" y="302" width="1142" height="58" rx="10" fill="#3c3324" stroke="#8d7653"/><text x="48" y="325" fill="#f1d7a4" font-size="16">CONCEPT WORKFLOW · Automatic capture is disabled pending safe game-only integration and Steam Deck validation.</text><text x="48" y="347" fill="#e1d4bb" font-size="15">Manual image import is available in the MVP review path. It does not complete automatic gameplay capture.</text></g></svg>

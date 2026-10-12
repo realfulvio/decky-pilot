@@ -1,71 +1,87 @@
 # Decky Pilot interface gallery
 
-English previews of the implemented React application, captured on 13 October 2026 from MVP source commit `d192330cc36816c7e15d522932de0c1202c240d1`. Generated with `node scripts/capture_gallery.mjs`, Microsoft Edge, at 1280x800 (1280x720 for the last Play view). The panel scrolls: each image shows a portion of its content.
+These are **actual browser screenshots of the implemented React App**, with labelled HTML stand-ins and synthetic data. They are not mockups, Steam Deck captures, live AI answers or hardware evidence. The offline harness does not sign in, send paid requests, acquire gameplay or play speech. Production injects Decky controls; controller acceptance remains **NOT RUN**.
 
-**Offline preview: synthetic game, answers and image; no AI calls, credentials, audio playback or device capture.** These are browser screenshots of the real App using explicitly labelled HTML stand-ins. Production injects `@decky/ui` controls and vertical/horizontal Focusable groups. Font/rendering/controller focus, installation, QAM notifications, audio routing and performance on Steam Deck remain **NOT RUN**. Keyboard/browser tests do not certify controller behavior.
+[source.json](images/ui/source.json) records the committed source, browser and UTC capture time. Fifteen full views and fifteen directly captured panels are included. The left illustration and simulation buttons are review-harness content; the right panel is the application. [Asset provenance](PRESENTATION_ASSETS.md).
 
-The full viewport captures below show the surrounding review harness. Panel-only screenshots in the README are captured directly from the browser as well; neither version is a mockup. The right panel is the plugin. The left illustration and simulation buttons belong only to the review harness. Original opaque PNG branding from PR #2 is preserved; the compact menu symbol is a separately drawn matching SVG. [Asset sources](PRESENTATION_ASSETS.md). Browser tests also inspect a 360-pixel viewport and the menu symbol at 20/24/32 pixels.
+## Help me now
 
-## Play: a clear next step
+The game, primary action, question and latest reply stay together.
 
-Active game, readiness, one primary **Help me now** action, free question and the latest answer. The capture notice states the actual capability; the synthetic answer is explicitly based on notes, not a claimed observation of gameplay.
+![Actual browser Help me now view with synthetic context](images/ui/01-play.png?raw=true)
 
-![English Play screen with active game and primary Help me now action](images/ui/01-play.png?raw=true)
+## Contextual next steps
 
-## Game context
+Synthetic observations and deductions are explicitly separated, followed by concrete steps. This demonstrates the layout and result contract, not model accuracy.
 
-A game title and objective are enough to begin. Optional area, notes and AppID stay under Advanced options. Detection is unavailable in this offline harness, and manual entry remains available.
+![Actual browser contextual answer with synthetic observations, deductions and steps](images/ui/15-contextual-answer.png?raw=true)
 
-![Simple Game screen with title, objective and manual fallback](images/ui/02-game.png?raw=true)
+## One clarification
 
-## Welcome and guided setup
+A synthetic ambiguous scene produces one short question. The player's answer becomes bounded session context.
 
-Original wordmark, short explanation and a Get started action. Setup does not send a remote request. The next image shows the first of three steps: game, AI service, then sharing permissions and an explicitly requested connection check that may cost money.
+![Actual browser one-question clarification](images/ui/13-clarification.png?raw=true)
 
-![First-use welcome with Decky Pilot wordmark](images/ui/03-onboarding.png?raw=true)
+## Game identification and correction
 
-![First guided setup step with game fields](images/ui/09-guided-game.png?raw=true)
+Use available Steam information, confirm/correct the title or enter an unknown/non-Steam game manually. This offline harness has no actual running Steam game.
 
-## Service and sharing
+![Actual browser game context form](images/ui/02-game.png?raw=true)
 
-Credentials stay in Settings and inputs are empty in the preview. Chat context, image capability and manual image sharing have distinct controls; there is no silent recipient/model substitution. Selected model support is verified against official documentation, while access in an actual account remains untested.
+## Welcome and onboarding
 
-![AI service credentials and explicit chat/image sharing settings](images/ui/04-service-sharing.png?raw=true)
+![Actual browser welcome](images/ui/03-onboarding.png?raw=true)
 
-## Independent languages
+![Actual browser guided game setup](images/ui/09-guided-game.png?raw=true)
 
-Interface and assistant language initially use English; complete Italian translation is available. Assistant language governs both answers and synthesized speech, independently of interface language. The legacy voice-language field is preserved in storage without overriding this decision.
+## Choose your AI
 
-![English interface and assistant language selectors with AI service settings](images/ui/05-languages.png?raw=true)
+ChatGPT plan access and advanced OpenAI developer API access are separate connections. Claude, Gemini, Grok and Ollama remain choices. Model names come from the selected service, with independent image gates.
 
-## Image review and recipient approval
+![Actual browser AI connection selection](images/ui/11-ai-connection.png?raw=true)
 
-The image is an explicitly labelled synthetic test fixture, not gameplay. The actual import flow validates and cleans images, previews the destination, and offers removal and per-image approval before analysis. **Help me now** cannot share an unapproved attachment. Native acquisition and automatic visual sharing remain unavailable because the verified Gamescope mechanism does not atomically bind acquisition to the authorized game.
+## ChatGPT sign-in settings
 
-![Synthetic image preview naming the recipient and requiring explicit approval](images/ui/06-image-review.png?raw=true)
+This screenshot shows the real account-setup controls with **no connected account**. It does not demonstrate successful authorization. Real account eligibility and SteamOS browser/loopback behavior remain untested.
 
-## Pending request and cancellation
+![Actual browser ChatGPT setup with no account](images/ui/14-chatgpt-sign-in.png?raw=true)
 
-The harness deliberately delays a synthetic response to exercise the real pending/cancel layout. There is no real provider request or background capture.
+## Separate capture and sending permissions
 
-![Pending question with a visible Cancel action](images/ui/07-pending.png?raw=true)
+**Capture availability is simulated only to show this implemented consent dialog. No screen is acquired.** Production capture stays disabled until safe atomic game-only acquisition is established.
 
-## Latest answer, voice and automatic state at 720 pixels
+![Actual browser capture consent with simulated availability](images/ui/12-capture-consent.png?raw=true)
 
-Full text remains readable, with Listen / Stop, a visible automatic-help state and secondary conversation access. Voice is unavailable in the offline harness; this screen does not demonstrate speech playback. Automatic help is off, and its information flow explains the unavailable capture capability.
+The import alternative independently validates and cleans an explicitly selected PNG/JPEG, previews the recipient and requires per-image sending approval. It does not complete automatic gameplay capture.
 
-![Scrolled Play view at 1280x720 with answer, Listen and Stop, automatic state and history](images/ui/08-play-720.png?raw=true)
+![Actual browser synthetic image preview and recipient approval](images/ui/06-image-review.png?raw=true)
 
-## Voice settings
+## Service permissions and independent languages
 
-On-device voice is used only when an engine is already installed. OpenAI voice requires a separate key and explicit permission to send answer text, potentially incurring costs. Missing voice falls back to text; no engine is installed automatically.
+Inputs contain no credentials. Game-context sharing, images, capture and Speech have separate permissions. Interface language and assistant/voice language are independent; English defaults and complete Italian translation are retained.
 
-![Voice enablement, service and volume settings](images/ui/10-voice.png?raw=true)
+![Actual browser service sharing settings](images/ui/04-service-sharing.png?raw=true)
 
-## Reproduction and historical assets
+![Actual browser independent language settings](images/ui/05-languages.png?raw=true)
 
-Run the existing MVP preview server, then `node scripts/capture_gallery.mjs`; ten full views, ten panel PNGs and commit/browser/time metadata are written under `artifacts/gallery/`. Use `PLAYWRIGHT_CHANNEL=chromium` on Linux. Source metadata is included alongside these images.
+## Pending and cancellation
 
-The eight earlier captures from `c60e6d7` were intentionally replaced. They remain in Git history and are not presented as the redesigned UI. Branding source commit `1b5cc03` was integrated into the MVP without merging either PR. PR #2 stays based on `codex/deckpilot-mvp`; no application code/dependency change is made here, and neither PR is merged.
+The harness deliberately delays a synthetic answer; no provider request is made.
 
-Next hardware work follows the MVP branch's [hardware checklist](https://github.com/realfulvio/decky-pilot/blob/codex/deckpilot-mvp/docs/HARDWARE_VALIDATION.md) and [capture findings](https://github.com/realfulvio/decky-pilot/blob/codex/deckpilot-mvp/docs/CAPTURE_VERIFICATION.md): first establish a safe acquisition mechanism, then verify Deck ABI/install, actual controller/picker, popup/audio and performance. No unavailable Steam Deck is needed to reproduce these offline previews.
+![Actual browser pending request and Cancel](images/ui/07-pending.png?raw=true)
+
+## Voice and automatic state
+
+Listen/Stop and automatic status are real controls. These previews do not play speech or demonstrate hardware capture. Local voice needs an installed engine; online Speech requires a separate OpenAI API key and permission, even with ChatGPT plan sign-in.
+
+![Actual browser Play controls at 1280x720](images/ui/08-play-720.png?raw=true)
+
+![Actual browser voice settings](images/ui/10-voice.png?raw=true)
+
+## Reproduce and validate
+
+On the MVP branch, start `corepack pnpm preview`, then run `node scripts/capture_gallery.mjs`. Windows uses installed Edge; Linux uses `PLAYWRIGHT_CHANNEL=chromium`. The script creates 30 PNGs and source metadata in ignored `artifacts/gallery/`. Full views use 1280x800 or 1280x720; panels are browser locator captures, not fabricated afterward.
+
+Older gallery images remain in Git history, clearly superseded. Original branding bytes are preserved. The concept cover and editable workflow are separately labelled illustrations. Main contains presentation only; code remains in [PR #1](https://github.com/realfulvio/decky-pilot/pull/1), with this gallery coordinated in [PR #2](https://github.com/realfulvio/decky-pilot/pull/2). Neither PR is merged.
+
+Hardware work follows the [device checklist](https://github.com/realfulvio/decky-pilot/blob/codex/deckpilot-mvp/docs/HARDWARE_VALIDATION.md) and [capture blocker](https://github.com/realfulvio/decky-pilot/blob/codex/deckpilot-mvp/docs/CAPTURE_VERIFICATION.md). Browser/keyboard checks cannot certify controller, SteamOS browser callbacks, QAM, audio or performance.

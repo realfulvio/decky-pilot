@@ -1,5 +1,6 @@
 import type { Controls } from '../components/controls';
 export const harnessControls: Controls = {
+  Group: ({children,className}) => <div className={className}>{children}</div>,
   Button: ({children, onClick, disabled}) => <button onClick={onClick} disabled={disabled}>{children}</button>,
   Input: ({label, value, onChange, secret}) => <label>{label}<input value={value} type={secret ? 'password' : 'text'} onChange={e => onChange(e.target.value)} /></label>,
   Toggle: ({label, checked, onChange}) => <label className="toggle"><input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} />{label}</label>,

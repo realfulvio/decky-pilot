@@ -1,21 +1,6 @@
-MESSAGES = {
-    "NOT_CONFIGURED": "Configura provider, modello e credenziale nelle impostazioni.",
-    "INVALID_INPUT": "Dati non validi: controlla i campi e i limiti indicati.",
-    "AUTH_FAILED": "Credenziale rifiutata dal provider.",
-    "MODEL_UNAVAILABLE": "Modello non disponibile: selezionane uno autorizzato.",
-    "RATE_LIMITED": "Limite del provider raggiunto. Attendi prima di riprovare.",
-    "TIMEOUT": "La richiesta ha superato il tempo massimo.",
-    "NETWORK_ERROR": "Provider non raggiungibile o risposta non valida.",
-    "IMAGE_UNSUPPORTED": "Supporto immagini non confermato per questo modello.",
-    "CONSENT_REQUIRED": "Serve il consenso esplicito per questa destinazione.",
-    "CONTEXT_STALE": "Il contesto è cambiato o non è abbastanza recente.",
-    "CANCELLED": "Richiesta annullata; il provider potrebbe aver già applicato un costo.",
-    "PROVIDER_BLOCKED": "Il provider non ha restituito una risposta utilizzabile.",
-    "BUSY": "Una richiesta è già in corso.",
-    "INTERNAL_ERROR": "Operazione non riuscita. Controlla la diagnostica.",
-    "STORAGE_ERROR": "Archivio locale non sicuro o non valido; i dati non sono stati azzerati.",
-    "VOICE_UNAVAILABLE": "Voce non disponibile: la risposta testuale resta accessibile.",
-}
+from .i18n import CATALOGS, translate
+
+MESSAGES = {key[6:]: value for key, value in CATALOGS["en"].items() if key.startswith("error.")}
 
 
 class RpcError(Exception):
@@ -24,8 +9,8 @@ class RpcError(Exception):
         self.retry_after_ms = retry_after_ms
         super().__init__(MESSAGES.get(code, MESSAGES["INTERNAL_ERROR"]))
 
-    def payload(self):
-        value = {"code": self.code, "message": str(self),
+    def payload(self, language="en"):
+        value = {"code": self.code, "message": translate("error." + self.code, language),
                  "retryable": self.code in {"RATE_LIMITED", "TIMEOUT", "NETWORK_ERROR", "BUSY"}}
         if self.retry_after_ms is not None:
             value["retryAfterMs"] = self.retry_after_ms

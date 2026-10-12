@@ -1,19 +1,11 @@
-# Implement DeckPilot MVP with secure providers, contextual hints and TTS
+# Decky Pilot: situation-aware assistance, account catalogs and reviewed presentation
 
-Il checkout disponibile non aveva DeckPilot. Questa PR introduce un plugin Decky compilabile con UI italiana, backend validato e REST reali OpenAI Responses,Gemini,Claude e Ollama. La chat usa contesto esplicito e chiede dettagli se il gameplay non è noto.
+The primary **Help me now** flow combines the confirmed active game, a recent authorized image, the player's question and session context. Structured replies separate observations from deductions and provide concrete steps or one short clarification. Player replies remain bounded session context. English defaults, full Italian translation, separate interface/assistant language, full-solution spoiler default, six-second popup and optional voice are retained.
 
-Implementati settings/chiavi private,consensi chat/endpoint/immagini/Speech,sessioni/cancel,hint server minimo90s e contesto nuovo,popup6s/crono completa,importPNG/JPEG ripulito/preview/consenso monouso,TTS espeak-ng rilevato/Speech remoto con Stop/fallback. Nessun mock produzione,telemetria,capture implicita o fallback remoto non autorizzato.
+Adds the official local/open-source ChatGPT plan OAuth route: temporary loopback, PKCE/state/nonce, issued dynamic client, maintained JWT/JWKS verification, private per-account records, serialized renewal, disconnect/revocation and account catalogs. Advanced OpenAI developer-key access stays separate from plan usage and billing. Native xAI/Grok Responses/catalog/modalities joins Claude, Gemini and Ollama. Names/IDs come from services; images require separately verified capabilities. No cookie/other-app credential access, paid fallback or provider substitution.
 
-Verifica:116 test Python passati(2 symlink skip Windows),11 frontend,2 browser1280×800/720,Ruff/ESLint/TypeScript/buildWASM,contratti,scan,wheel LinuxCP311 hash-pinned e package/checksum. Workflow read-only con ActionsSHA predisposto; risultato remoto da osservare.
+Production automatic capture remains **disabled**: the real Gamescope adapter lacks atomic game-only binding during transitions. Manual import is an alternative, not completion. Capture/send consents, pause, game-change invalidation, 45-second image freshness, >=90-second scheduling, deduplication and menu/loading abstention are implemented and covered offline.
 
-Audit: Rollup del template corretto;1 eccezione braces build-only senza patch upstream,documentata/shown dal check. Non inclusa nel runtime.
+Validation: 182 Python passed locally, two Linux-only process tests skipped on Windows; 27 frontend, 13 tooling and six browser tests; lint/types/Ruff, zero-advisory JavaScript/Python runtime audits, secret/history review, build and packaging. The actual local HTTP callback test uses a simulated identity service. Real account eligibility/catalog/inference, SteamOS browser/loopback, device install/controller/audio and safe capture remain **NOT RUN**. Current-head Linux checks also verify the extracted cryptographic/Pillow runtime; see TEST_PLAN and this PR's checks for final evidence.
 
-## Non ancora verificato su Steam Deck
-
-- Installazione/backend/PythonABI Linux/UID/ownership/POSIX.
-- Controller/tastiera/focus,rendering Decky,popup QAM chiuso.
-- Steam interno,picker reale,IPC/audio/TTS e routing.
-- CPU/RAM/frame rate/sleep-resume. Checklist NON ESEGUITA.
-- Capture diretta unavailable; import manuale implementato e backlog dedicato.
-
-Nessuna API privata/live smoke,installazione dispositivi,store/release/merge. MVP per revisione/validazione hardware,non dichiarato production-ready.
+Public main contains only bilingual README and curated presentation assets/documentation. A new labelled generated concept cover, editable workflow and 30 actual synthetic-data browser captures show onboarding, AI choice, separate permissions, contextual steps, clarification and voice. Original branding is preserved. Coordinated [gallery PR #2](https://github.com/realfulvio/decky-pilot/pull/2) stays based on this MVP. Neither PR is merged; no store or release.

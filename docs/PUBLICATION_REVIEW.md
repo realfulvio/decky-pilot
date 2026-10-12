@@ -1,20 +1,21 @@
 # Publication review
 
-Review date: 13 October 2026. The owner explicitly authorized public visibility after verification, and presentation-only publication on main without merging the MVP. No Decky store publication, release or device installation is included.
+The owner authorized public visibility after review and presentation-only publication on main. The repository is already PUBLIC; the current extension repeats the review before publishing new files. No merge, release, Decky store publication or device installation is included.
 
-## Scope
+## Scope and evidence
 
-The review covers all Git objects reachable from local/remote branches and tags, current presentation files, commit authors/messages, original and historical images, PR/review text and CI deliverables. This repository's only commit author uses the owner's existing public GitHub identity and GitHub noreply address. No private account email or connection credential is added. Historical workstation paths refer to the generic Admin workspace, not passwords or keys.
+The review covers all reachable Git blobs/commits, author/message metadata, current and historical raster assets, public presentation, PR descriptions and packaged deliverables. The existing public GitHub handle/noreply author identity is retained. Generic Admin workstation paths are development locations, not authentication data.
 
-The automated scanner checks private keys, OpenAI/Anthropic/Google tokens, GitHub tokens, AWS access key identifiers, Slack tokens, credential-bearing URLs and accidentally tracked runtime/cache filenames. It decodes historical raster images and checks embedded EXIF/GPS/comment metadata. It suppresses matching values. This is a targeted scan, supported by manual source/path/image review; it does not claim mathematical proof that arbitrary private data cannot exist.
+The value-suppressing scanner checks private keys, OpenAI/Anthropic/Google/xAI tokens, GitHub/AWS/Slack tokens, JWT-like secrets, credential-bearing URLs and accidentally tracked settings/caches. Historical raster images are decoded and checked for EXIF/GPS/comments. Manual review checks fixtures, source paths, screenshots and package allowlists. This is a targeted review, not a guarantee that pattern scanning detects every possible private datum.
 
-Current and historical UI images are synthetic offline browser views. The cover depicts an original fictional game and unbranded handheld; it is explicitly labelled concept artwork. Original branding is owner-provided. No real gameplay, account, desktop or private screenshot is used. Build outputs, caches, credentials and temporary QA renders remain ignored/untracked outside the public deliverables.
+All UI images use authorized synthetic fixtures. The cover depicts an original fictional puzzle and unbranded handheld, labelled concept artwork. The capture dialog screenshot simulates availability only; no gameplay acquisition is claimed. No live account, personal email, private desktop or private gameplay is shown. Local OAuth/API credentials, caches, build artifacts and temporary QA renders are ignored and excluded.
 
 ## Publication boundaries
 
-- Main contains only README, Italian translation, brand/presentation images, UI gallery and presentation documentation. No backend, frontend, dependencies, plugin package, test harness or application code is integrated there.
-- MVP code remains in PR #1; the gallery is coordinated in PR #2. Both stay open and unmerged.
-- Full lint/types/frontend/tooling/backend/browser, audit, build/vendor/package and extracted Linux package smoke are required on the final MVP PR checks. Main's presentation is verified independently for working relative links, PNG decoding, provenance and rendered README layout.
-- Actual Steam Deck ABI/install/controller/picker/QAM/audio/performance and safe atomic capture remain NOT RUN. Production direct/automatic capture remains disabled.
+- Main contains README, Italian translation, branding/presentation images, gallery and presentation documentation only.
+- Application code, dependencies and test harness remain in open [PR #1](https://github.com/realfulvio/decky-pilot/pull/1); [PR #2](https://github.com/realfulvio/decky-pilot/pull/2) coordinates gallery review. Neither is merged.
+- Current-head Linux CI must pass lint/types/frontend/tooling/browser/backend, audits, presentation/source scans, build, pinned-wheel packaging and isolated extracted-runtime verification. Earlier green heads do not certify later commits.
+- Provider protocol tests are simulated. Real local callback/JWT/browser checks are identified separately. Real account eligibility/inference and Steam Deck acceptance remain NOT RUN.
+- Safe atomic game-only capture is unestablished. The production gate remains closed; manual image import is an alternative, not completion.
 
-The final counts, current CI links, repository visibility and delivery commits are recorded in the MVP branch's WORK_CHECKPOINT and TEST_PLAN. The visibility change happens only after the complete audit and verification pass; this document records the process without pretending an earlier check covered later objects.
+Final head/run/artifact links and history counts are recorded in the MVP [checkpoint](https://github.com/realfulvio/decky-pilot/blob/codex/deckpilot-mvp/docs/WORK_CHECKPOINT.md) and [test evidence](https://github.com/realfulvio/decky-pilot/blob/codex/deckpilot-mvp/docs/TEST_PLAN.md). No force push or destructive history rewrite is used.

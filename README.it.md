@@ -1,94 +1,110 @@
-<p align="center">
-  <img src="assets/brand/decky-pilot-logo-dark.png?raw=true" alt="Decky Pilot" width="360">
-</p>
+# Decky Pilot
 
-# Il prossimo passo, più chiaro.
+> **Il tuo copilota AI per Steam Deck. Ricevi aiuto adatto al tuo gioco, alla tua schermata e al momento in cui stai giocando.**
 
-**Decky Pilot è un assistente di gioco per Decky: chiedi un prossimo passo utile, condividi un'immagine di gioco che approvi e, se vuoi, ascolta la risposta.** Scegli il servizio AI e mantieni il controllo di ciò che invii.
+**Il nostro obiettivo di prodotto.** L’MVP è in revisione. Aiuto contestuale, collegamenti degli account e cattura automatica durante il gioco non sono ancora validati su Steam Deck. Questa pagina distingue implementazione, verifiche eseguite e lavoro restante.
 
-[English](README.md) · [Galleria UI](docs/UI_GALLERY.md) · [MVP PR #1](https://github.com/realfulvio/decky-pilot/pull/1) · [Galleria PR #2](https://github.com/realfulvio/decky-pilot/pull/2)
+<p align="center"><img src="assets/brand/decky-pilot-logo-dark.png?raw=true" alt="Logo Decky Pilot" width="320"></p>
 
-![Concept Decky Pilot: avventura su dispositivo immaginario, scheda immagine e forma d'onda vocale; verifica hardware differita](assets/presentation/cover.png?raw=true)
+[English](README.md) · [Galleria UI](docs/UI_GALLERY.md) · [PR MVP #1](https://github.com/realfulvio/decky-pilot/pull/1) · [PR galleria #2](https://github.com/realfulvio/decky-pilot/pull/2)
 
-*Concept generato con AI: non è una foto del dispositivo, una schermata dell'applicazione o un test sulla Steam Deck. La copertina riporta lo stesso messaggio del titolo e indica che la verifica hardware è differita.*
+![Illustrazione concettuale di Decky Pilot: un puzzle su una console immaginaria collegato ad analisi, chiarimenti e voce](assets/presentation/cover-v2.png?raw=true)
 
-> **MVP in revisione.** `main` contiene soltanto questa presentazione. Il codice dell'applicazione resta nelle PR esistenti. Test offline e verifiche del pacchetto Linux controllano l'implementazione; installazione e comportamento su una Steam Deck reale restano **NON ESEGUITI**. Cattura diretta e assistenza visiva automatica sono attualmente indisponibili.
+*Illustrazione concettuale generata con AI. Non è una fotografia del dispositivo, uno screenshot dell’applicazione o un test Steam Deck.*
+
+> **Presentazione pubblica, MVP nelle PR.** `main` contiene README, immagini e documentazione di presentazione. Il codice applicativo resta nelle PR aperte. Non sono stati effettuati merge, release o pubblicazione nello store Decky. La cattura automatica è disabilitata; l’importazione manuale è un’alternativa, non il completamento della funzione.
 
 ## Come funziona
 
-![Flusso illustrato: apri il gioco, premi Aiutami ora, approva un'immagine importata manualmente, ricevi un suggerimento e voce opzionale](assets/presentation/how-it-works-it.svg?raw=true)
+![Flusso concettuale: conferma del gioco, Help me now, consensi separati, contesto recente e aiuto utile](assets/presentation/how-it-works-v2-it.svg?raw=true)
 
-1. **Apri il gioco.** Indica titolo e ciò che stai cercando di fare. Il contesto manuale supporta anche giochi non Steam.
-2. **Premi Aiutami ora.** Chiedi un prossimo passo concreto oppure scrivi una domanda libera.
-3. **Condividi soltanto lo screenshot che approvi.** Con immagini abilitate, importa manualmente un PNG/JPEG del gioco, controlla l'anteprima ripulita e il destinatario, poi approva quell'immagine e invia. Questa build non offre una cattura funzionante dal dispositivo con un solo pulsante.
-4. **Ricevi un suggerimento, con voce opzionale.** Leggi la risposta completa, ascolta o interrompi la riproduzione. La voce richiede un motore locale già presente oppure consenso separato per Speech online; il percorso audio sulla Deck è da verificare.
+1. **Identifica il gioco.** Usa il titolo Steam attivo quando disponibile, poi conferma o correggi. Per giochi non Steam o riconoscimento incerto, aggiungi il titolo manualmente.
+2. **Premi Help me now.** Spiega cosa vuoi ottenere o cosa hai già provato.
+3. **Scegli cosa condividere.** Il consenso alla cattura è separato dall’invio alla tua AI. Il percorso attuale usa un PNG/JPEG importato manualmente, un’anteprima ripulita e approvazione per immagine. Per la cattura automatica servono ancora un’integrazione sicura sul solo gioco e verifiche sul dispositivo.
+4. **Ricevi aiuto per questo momento.** L’assistente combina immagine recente, titolo e conversazione. Separa osservazioni visibili e deduzioni, offre passi concreti oppure una breve domanda. La tua risposta entra nel contesto della sessione.
+5. **Ascolta, se vuoi.** Leggi la risposta o usa la voce facoltativa. Le soluzioni complete sono la preferenza spoiler iniziale; il popup dura sei secondi per impostazione predefinita.
 
-Il diagramma illustra il percorso manuale implementato: non è uno screenshot. Senza immagine, l'assistenza usa il contesto fornito. Le immagini non ricostruiscono inventario, missioni o progressi nascosti; i prompt distinguono osservazioni e ipotesi.
+Il diagramma illustra il flusso completo previsto. Le immagini non rivelano missioni, inventario o progressi nascosti. I suggerimenti automatici richiedono contesto recente e utile, almeno 90 secondi di intervallo, niente immagini/consigli duplicati o richieste sovrapposte; nei menu, caricamenti o scene incerte riconosciuti si astengono. Indicatore di sessione e comando Pausa sono implementati, ma la cattura in produzione resta bloccata.
 
-## L'interfaccia
+## Cosa funziona oggi
 
-**Screenshot reali del browser della React App finale, con componenti HTML sostitutivi dichiarati e dati sintetici.** Non sono mockup né catture su Steam Deck. Non dimostrano richieste AI live, credenziali reali o riproduzione audio. In produzione si usano componenti Decky; il controller richiede verifica sul dispositivo. Le schermate mostrano la lingua inglese predefinita; l'interfaccia dispone anche della traduzione italiana completa.
+**Significato degli stati:** “Available” indica verifiche nel percorso browser/backend offline sul branch MVP, non un plugin rilasciato o certificato sul dispositivo. “Implemented — awaiting Steam Deck validation” indica codice e test di protocollo simulati, con accettazione hardware ancora NOT RUN. “Planned” indica lavoro ancora necessario.
 
-### Gioca: un'azione chiara
+| Funzione | Stato | Evidenza e limite pratico |
+|---|---|---|
+| UI inglese iniziale, italiano completo e lingua dell’assistente/voce separata | Available | Rendering React reale, test di localizzazione e impaginazione. |
+| Titolo, obiettivo e conversazione della sessione manuali | Available | Titoli non Steam/sconosciuti, correzione e reset verificati. |
+| Importazione manuale, anteprima ripulita, approvazione del destinatario | Available | Validazione PNG/JPEG, rimozione metadati, uso singolo e freschezza di 45 secondi verificati. Selettore sul dispositivo da provare. |
+| Rilevamento Steam e cambio gioco | Implemented — awaiting Steam Deck validation | Solo informazioni Steam/Decky controllate; incertezza sospende l’automatismo. Controller/dispositivo da verificare. |
+| Analisi contestuale, passi concreti e un chiarimento | Implemented — awaiting Steam Deck validation | Risposte visive strutturate validate; osservazioni e deduzioni distinte; risposte conservate nella sessione. Qualità dei modelli reali non valutata. |
+| OAuth ChatGPT, API, cataloghi e controllo immagini | Implemented — awaiting Steam Deck validation | Integrazioni native e test offline. Autorizzazioni e inferenza con account reali NOT RUN. |
+| Adattatore di cattura, consenso di sessione, scheduler e pausa immediata | Implemented — awaiting Steam Deck validation | Comando Gamescope e test simulati; acquisizione in produzione disabilitata. |
+| Acquisizione atomica sicura del solo gioco e cattura automatica attiva | Planned | I controlli di focus non escludono schermate sensibili durante una transizione. È un blocco centrale, non risolto dall’importazione manuale. |
+| Popup di sei secondi e voce locale/online facoltativa | Implemented — awaiting Steam Deck validation | Ripiego testuale, consensi e cancellazione verificati; QAM/controller/audio da provare. |
+| Login consumer Claude, Gemini o Grok | Planned | Non è stato accertato un flusso compatibile con piani consumer per terze parti; nessun login inventato. |
 
-Gioco attivo, una domanda e l'ultima risposta.
+## Scegli la tua AI
 
-<img src="docs/images/ui/panel-01-play.png?raw=true" alt="Screenshot reale offline di Gioca con Help me now" width="420">
+Le integrazioni seguenti sono implementate nella PR MVP con servizi simulati nei test. **Non sono stati eseguiti accessi reali, inferenza API a pagamento o test dei provider su Steam Deck.** I nomi dei modelli arrivano dal servizio scelto; non viene promesso accesso a GPT-5.6/GPT-6.1. Disponibilità e capacità visiva sono controlli separati.
 
-### Benvenuto e configurazione
+| Provider / collegamento | Collegamento e utilizzo | Requisiti immagini |
+|---|---|---|
+| **Piano ChatGPT** | OAuth ufficiale locale/open source **Continua con ChatGPT**. Account/workspace idoneo e permesso al piano necessari. Rinnovo/disconnessione backend; catalogo dell’account. Valgono limiti e impostazioni delle app ChatGPT. | Modello restituito dal catalogo con supporto immagini verificato separatamente. Modelli sconosciuti solo testuali. |
+| **API OpenAI — avanzato** | Chiave API sviluppatore; `/v1/models` e Responses. **Fatturazione API separata**, non accesso all’abbonamento ChatGPT. | Selezione dal catalogo reale e identificativo visivo esatto verificato. |
+| **Claude** | Chiave API della Console Claude, Models e Messages. Fatturazione/limiti API; chiave di un solo workspace. Nessun login consumer. | Modello visivo esatto verificato; identificativi sconosciuti solo testuali. |
+| **Gemini** | Chiave AI Studio e quote/fatturazione del progetto. Gli abbonamenti consumer Google non stabiliscono accesso API. | Modello generateContent restituito dal servizio con supporto immagini verificato. |
+| **Grok** | Chiave API xAI ufficiale, catalogo dei modelli linguistici e Responses. Account/crediti e condizioni API separate; nessuna equivalenza con abbonamenti consumer. | `input_modalities` restituito deve contenere `image`. Nessuna sostituzione con modelli di generazione immagini. |
+| **Ollama** | Endpoint locale/LAN autorizzato e modello installato. La modalità locale supportata non richiede chiavi; il server può a sua volta inoltrare al cloud. | `/api/show` deve indicare `vision` prima dell’invio. |
 
-Breve benvenuto, poi gioco, servizio e condivisione.
+Le richieste di catalogo sono esplicite e non inviano testo o immagini del gioco; l’accesso ChatGPT recupera anche il catalogo dell’account. Cataloghi parziali sono segnalati. Nessun cambio automatico di modello/provider o ripiego a pagamento dopo gli errori. [Fonti ufficiali, implementazione e verifiche mancanti →](docs/PROVIDER_VERIFICATION.md)
 
-<img src="docs/images/ui/panel-03-onboarding.png?raw=true" alt="Screenshot reale del browser della schermata iniziale" width="420">
+## L’interfaccia
 
-### Revisione immagine prima dell'analisi
+**Screenshot reali del browser con l’App React, controlli HTML dichiarati e dati sintetici.** Mostrano UI implementata, non acquisizioni Steam Deck, risposte AI reali o cattura hardware funzionante. In produzione vengono inseriti controlli Decky; l’accettazione con controller resta da eseguire.
 
-Controlla l'immagine ripulita e il destinatario prima di condividere. L'immagine di test è dichiarata sintetica.
+### Benvenuto e onboarding
 
-<img src="docs/images/ui/panel-06-image-review.png?raw=true" alt="Screenshot reale del browser con immagine sintetica da approvare" width="420">
+<img src="docs/images/ui/panel-03-onboarding.png?raw=true" alt="Screenshot browser del benvenuto al primo utilizzo" width="420">
 
-### Suggerimenti e controlli voce
+### Scelta del collegamento AI
 
-Il testo completo resta disponibile, con Listen e Stop. L'anteprima non riproduce voce.
+<img src="docs/images/ui/panel-11-ai-connection.png?raw=true" alt="Screenshot browser della scelta AI e configurazione ChatGPT senza account collegato" width="420">
 
-<img src="docs/images/ui/panel-08-play-720.png?raw=true" alt="Screenshot reale con risposta sintetica e controlli Listen e Stop" width="420">
+### Consenso separato alla cattura
 
-### Impostazioni e lingue
+<img src="docs/images/ui/panel-12-capture-consent.png?raw=true" alt="Screenshot browser del consenso alla cattura con disponibilità simulata" width="420">
 
-Inglese predefinito, italiano completo; lingue di interfaccia e assistente indipendenti.
+*La disponibilità della cattura è simulata in questa schermata. Non dimostra acquisizione hardware.*
 
-<img src="docs/images/ui/panel-05-languages.png?raw=true" alt="Screenshot reale delle lingue indipendenti per interfaccia e assistente" width="420">
+### Revisione prima dell’invio
 
-### Impostazioni voce
+<img src="docs/images/ui/panel-06-image-review.png?raw=true" alt="Screenshot browser di un’immagine sintetica con permesso separato all’invio al destinatario" width="420">
 
-Voce locale già presente o Speech online autorizzato separatamente, con fallback testuale.
+### Help me now e contesto
 
-<img src="docs/images/ui/panel-10-voice.png?raw=true" alt="Screenshot reale del browser delle impostazioni voce" width="420">
+<img src="docs/images/ui/panel-01-play.png?raw=true" alt="Screenshot browser di Help me now e osservazioni contestuali sintetiche" width="420">
 
-[Tutte le dieci viste, configurazione guidata e annullamento →](docs/UI_GALLERY.md)
+### Prossimi passi concreti
 
-## Funzionalità disponibili
+<img src="docs/images/ui/panel-15-contextual-answer.png?raw=true" alt="Screenshot browser di osservazioni sintetiche, deduzioni esplicite e passi concreti" width="420">
 
-| Funzionalità | Riscontri e limiti attuali |
-|---|---|
-| Aiuto testuale e domande libere | Implementati con adapter nativi OpenAI Responses, Claude Messages, Gemini generateContent e Ollama chat; test offline dei protocolli. Accesso agli account live non verificato. |
-| Analisi visiva manuale | Validazione, rimozione metadati, anteprima e approvazione del destinatario per ogni immagine. Modelli cloud nel catalogo documentato; Ollama verifica le capacità. |
-| Configurazione e lingue | Componenti Decky reali, tre passaggi, cataloghi inglese/italiano e lingue indipendenti. La lingua dell'assistente governa anche la voce. |
-| Risposte complete, annullamento e cronologia | Isolamento sessioni, rifiuto risultati obsoleti, popup di sei secondi e cronologia locale opzionale. Visibilità QAM da verificare sulla Deck. |
-| Voce opzionale e Stop | espeak-ng già presente o OpenAI Speech con consenso separato; fallback testuale e pulizia testati. Nessuna installazione automatica del motore. Audio/IPC sul dispositivo non verificati. |
-| Screenshot diretti dal gioco | **Disabilitati.** Il comando Gamescope esaminato non individua atomicamente il gioco autorizzato, quindi non esclude affidabilmente superfici sensibili. |
-| Aiuto visivo automatico | Consenso di sessione, pausa, intervallo e limiti implementati offline; attivazione indisponibile finché non è stabilita una cattura sicura. |
-| Compatibilità Steam Deck | **NON ESEGUITI:** ABI, installazione, focus controller, selettore, rilevamento, popup QAM, audio, prestazioni e sleep/resume. Nessuna pubblicazione store o compatibilità certificata. |
+### Un chiarimento utile
 
-## Il tuo servizio, le tue scelte di condivisione
+<img src="docs/images/ui/panel-13-clarification.png?raw=true" alt="Screenshot browser di una scena ambigua simulata e una breve domanda" width="420">
 
-Scegli OpenAI, Claude, Gemini oppure Ollama e un modello disponibile per te. Contesto chat, immagini, endpoint Ollama e voce online hanno permessi distinti. Nessuna sostituzione implicita di modello/provider. Le API possono avere costi; disponibilità e condizioni dipendono dall'account. La configurazione non avvia automaticamente un test connessione a pagamento.
+### Lingue indipendenti e impostazioni
 
-Nessuna telemetria o server centrale Decky Pilot. Le chiavi restano in file backend privati e non tornano al frontend; software locale con gli stessi accessi può leggerle. La cronologia resta in memoria salvo scelta esplicita. Puoi cancellare conversazione o dati locali del plugin. Cancellare localmente non ritira dati già inviati al provider. Condividi soltanto immagini di gioco che intendi inviare; non importare schermate di account o credenziali.
+<img src="docs/images/ui/panel-05-languages.png?raw=true" alt="Screenshot browser delle lingue dell’interfaccia e dell’assistente" width="420">
 
-## Revisione o anteprima offline
+### Voce facoltativa
 
-L'applicazione è su `codex/deckpilot-mvp`, **non su `main`**. Per un checkout sviluppatore separato:
+<img src="docs/images/ui/panel-10-voice.png?raw=true" alt="Screenshot browser della voce locale e OpenAI autorizzata separatamente" width="420">
+
+*I controlli vocali sono UI reale; l’anteprima non riproduce voce.* [Tutte le quindici viste e provenienza →](docs/UI_GALLERY.md)
+
+## Installazione e anteprima sviluppatore
+
+L’MVP è su `codex/deckpilot-mvp`, **non su `main`**. Non c’è una release nello store o un’installazione validata. ZIP e SHA256 di revisione sono [artefatti CI](https://github.com/realfulvio/decky-pilot/actions), non una raccomandazione per la produzione.
 
 ```sh
 git clone --branch codex/deckpilot-mvp https://github.com/realfulvio/decky-pilot.git
@@ -97,14 +113,22 @@ corepack pnpm install --frozen-lockfile
 corepack pnpm preview
 ```
 
-Usa Node 24.20.0 e pnpm 10.28.2. L'anteprima browser è su `http://127.0.0.1:5173`, con risposte sintetiche e senza account AI. Test Python, build, vendoring/pacchetto e criteri hardware sono sul branch MVP:
+Usa Node 24.20.0 e pnpm 10.28.2. L’anteprima `http://127.0.0.1:5173` usa risposte sintetiche; le dimostrazioni di accesso/cattura non autorizzano account, non eseguono inferenza e non acquisiscono il dispositivo. Restano frontend React/TypeScript e backend Python separati. [Build, packaging e installazione manuale per revisione](https://github.com/realfulvio/decky-pilot/blob/codex/deckpilot-mvp/docs/DEVELOPMENT.md).
 
-- [Sviluppo e verifiche](https://github.com/realfulvio/decky-pilot/blob/codex/deckpilot-mvp/docs/DEVELOPMENT.md)
-- [Risultati dei test e CI Linux](https://github.com/realfulvio/decky-pilot/blob/codex/deckpilot-mvp/docs/TEST_PLAN.md)
-- [Riscontri sulla sicurezza della cattura](https://github.com/realfulvio/decky-pilot/blob/codex/deckpilot-mvp/docs/CAPTURE_VERIFICATION.md)
-- [Checklist hardware](https://github.com/realfulvio/decky-pilot/blob/codex/deckpilot-mvp/docs/HARDWARE_VALIDATION.md)
-- [Privacy](https://github.com/realfulvio/decky-pilot/blob/codex/deckpilot-mvp/docs/PRIVACY.md) e [sicurezza](https://github.com/realfulvio/decky-pilot/blob/codex/deckpilot-mvp/docs/SECURITY.md)
+## Privacy, credenziali e limiti
 
-ZIP di revisione e file SHA256 sono artefatti CI, non una release né una raccomandazione d'installazione. Nessuna PR è stata unita e nulla è stato pubblicato nello store Decky.
+Nessuna telemetria o server centrale Decky Pilot. Chiavi e token OAuth restano nei file locali protetti del backend e non vengono restituiti nello stato. I file sono in chiaro con permessi Unix riservati al proprietario, non storage cifrato; software con gli stessi privilegi può leggerli. Non vengono letti cookie del browser o credenziali di altre applicazioni. La disconnessione tenta la revoca remota; eventuale fallimento è segnalato e i token locali vengono cancellati.
 
-[Origine immagini e riproduzione](docs/PRESENTATION_ASSETS.md) · [Verifica pubblicazione](docs/PUBLICATION_REVIEW.md) · [Licenza applicazione BSD-3-Clause](https://github.com/realfulvio/decky-pilot/blob/codex/deckpilot-mvp/LICENSE)
+La cronologia resta in memoria, salvo consenso alla persistenza. Le immagini vengono ripulite, usate una volta, escluse dalla cronologia e limitate a una copia in attesa. Dopo 45 secondi dalla preparazione un’immagine non può essere inviata come contesto corrente; l’importazione non verifica quando il file originale sia stato catturato. Cattura e invio hanno consensi distinti. Cambio di destinatario/account o revoca annullano il lavoro pendente. La cancellazione locale non ritira dati già inviati al provider.
+
+Le richieste automatiche hanno almeno 90 secondi di intervallo, budget di 20 tentativi per sessione, attesa dopo limiti e pausa dopo errori ripetuti. L’anteprima ChatGPT richiede streaming e non accetta un limite di token di uscita lato server; i limiti locali non garantiscono un tetto di fatturazione. Controlla [utilizzo delle app ChatGPT](https://chatgpt.com/settings/usage) e quote API. Speech online usa chiave API OpenAI e consenso separati e può avere costi propri; il login al piano ChatGPT non autorizza Speech.
+
+[Privacy](https://github.com/realfulvio/decky-pilot/blob/codex/deckpilot-mvp/docs/PRIVACY.md) · [Sicurezza](https://github.com/realfulvio/decky-pilot/blob/codex/deckpilot-mvp/docs/SECURITY.md)
+
+## Verifiche e roadmap
+
+Le suite offline coprono OAuth, rinnovo/revoca, cataloghi, richieste xAI, modelli senza visione, consenso revocato, immagini obsolete, cambio gioco, ambiguità, chiarimenti, duplicati e intervalli automatici. Il browser verifica impaginazione e focus da tastiera. La CI Linux crea il pacchetto e prova il runtime crittografico/Pillow estratto. Sono **servizi simulati e verifiche locali reali**, non certificazione dei provider o del dispositivo.
+
+Prossimi passi: acquisizione atomica sicura del solo gioco e rifiuto di schermate Steam/QAM/accesso/account; account reali, cataloghi, limiti e inferenza visiva; poi installazione/ABI Steam Deck, controller, giochi non Steam, transizioni, sospensione/ripresa, voce e prestazioni. Vedi [checklist hardware](https://github.com/realfulvio/decky-pilot/blob/codex/deckpilot-mvp/docs/HARDWARE_VALIDATION.md), [blocco cattura](https://github.com/realfulvio/decky-pilot/blob/codex/deckpilot-mvp/docs/CAPTURE_VERIFICATION.md) e [evidenze dei test](https://github.com/realfulvio/decky-pilot/blob/codex/deckpilot-mvp/docs/TEST_PLAN.md).
+
+[Provenienza immagini](docs/PRESENTATION_ASSETS.md) · [Revisione pubblicazione](docs/PUBLICATION_REVIEW.md) · [Licenza BSD-3-Clause](https://github.com/realfulvio/decky-pilot/blob/codex/deckpilot-mvp/LICENSE)
