@@ -27,4 +27,4 @@ Closed means implemented and verified offline/CI, not hardware certified. IDs ar
 | DP-021 | P0 international UI | Closed offline: shared complete en/it catalogs, three independent language settings, guided simple Decky UI; hardware navigation pending |
 | DP-022 | P0 review gallery | Existing PR #2 coordinated with PR #1, English offline images; never presented as actual Deck capture |
 
-Remote: `https://github.com/realfulvio/deckpilot.git`. MVP branch `codex/deckpilot-mvp`, [PR #1](https://github.com/realfulvio/deckpilot/pull/1). Gallery branch `docs/ui-gallery`, [PR #2](https://github.com/realfulvio/deckpilot/pull/2), based on the MVP. Neither is merged.
+Remote: `https://github.com/realfulvio/decky-pilot.git`. MVP branch `codex/deckpilot-mvp`, [PR #1](https://github.com/realfulvio/decky-pilot/pull/1). Gallery branch `docs/ui-gallery`, [PR #2](https://github.com/realfulvio/decky-pilot/pull/2), based on the MVP. Neither is merged.

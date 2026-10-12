@@ -148,8 +148,7 @@ function Context({controller, controls: C, detectGame}: Props) {
   const valid = validateContext(title, objective, location, notes) && (!appId || /^\d{1,20}$/.test(appId)); const detected = detectGame?.();
   return <C.Section title={t('context')}><p className="dp-subtle">{t('gameIntro')}</p>
     <C.Input label={t('gameTitle')} value={title} onChange={setTitle} /><C.Input label={t('objective')} value={objective} onChange={setObjective} />
-    <C.Input label={t('location')} value={location} onChange={setLocation} /><C.Input label={t('notes')} value={notes} onChange={setNotes} />
-    <C.Button onClick={() => setAdvanced(!advanced)}>{t('advanced')}</C.Button>{advanced && <C.Input label={t('appId')} value={appId} onChange={setAppId} />}
+    <C.Button onClick={() => setAdvanced(!advanced)}>{t('advanced')}</C.Button>{advanced && <><C.Input label={t('location')} value={location} onChange={setLocation} /><C.Input label={t('notes')} value={notes} onChange={setNotes} /><C.Input label={t('appId')} value={appId} onChange={setAppId} /></>}
     {!valid && <p role="alert">{t('invalidContext')}</p>}
     <C.Button disabled={!valid} onClick={() => { void controller.setContext({title, appId, objective, location, userNotes: notes, source: 'manual'}); }}>{t('saveContext')}</C.Button>
     <C.Button disabled={!valid} onClick={() => { void controller.setContext({title, appId, objective, location, userNotes: notes, source: 'manual', newSession: true}); }}>{t('newSession')}</C.Button>

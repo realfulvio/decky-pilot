@@ -2,7 +2,7 @@
 
 Assistente di gioco per Decky che aiuta a trovare il prossimo passo. L'inglese è predefinito; la traduzione italiana completa si sceglie nelle Impostazioni. [Read in English](README.md).
 
-MVP in revisione nella [PR #1](https://github.com/realfulvio/deckpilot/pull/1). La [galleria nella PR #2](https://github.com/realfulvio/deckpilot/pull/2) mostra le stesse schermate React in un'anteprima offline dichiarata. La Steam Deck non è disponibile: la compatibilità hardware rimane da verificare.
+MVP in revisione nella [PR #1](https://github.com/realfulvio/decky-pilot/pull/1). La [galleria nella PR #2](https://github.com/realfulvio/decky-pilot/pull/2) mostra le stesse schermate React in un'anteprima offline dichiarata. La Steam Deck non è disponibile: la compatibilità hardware rimane da verificare.
 
 ## Chiedere aiuto
 
