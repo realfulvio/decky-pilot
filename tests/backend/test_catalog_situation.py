@@ -282,6 +282,17 @@ async def test_clarification_answer_retained_no_repeat_and_game_change(tmp_path,
     await service.rpc("start_assistant_request", later)
     await service.request_task
     assert "I want to open the door" in str(transport.calls[-1]["body"]["input"])
+    transport.data["output"][0]["content"][0]["text"] = json.dumps(
+        scene(observations=[], clarification="What have you tried?", phase="unknown")
+    )
+    await service.rpc("start_assistant_request", {**later, "requestId": "another-question"})
+    await service.request_task
+    transport.data["output"][0]["content"][0]["text"] = json.dumps(
+        scene(observations=[], clarification="Which objective is active?", phase="unknown")
+    )
+    await service.rpc("start_assistant_request", {**later, "requestId": "repeated-question", "clarificationReply": "The lever"})
+    await service.request_task
+    assert service.records["repeated-question"]["error"]["code"] == "CONTEXT_NEEDED"
     await service.rpc("set_game_context", {"title": "Other game"})
     assert (
         not service.history and not service.last_clarification and not service.auto_session_consent

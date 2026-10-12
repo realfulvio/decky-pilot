@@ -10,6 +10,8 @@ Fifteen actual browser views plus fifteen panel captures use synthetic data, fak
 
 Linux CI runs the two platform-specific checks and verifies the extracted CPython 3.11 Pillow/PyJWT/cryptography runtime, using SHA-pinned Linux wheels. **Steam Deck and live-provider acceptance remain NOT RUN.** Safe atomic game-only capture is still blocked; manual import does not complete it.
 
+Verified full Linux runs on `90958cf`: [MVP PR 38320636675](https://github.com/realfulvio/decky-pilot/actions/runs/38320636675) and [push 38320631917](https://github.com/realfulvio/decky-pilot/actions/runs/38320631917), plus gallery `c32b527` [38320642211](https://github.com/realfulvio/decky-pilot/actions/runs/38320642211). **184 backend passed without skips**, 27 frontend, 13 tooling, six browser; zero advisories; build/vendor/package/extracted runtime pass, artifacts uploaded. The final answered-question regression and technical-documentation follow-up require their own current-head green checks. Follow PR checks/checkpoint for that evidence.
+
 ## Resumed delivery, 13 October 2026
 
 Current local verification: **146 Python passed, no skips; 22 frontend; 13 tooling; six browser tests**. Both symlink cases execute on this workstation now. Frozen install, ESLint/TypeScript/Ruff, zero-advisory audit, secret scan, build, pinned vendor and package verification pass. Installable archive: 224 allowlisted files. Final source/package ZIPs must be regenerated after the delivery commit; current Linux CI also runs the isolated extracted-package runtime smoke.
