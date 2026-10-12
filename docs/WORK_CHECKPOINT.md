@@ -17,12 +17,18 @@ Updated 13 October 2026. Resume here before the historical CODEX_HANDOFF.
 - Added 12 backend and six frontend regression cases. Targeted checks pass. Full verification and final delivery evidence will be recorded below.
 - Generated cover concept with the built-in image generation tool; public asset and provenance documentation are being prepared. No real device image, private screenshot or live provider call.
 
-## Remaining delivery work
+## Delivery verification
 
-1. Regenerate browser gallery from committed fixed source; preserve original branding.
-2. Finish README EN/IT, presentation images/docs and rendered desktop/narrow QA.
-3. Audit all reachable Git blobs, metadata and image provenance for secrets/private content; resolve safely without rewriting history.
-4. Complete local checks/package, push MVP/gallery/presentation-only main, update existing PRs and verify final CI.
-5. Only after checks pass, set repository visibility PUBLIC and verify anonymous access. Record final evidence here.
+- Presentation-only main commit: `81b2a19`. Independently cherry-picked into MVP (`ac0b07b`) and gallery (`c6d12dc`); no merge, history rewrite or application code on main. Any README add/add conflicts were resolved using the reviewed presentation files; original application README remains as DEVELOPMENT.
+- Gallery source `d192330cc36816c7e15d522932de0c1202c240d1`: ten full browser views plus ten direct panel screenshots, with browser/time/source metadata. Original branding preserved.
+- Local checks: 146 backend passed without skips, 22 frontend, 13 tooling, six browsers; frozen install/lint/types/Ruff/zero-advisory audit/build/vendor/package all pass. 224 allowlisted package files. Final ZIP/source/checksums regenerate after each delivery commit.
+- English/Italian README and gallery rendered from GitHub Markdown API output at 1200/390 pixels: all images decoded, 39 relative links resolve, no page overflow; visual review passed after stacking gallery images for phone readability.
+- Reachable-history scan after presentation commits: 19 commits, 255 blobs, 32 distinct decoded raster images; no secret/private metadata finding. Eight historical screenshots were visually reviewed and contain only synthetic offline UI. Author identity is the existing public GitHub handle/noreply email. Repeat audit after final pushes.
+
+## Final remote steps
+
+1. Push normal commits to MVP/gallery/main, update existing PR metadata and verify final Linux CI (including isolated extracted-package runtime).
+2. Repeat reachable-history audit for all final refs.
+3. After checks pass, set visibility PUBLIC using existing explicit owner authorization and verify anonymous README/assets. Record resulting visibility/evidence here.
 
 Hardware validation remains NOT RUN: safe atomic game-only capture, Deck ABI/install/controller/picker/QAM/audio/performance. Production capture remains disabled. Optional live credentials/account smoke is deferred.

@@ -51,7 +51,7 @@ describe('English-first UI and complete Italian localization', () => {
     await controller.close();
   });
   it.each([false, true])('updates the draft when choosing the detected Steam game (onboarding=%s)', async onboarding => {
-    const detected = {title: 'Detected game', appId: '789', objective: '', location: '', userNotes: '', source: 'steam' as const};
+    const detected = {title: 'Detected game', appId: '789', objective: '', location: '', userNotes: '', source: 'steam_internal' as const};
     const {bridge, controller} = await setup(!onboarding, () => detected);
     fireEvent.click(screen.getByText(onboarding ? 'Get started' : 'Game'));
     fireEvent.change(screen.getByLabelText('Game title'), {target: {value: 'Stale game'}});
