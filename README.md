@@ -2,7 +2,7 @@
 
 A Decky game assistant that helps you find your next step. English is the default; the complete Italian interface is available in Settings. [Leggi in italiano](README.it.md).
 
-DeckPilot is an MVP under review in [PR #1](https://github.com/realfulvio/deckpilot/pull/1). The [UI gallery in PR #2](https://github.com/realfulvio/deckpilot/pull/2) uses the same React screens in an explicitly labelled offline preview. A Steam Deck is not available, so device compatibility is still pending.
+DeckPilot is an MVP under review in [PR #1](https://github.com/realfulvio/decky-pilot/pull/1). The [UI gallery in PR #2](https://github.com/realfulvio/decky-pilot/pull/2) uses the same React screens in an explicitly labelled offline preview. A Steam Deck is not available, so device compatibility is still pending.
 
 ## Get help
 
@@ -52,7 +52,7 @@ python scripts/verify_package.py artifacts/deckpilot-0.1.0.zip
 python scripts/verify_package.py artifacts/deckpilot-0.1.0.zip --runtime
 ```
 
-`corepack pnpm preview` serves the offline harness on `127.0.0.1:5173`. Its sample replies, delay/error buttons and DOM controls are for review; production injects real Decky components. Neither preview nor keyboard tests certify Steam controller behavior. Backend fixtures block provider networking and use synthetic data. No real key is needed for tests.
+`corepack pnpm preview` serves the offline harness on `127.0.0.1:5173`. Its sample replies, delay/error buttons and DOM controls are for review; production injects real Decky components. Neither preview nor keyboard tests certify Steam controller behavior. Backend fixtures block provider networking and use synthetic data. No real key is needed for tests. With the preview server running, `node scripts/capture_gallery.mjs` saves eight reproducible English screenshots plus source metadata under `artifacts/gallery/`; use `PLAYWRIGHT_CHANNEL=chromium` on Linux.
 
 [Test evidence](docs/TEST_PLAN.md), [API sources](docs/API_VERIFICATION.md), [hardware checklist](docs/HARDWARE_VALIDATION.md), [handoff](docs/CODEX_HANDOFF.md).
 
