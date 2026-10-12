@@ -1,4 +1,4 @@
-name: Verify DeckPilot
+name: Verify Decky Pilot
 on:
   pull_request:
   push:

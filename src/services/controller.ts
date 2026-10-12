@@ -78,7 +78,12 @@ export class Controller {
     }
   }
   private async presentVoice(voice: VoiceState) {
-    if (voice.state === 'idle') { this.audio.stop(); this.update({voice: 'voiceIdle'}); return; }
+    if (voice.state === 'idle') {
+      this.audio.stop();
+      const status = this.state.status;
+      this.update({voice: status?.settings.ttsEngine === 'local' && !status.capabilities.tts.local ? 'voiceMissing' : 'voiceIdle'});
+      return;
+    }
     if (!isCurrent(voice, this.state.status?.context ?? null)) return;
     if (voice.state === 'error') { this.update({voice: 'voiceMissing'}); return; }
     if (voice.state === 'pending') { this.update({voice: 'voicePending'}); return; }

@@ -169,8 +169,8 @@ def test_context_policy_and_budget(spoiler):
     assert "IGNORE SYSTEM" in messages[-1]["content"]
     assert len(messages) <= 13 and sum(len(m["content"]) for m in messages[:-1]) <= 8000
     assert len(popup_text("a " * 1000)) <= 240
-    assert popup_text("a " * 1000).endswith("Open DeckPilot.")
-    assert popup_text("a " * 1000, "it").endswith("Apri DeckPilot.")
+    assert popup_text("a " * 1000).endswith("Open Decky Pilot.")
+    assert popup_text("a " * 1000, "it").endswith("Apri Decky Pilot.")
 
 
 async def test_history_retention_delete_and_input_validation(tmp_path, clock, transport):

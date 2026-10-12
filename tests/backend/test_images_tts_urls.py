@@ -184,7 +184,7 @@ async def test_local_tts_uses_stdin_safe_argv_and_stop(language):
         captured["argv"] = args
         return Process()
     tts = TTS(FakeTransport(), executable="/usr/bin/espeak-ng", spawn=spawn)
-    await tts.synthesize("$(touch /tmp/injection); & secret", {**DEFAULTS, "ttsLanguage": language}, {})
+    await tts.synthesize("$(touch /tmp/injection); & secret", {**DEFAULTS, "responseLanguage": language, "uiLanguage": "en", "ttsLanguage": "en"}, {})
     assert captured["argv"] == ("/usr/bin/espeak-ng", "-v", language, "--stdout", "--stdin")
     assert captured["stdin"] == b"$(touch /tmp/injection); & secret"
     assert tts.process is None

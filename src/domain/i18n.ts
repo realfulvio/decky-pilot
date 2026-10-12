@@ -4,7 +4,8 @@ export type Language = 'en' | 'it';
 export type MessageKey = keyof typeof en;
 const catalogs: Record<Language, Record<MessageKey, string>> = { en, it };
 export function translate(language: Language = 'en', key: MessageKey, values: Record<string, string | number> = {}) {
-  return catalogs[language][key].replace(/\{(\w+)\}/g, (match, name: string) => String(values[name] ?? match));
+  const text = (catalogs[language] ?? catalogs.en)[key] ?? catalogs.en[key] ?? catalogs.en.operationError;
+  return text.replace(/\{(\w+)\}/g, (match, name: string) => String(values[name] ?? match));
 }
 export function errorKey(code?: string): MessageKey {
   const key = `error.${code}` as MessageKey;

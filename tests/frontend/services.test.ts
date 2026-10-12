@@ -24,7 +24,7 @@ describe('contracts and presenters', () => {
     const toast = vi.fn(() => ({dismiss}));
     const presenter = new PopupPresenter(toast);
     presenter.show(fixture.result as AssistantResult);
-    expect(toast).toHaveBeenCalledWith({title: 'DeckPilot', body: fixture.result.popupText, duration: 6000, playSound: false});
+    expect(toast).toHaveBeenCalledWith({title: 'Decky Pilot', body: fixture.result.popupText, duration: 6000, playSound: false});
     presenter.clear();
     expect(dismiss).toHaveBeenCalledOnce();
   });

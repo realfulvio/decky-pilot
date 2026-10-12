@@ -14,7 +14,7 @@ def package():
     output = ROOT / "artifacts" / f"deckpilot-{manifest['version']}.zip"
     output.parent.mkdir(exist_ok=True)
     files = [(ROOT / name, name) for name in ("main.py", "plugin.json", "package.json", "README.md", "README.it.md", "LICENSE")]
-    for folder in ("backend", "dist", "docs", "contracts", "third_party", "locales"):
+    for folder in ("backend", "dist", "docs", "contracts", "third_party", "locales", "assets"):
         for file in sorted((ROOT / folder).rglob("*")):
             if file.is_file() and "__pycache__" not in file.parts and file.suffix != ".pyc":
                 files.append((file, file.relative_to(ROOT).as_posix()))

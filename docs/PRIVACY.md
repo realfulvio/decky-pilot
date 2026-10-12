@@ -1,6 +1,6 @@
 # Privacy and data control
 
-No telemetry and no DeckPilot central server. Defaults: no provider, no remote/endpoint consent, no images or capture, no automatic assistance, no persistent history. Voice preference requires an available engine and the relevant consent. All three languages initially default to English.
+No telemetry and no Decky Pilot central server. Defaults: no provider, no remote/endpoint consent, no images or capture, no automatic assistance, no persistent history. Voice preference requires an available engine and the relevant consent. Interface and assistant languages initially default to English.
 
 | Path | Shared data | Permission / revocation | Local retention |
 |---|---|---|---|
@@ -14,7 +14,7 @@ No telemetry and no DeckPilot central server. Defaults: no provider, no remote/e
 
 Do not import keys, sign-in screens or account details. Image cleaning removes metadata, not private content visible in pixels. The plugin does not certify automatic redaction. Automatic acquisition stays disabled because inspected Gamescope sources cannot guarantee a game-only target during focus changes. [Capture findings](CAPTURE_VERIFICATION.md).
 
-SteamID, friends, profile, library, hostname, local paths and machine telemetry are not sent in prompts. AppID does not reveal gameplay. UI language, AI response language and voice pronunciation are independent; voice reads the existing text without translation.
+SteamID, friends, profile, library, hostname, local paths and machine telemetry are not sent in prompts. AppID does not reveal gameplay. UI and assistant languages are independent; the assistant language controls responses and speech. Voice reads existing text without translating old history.
 
 Keys are plaintext private files in the official Decky settings directory (0700/0600 POSIX), never returned through RPC or stored in browser storage. A saved key is not proof of validity. Key deletion cancels work and revokes image/session approval; compromised software with local access can still read files/process memory. No keyring/encryption is claimed.
 

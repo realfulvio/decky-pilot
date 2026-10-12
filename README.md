@@ -1,8 +1,10 @@
-# DeckPilot
+# Decky Pilot
+
+<img src="assets/brand/decky-pilot-logo-dark.png" alt="Decky Pilot handheld and wordmark" width="400">
 
 A Decky game assistant that helps you find your next step. English is the default; the complete Italian interface is available in Settings. [Leggi in italiano](README.it.md).
 
-DeckPilot is an MVP under review in [PR #1](https://github.com/realfulvio/decky-pilot/pull/1). The [UI gallery in PR #2](https://github.com/realfulvio/decky-pilot/pull/2) uses the same React screens in an explicitly labelled offline preview. A Steam Deck is not available, so device compatibility is still pending.
+Decky Pilot is an MVP under review in [PR #1](https://github.com/realfulvio/decky-pilot/pull/1). The [UI gallery in PR #2](https://github.com/realfulvio/decky-pilot/pull/2) uses the same React screens in an explicitly labelled offline preview. A Steam Deck is not available, so device compatibility is still pending.
 
 ## Get help
 
@@ -10,7 +12,7 @@ DeckPilot is an MVP under review in [PR #1](https://github.com/realfulvio/decky-
 2. In **Play**, use **Help me now**, or ask your own question. The latest answer and voice controls stay together.
 3. For visual help, enable images in Settings, choose a PNG or JPEG containing gameplay only, review the cleaned image and recipient, then approve that image before sending it. On Deck, copy the image into the dedicated import folder shown under Advanced options, then choose it with the Decky picker.
 
-OpenAI, Claude and Gemini use their real native multimodal APIs; Ollama uses its native chat API and checks model capabilities. Choose a model your account can use and confirm its image support. No model is silently substituted and no provider changes without your choice and renewed consent. API usage can cost money; a ChatGPT subscription does not include API credit.
+OpenAI, Claude and Gemini use their real native multimodal APIs; Ollama uses its native chat API and checks model capabilities. Choose a model from the documented image-capable catalog that your account can use. Existing custom models are preserved for text; undocumented cloud models cannot receive images. Account availability is checked only by an optional explicit connection test or your request; no paid startup check occurs. No model is silently substituted and no provider changes without your choice and renewed consent. API usage can cost money; a ChatGPT subscription does not include API credit.
 
 An image can suggest an area or objective. It cannot establish hidden progress, inventory or quests. Prompts require visible observations to be separated from guesses, with one concrete next step or a question when context is missing. Model accuracy and spoiler compliance are not guaranteed.
 
@@ -24,9 +26,9 @@ The optional automatic visual path is implemented and tested offline, but is una
 
 ## Language and voice
 
-Settings has three independent choices: **Interface language**, **AI response language**, and **Voice language**. All initially default to English; each supports English and Italian. Shared catalogs cover the interface, safe errors and prompts. Existing valid settings and saved keys are preserved when the new defaults are added.
+Settings has two independent choices: **Interface language** and **Assistant language (answers and voice)**. Both initially default to English and support English and Italian. The assistant language governs both generated answers and synthesized speech, following the latest product decision. Shared catalogs cover the interface, safe errors and prompts. Existing valid settings and saved keys are preserved when the new defaults are added.
 
-Voice reads the answer as written with the selected pronunciation; it does not translate it. Local voice uses espeak-ng when already installed. Online voice uses OpenAI Speech with a separate key/consent and `gpt-4o-mini-tts`, whose instructions support the independent pronunciation choice. Voice is synthetic; text remains available if audio fails. Nothing installs espeak-ng automatically.
+Voice reads the answer as written in the selected assistant language; it does not translate old conversation text. Local voice uses espeak-ng when already installed. Online voice uses OpenAI Speech with a separate key/consent and `gpt-4o-mini-tts`, whose instructions support the assistant language. Voice is synthetic; text remains available if audio fails. Nothing installs espeak-ng automatically.
 
 ## Development and verification
 
@@ -64,7 +66,7 @@ Before future installation, confirm the Decky's Python ABI, SteamOS/glibc, UID a
 
 ## Your data
 
-No telemetry or DeckPilot central server. Provider, image, Ollama endpoint and online Speech permissions are separate. Keys are plaintext private backend files (POSIX directories 0700/files 0600), never returned by RPC or stored in the browser. Local software with the same access can read them.
+No telemetry or Decky Pilot central server. Provider, image, Ollama endpoint and online Speech permissions are separate. Keys are plaintext private backend files (POSIX directories 0700/files 0600), never returned by RPC or stored in the browser. Local software with the same access can read them.
 
 History is in memory unless you opt in: at most 100 messages/game, seven days, 20 games and 1.8 MB overall. Delete conversation keeps keys. Delete local data removes plugin settings/keys/history but retains original imported files you supplied. Uninstall may retain Loader settings; delete explicitly first. Local deletion/cancellation does not retract already sent provider data or guarantee a refund.
 
@@ -73,3 +75,5 @@ If capture is unavailable, add a game image manually. If a model does not suppor
 [Privacy](docs/PRIVACY.md), [security and audit](docs/SECURITY.md), [architecture](docs/ARCHITECTURE.md), [backlog](docs/BACKLOG.md), [roadmap](docs/ROADMAP.md).
 
 BSD-3-Clause. Steam Deck Homebrew template attribution and dependency terms are in [third-party notices](docs/THIRD_PARTY_NOTICES.md). The original Italian `DECKPILOT_CODEX_SPEC.md` is preserved as the historical baseline; subsequent user requirements recorded in the handoff supersede its default language and product layout.
+
+[Current product decisions](docs/PRODUCT_DECISIONS.md) replace conflicting language/name choices in the historical spec. [Brand sources and small-menu implementation](docs/BRANDING.md).

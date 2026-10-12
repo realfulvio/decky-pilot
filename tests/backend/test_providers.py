@@ -26,20 +26,21 @@ CASES = [
 async def test_native_protocols(cls, data, url, auth, with_image):
     transport = FakeTransport(data)
     adapter = cls(transport)
-    settings = {**DEFAULTS, "provider": cls.id, "model": "test-model", "remoteConsent": True,
+    model = {OpenAI:"gpt-4.1-2025-04-14", Claude:"claude-sonnet-4-6", Gemini:"gemini-3.1-flash-lite"}.get(cls, "test-model") if with_image else "test-model"
+    settings = {**DEFAULTS, "provider": cls.id, "model": model, "remoteConsent": True,
                 "endpointConsent": True, "visionConfirmed": True}
     image = {"mime": "image/png", "bytes": b"synthetic image"} if with_image else None
     result = await adapter.generate(settings, {cls.id: "synthetic-credential"}, "system policy",
                                     [{"role": "user", "content": "question"}], image)
     assert result == {"answer": "Open\nthe door.", "usage": {"inputTokens": 7, "outputTokens": 3}}
     call = transport.calls[-1]
-    assert url in call["url"]
+    assert url.replace("test-model", model) in call["url"]
     assert "synthetic-credential" not in call["url"]
     if auth:
         assert "synthetic-credential" in call["headers"][auth]
     body = call["body"]
     if cls is not Gemini:
-        assert body["model"] == "test-model"
+        assert body["model"] == model
     if cls is OpenAI:
         assert body["instructions"] == "system policy" and body["store"] is False
         assert body["max_output_tokens"] == 1200
@@ -119,3 +120,20 @@ async def test_gemini_block_and_ollama_vision():
                                          {"bytes": b"image", "mime": "image/png"})
     assert caught.value.code == "IMAGE_UNSUPPORTED"
     assert len(transport.calls) == 1
+
+
+@pytest.mark.parametrize('cls,model', [(OpenAI,'gpt-4.1-2025-04-14'), (Claude,'claude-sonnet-4-6'),
+                                      (Gemini,'gemini-3.1-flash-lite')])
+async def test_cloud_vision_requires_documented_model_and_never_silently_substitutes(cls, model):
+    transport = FakeTransport()
+    adapter = cls(transport)
+    settings = {**DEFAULTS,'provider':cls.id,'model':model,'remoteConsent':True,'visionConfirmed':True}
+    assert adapter.capabilities(settings)['images']
+    assert adapter.capabilities(settings)['verification']=='official_docs'
+    settings['model']='unknown-custom-model'
+    assert not adapter.capabilities(settings)['images']
+    with pytest.raises(RpcError) as error:
+        await adapter.generate(settings,{cls.id:'synthetic'},'policy',[{'role':'user','content':'question'}],
+                               {'bytes':b'synthetic','mime':'image/png'})
+    assert error.value.code=='IMAGE_UNSUPPORTED' and not transport.calls
+    assert settings['model']=='unknown-custom-model'

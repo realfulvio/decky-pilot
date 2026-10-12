@@ -17,6 +17,21 @@ async function setup(ready = false) {
   return {bridge, controller, popup, audio};
 }
 describe('English-first UI and complete Italian localization', () => {
+  it('keeps chat and online voice credentials separate and never sends setup requests', async () => {
+    const {bridge,controller}=await setup(true);
+    fireEvent.click(screen.getByRole('button',{name:'Settings'}));
+    fireEvent.change(screen.getByLabelText('API key'),{target:{value:'synthetic-chat-key'}});
+    fireEvent.change(screen.getByLabelText('Voice service'),{target:{value:'openai'}});
+    const speech=screen.getByLabelText('OpenAI voice API key') as HTMLInputElement;
+    fireEvent.change(speech,{target:{value:'synthetic-speech-key'}});
+    fireEvent.click(screen.getByText('Save OpenAI voice key'));
+    await waitFor(()=>expect(speech.value).toBe(''));
+    expect((screen.getByLabelText('API key') as HTMLInputElement).value).toBe('synthetic-chat-key');
+    expect(bridge.calls.find(call=>call.method==='set_api_key')?.payload.provider).toBe('openai');
+    expect(bridge.calls.some(call=>['start_assistant_request','test_provider','start_tts'].includes(call.method))).toBe(false);
+    expect(bridge.status.settings.provider).toBe('openai');
+    await controller.close();
+  });
   it('has identical catalog keys and interpolation fields', () => {
     expect(Object.keys(itCatalog).sort()).toEqual(Object.keys(en).sort());
     for (const key of Object.keys(en) as (keyof typeof en)[]) {
@@ -24,10 +39,13 @@ describe('English-first UI and complete Italian localization', () => {
       expect(itCatalog[key].trim()).not.toBe('');
     }
     expect(translate('it', 'helpNow')).toBe('Aiutami ora');
+    expect(translate('unknown' as 'en', 'helpNow')).toBe('Help me now');
+    expect(translate('en','imageDestination',{provider:'OpenAI',model:'gpt-4.1'})).toContain('OpenAI');
   });
   it('onboarding is English, sends no AI requests and clears the saved key', async () => {
     const {bridge, controller} = await setup();
     expect(screen.getByText('Let’s get you unstuck')).toBeTruthy();
+    expect(screen.getByAltText('Decky Pilot').getAttribute('src')).toContain('decky-pilot-logo-dark.png');
     expect(bridge.calls.every(c => ['get_status', 'set_capture_guard'].includes(c.method))).toBe(true);
     fireEvent.click(screen.getByRole('button', {name: 'Settings'}));
     fireEvent.change(screen.getByLabelText('AI service'), {target: {value: 'openai'}});
@@ -63,7 +81,7 @@ describe('English-first UI and complete Italian localization', () => {
     await screen.findByText('Lingua dell’interfaccia');
     expect(bridge.status.settings.responseLanguage).toBe('en');
     expect(bridge.status.settings.ttsLanguage).toBe('en');
-    fireEvent.change(screen.getByLabelText('Lingua delle risposte AI'), {target: {value: 'it'}});
+    fireEvent.change(screen.getByLabelText('Lingua dell’assistente (risposte e voce)'), {target: {value: 'it'}});
     fireEvent.click(screen.getByText('Salva impostazioni'));
     await waitFor(() => expect(bridge.status.settings.responseLanguage).toBe('it'));
     expect(bridge.status.settings.ttsLanguage).toBe('en');
@@ -89,8 +107,8 @@ describe('English-first UI and complete Italian localization', () => {
   it('shows pending state, cancellation and the full latest answer', async () => {
     const {bridge, controller, popup} = await setup(true);
     bridge.status.settings.voiceEnabled = false; bridge.delay = true;
-    fireEvent.change(screen.getByLabelText('Or ask a question'), {target: {value: 'Where next?'}});
-    fireEvent.click(screen.getByText('Ask DeckPilot'));
+    fireEvent.change(screen.getByLabelText('Ask a question'), {target: {value: 'Where next?'}});
+    fireEvent.click(screen.getByText('Ask Decky Pilot'));
     await screen.findByText('Looking for your next step…');
     fireEvent.click(screen.getByText('Cancel'));
     await waitFor(() => expect(bridge.status.active).toBe(null));
@@ -115,7 +133,7 @@ describe('English-first UI and complete Italian localization', () => {
     Object.defineProperty(file, 'arrayBuffer', {value: async () => new Uint8Array([1, 2, 3]).buffer});
     fireEvent.change(screen.getByLabelText('Game image file'), {target: {files: [file]}});
     await screen.findByAltText('Image to be shared, with metadata removed');
-    fireEvent.change(screen.getByLabelText('Or ask a question'), {target: {value: 'What is visible?'}});
+    fireEvent.change(screen.getByLabelText('Ask a question'), {target: {value: 'What is visible?'}});
     expect((screen.getByText('Help me now') as HTMLButtonElement).disabled).toBe(true);
     fireEvent.click(screen.getByText('Allow this image to be shared'));
     await waitFor(() => expect((screen.getByText('Help me now') as HTMLButtonElement).disabled).toBe(false));
@@ -126,6 +144,7 @@ describe('English-first UI and complete Italian localization', () => {
   });
   it('does not offer automatic capture when the capability is absent', async () => {
     const {bridge, controller} = await setup(true);
+    fireEvent.click(screen.getByText('Automatic help'));
     expect(screen.getByText('Automatic screen analysis needs verified game capture. Manual images still work.')).toBeTruthy();
     expect(screen.queryByLabelText(/Allow game images to be captured/)).toBe(null);
     expect(bridge.calls.some(c => c.method === 'prepare_capture')).toBe(false);
