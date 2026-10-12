@@ -20,6 +20,9 @@ const syntheticAnswer = 'Visible (synthetic scene):\nA door with three symbols a
 const previewAnswer = (answer: string) => {
   bridge.status.history = [{role:'user',content:'How do I open the door?',at:0},{role:'assistant',content:answer,at:0}];
   bridge.status.requests = [{requestId:fixture.result.requestId,sessionId:bridge.status.context!.sessionId,contextRevision:bridge.status.context!.revision,kind:'manual',state:'completed',result:{...fixture.result,answer,sessionId:bridge.status.context!.sessionId,contextRevision:bridge.status.context!.revision} as AssistantResult}];
+  if (answer.includes('Which objective are you trying to complete?')) bridge.status.requests[0].result!.situation = {
+    observations:['A door with three symbols (synthetic scene).'],inferences:['The route is unclear.'],goal:'',obstacle:'',steps:[],
+    clarification:'Which objective are you trying to complete?',phase:'unknown',useful:true};
 };
 previewAnswer(syntheticAnswer);
 const controller = new Controller(bridge, {show() {}, clear() {}}, {async play() {}, stop() {}});
