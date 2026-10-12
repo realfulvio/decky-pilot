@@ -10,6 +10,8 @@ Presentation: twenty actual browser screenshots (ten full views plus ten direct 
 
 Public-history audit: all reachable blobs/commits and historical raster images, with author/path/source/PR review. No credential/private image finding remains; an exact `user:pass@localhost` SSRF rejection fixture is documented as synthetic. Repeat history scan after final commits. WORK_CHECKPOINT records final CI/publication evidence. Main contains only the presentation, while both PRs remain open and unmerged.
 
+Actual Linux delivery runs [MVP 38315477004](https://github.com/realfulvio/decky-pilot/actions/runs/38315477004), [push 38315471465](https://github.com/realfulvio/decky-pilot/actions/runs/38315471465) and [gallery 38315386247](https://github.com/realfulvio/decky-pilot/actions/runs/38315386247) passed with 146 backend/22 frontend/13 tooling/six browser tests, no skips, clean audit and successful extracted ZIP/native Pillow lifecycle. The repository was then made PUBLIC as explicitly authorized. Actual anonymous GitHub README rendering verifies all nine images in each language at 1200/390 pixels. Subsequent final documentation/relative-image URL commits must also have green current checks.
+
 Review date: 12 October 2026. Local workstation: Windows, Node 24.20.0, pnpm 10.28.2, Python 3.13.15, Microsoft Edge browser. CI: Ubuntu 24.04, Node 24.20.0, Python 3.11.7, Chromium. Steam Deck: **NOT RUN**.
 
 | Check | Latest local evidence | Coverage |

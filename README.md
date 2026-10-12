@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/brand/decky-pilot-logo-dark.png" alt="Decky Pilot" width="360">
+  <img src="assets/brand/decky-pilot-logo-dark.png?raw=true" alt="Decky Pilot" width="360">
 </p>
 
 # Your next move, made clearer.
@@ -8,7 +8,7 @@
 
 [Italiano](README.it.md) · [UI gallery](docs/UI_GALLERY.md) · [MVP PR #1](https://github.com/realfulvio/decky-pilot/pull/1) · [Gallery PR #2](https://github.com/realfulvio/decky-pilot/pull/2)
 
-![Decky Pilot concept artwork: a fictional handheld adventure, an image card and a voice waveform; hardware validation is pending](assets/presentation/cover.png)
+![Decky Pilot concept artwork: a fictional handheld adventure, an image card and a voice waveform; hardware validation is pending](assets/presentation/cover.png?raw=true)
 
 *AI-generated concept artwork, not a device photograph, application screenshot or Steam Deck test.*
 
@@ -16,7 +16,7 @@
 
 ## How it works
 
-![Illustrated workflow: open a game, press Help me now, approve a manually imported game image, receive a suggestion and optional voice](assets/presentation/how-it-works-en.svg)
+![Illustrated workflow: open a game, press Help me now, approve a manually imported game image, receive a suggestion and optional voice](assets/presentation/how-it-works-en.svg?raw=true)
 
 1. **Open your game.** Add its title and what you are trying to do. Manual context also supports non-Steam games.
 2. **Press Help me now.** Ask for a concrete next step, or write your own question.
@@ -33,37 +33,37 @@ The workflow diagram is an illustration of the implemented manual-image path, no
 
 Active game, a question and your latest answer.
 
-<img src="docs/images/ui/panel-01-play.png" alt="Actual offline browser screenshot of Play with Help me now" width="420">
+<img src="docs/images/ui/panel-01-play.png?raw=true" alt="Actual offline browser screenshot of Play with Help me now" width="420">
 
 ### Welcome and onboarding
 
 A short welcome, followed by game, service and sharing choices.
 
-<img src="docs/images/ui/panel-03-onboarding.png" alt="Actual offline browser screenshot of first-use welcome" width="420">
+<img src="docs/images/ui/panel-03-onboarding.png?raw=true" alt="Actual offline browser screenshot of first-use welcome" width="420">
 
 ### Image review before analysis
 
 Check the cleaned image and named destination before sharing. The fixture is visibly labelled synthetic.
 
-<img src="docs/images/ui/panel-06-image-review.png" alt="Actual browser screenshot of a synthetic image awaiting recipient approval" width="420">
+<img src="docs/images/ui/panel-06-image-review.png?raw=true" alt="Actual browser screenshot of a synthetic image awaiting recipient approval" width="420">
 
 ### Suggestions and voice controls
 
 Full text stays available, with Listen and Stop. The preview does not play speech.
 
-<img src="docs/images/ui/panel-08-play-720.png" alt="Actual browser screenshot of a synthetic answer with Listen and Stop controls" width="420">
+<img src="docs/images/ui/panel-08-play-720.png?raw=true" alt="Actual browser screenshot of a synthetic answer with Listen and Stop controls" width="420">
 
 ### Settings and languages
 
 English by default, complete Italian; independent interface and assistant languages.
 
-<img src="docs/images/ui/panel-05-languages.png" alt="Actual browser screenshot of independent interface and assistant languages" width="420">
+<img src="docs/images/ui/panel-05-languages.png?raw=true" alt="Actual browser screenshot of independent interface and assistant languages" width="420">
 
 ### Voice settings
 
 Existing local voice or separately authorized online Speech, with text fallback.
 
-<img src="docs/images/ui/panel-10-voice.png" alt="Actual browser screenshot of voice settings" width="420">
+<img src="docs/images/ui/panel-10-voice.png?raw=true" alt="Actual browser screenshot of voice settings" width="420">
 
 [See all ten views, including guided setup and cancellation →](docs/UI_GALLERY.md)
 

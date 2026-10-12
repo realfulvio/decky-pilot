@@ -18,7 +18,7 @@ try {
     for (const match of [...html.matchAll(/src="([^"]+)"/g)]) {
       const src = match[1];
       if (/^https?:/.test(src)) throw new Error(`Unexpected remote image in ${name}`);
-      const path = resolve(base, src);
+      const path = resolve(base, src.split(/[?#]/, 1)[0]);
       if (!path.startsWith(root)) throw new Error('Image escaped presentation root');
       const bytes = await readFile(path);
       const mime = extname(path) === '.svg' ? 'image/svg+xml' : 'image/png';
