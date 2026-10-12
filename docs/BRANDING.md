@@ -1,6 +1,6 @@
 # Decky Pilot — brand assets
 
-The public product name is **Decky Pilot**, as requested by the owner on 12 October 2026. The GitHub repository and existing technical identifiers may remain `deckpilot`; changing the display name must not discard saved settings, keys or history.
+The public product name is **Decky Pilot**, as requested by the owner on 12 October 2026. The GitHub repository is now `realfulvio/decky-pilot`; existing technical identifiers remain `deckpilot`/`DeckPilot`; changing the display name must not discard saved settings, keys or history.
 
 ## Assets
 
@@ -14,13 +14,13 @@ The public product name is **Decky Pilot**, as requested by the owner on 12 Octo
 - Identity: handheld gaming device, forward navigation chevron, mint/teal, white and navy.
 - Intended colors: teal `#21E6C1`, white `#FFFFFF`, navy `#0B1320`. Generated pixels may vary slightly from these target values.
 
-These are brand assets for integration, not proof that the current app has already been renamed or its icon replaced. Actual small-size rendering remains to be inspected during integration. A simplified vector implementation can follow for a crisp menu icon; do not call the PNG an SVG.
+The original wordmark PNG is integrated into README and onboarding; the original square icon PNG is preserved intact. A separate hand-drawn `decky-pilot-menu.svg` matches the console/chevron identity and supplies the menu and compact panel mark. It is a new vector drawing, not a converted/relabelled PNG. Browser rendering was inspected at 20, 24 and 32 pixels on navy; actual Decky hardware rendering remains deferred.
 
 ## Integration task for the implementation branch
 
 Use **Decky Pilot** in the visible plugin name, headings, onboarding and English public documentation. Integrate the logo into the README and onboarding; use the symbol alone for menu/icon surfaces. Provide accessible alt text and maintain legible sizing. Preserve existing internal identifiers/storage paths unless a tested migration is necessary. Do not rename the repository, break the remote, discard keys or rename the working branch as a side effect. Keep existing Italian strings as translations while English becomes the default UI.
 
-The assets are added on `docs/ui-gallery`, alongside PR #2, so they do not modify the checkout being edited by the other Codex session. Integration into the application should be coordinated there and on the MVP branch.
+Source commits `c60e6d7` (historical gallery) and `1b5cc03` (original raster branding) were verified on PR #2. The branding-only commit was cherry-picked into the MVP and integrated without merging either PR. Gallery images are regenerated separately from committed MVP screens; original asset bytes and generation prompts are preserved. The old integration task above records the source guidance; the implementation now satisfies it while preserving manifest/storage identifiers.
 
 ## Generation prompts
 

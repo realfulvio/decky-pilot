@@ -1,15 +1,15 @@
-name: Proposta funzionalità
-description: Caso d'uso e criteri verificabili
+name: Feature request
+description: Use case and verifiable acceptance criteria
 body:
   - type: textarea
     id: problem
     attributes:
-      label: Problema e contesto
+      label: Problem and context
     validations:
       required: true
   - type: textarea
     id: criteria
     attributes:
-      label: Criteri di accettazione, dipendenze e consensi necessari
+      label: Acceptance criteria, dependencies and required consent
     validations:
       required: true

@@ -11,6 +11,8 @@ REQUIRED = {"DeckPilot/main.py", "DeckPilot/plugin.json", "DeckPilot/package.jso
             "DeckPilot/py_modules/PIL/_imaging.cpython-311-x86_64-linux-gnu.so",
             "DeckPilot/py_modules/deckpilot-vendor.json"}
 REQUIRED |= {"DeckPilot/locales/en.json", "DeckPilot/locales/it.json"}
+REQUIRED |= {"DeckPilot/assets/brand/decky-pilot-logo-dark.png", "DeckPilot/assets/brand/decky-pilot-menu.svg",
+             "DeckPilot/contracts/vision-models.json"}
 REQUIRED |= {"DeckPilot/docs/licenses/decky-api-LGPL-2.1.txt", "DeckPilot/third_party/decky-api/src/index.ts"}
 
 
@@ -33,6 +35,8 @@ def verify(path):
         bundle = archive.read("DeckPilot/dist/index.js").decode()
         if "SP_REACT" not in bundle or "FakeBridge" in bundle:
             raise ValueError("React bundling or harness contamination")
+        if "Decky Pilot" not in bundle or not any(name.startswith("DeckPilot/dist/") and name.endswith(".svg") for name in names):
+            raise ValueError("Public branding or bundled menu asset missing")
         vendor = json.loads(archive.read("DeckPilot/py_modules/deckpilot-vendor.json"))
         if vendor["sha256"] != "23d27a3e0307ec2244cc51e7287b919aa68d097504ebe19df4e76a98a3eea5bd":
             raise ValueError("Unexpected runtime wheel")

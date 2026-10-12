@@ -1,21 +1,21 @@
-name: Segnalazione problema
-description: Problema riproducibile, senza dati privati
+name: Bug report
+description: Reproducible problem without private data
 body:
   - type: textarea
     id: versions
     attributes:
-      label: Versioni e ambiente
-      description: SteamOS, Steam client, Decky, plugin; indica se è un test offline.
+      label: Versions and environment
+      description: SteamOS, Steam client, Decky and plugin versions; state whether this is an offline test.
     validations:
       required: true
   - type: textarea
     id: reproduce
     attributes:
-      label: Passaggi, comportamento atteso e risultato
-      description: Non allegare API key, screenshot privati, note o cronologia reale.
+      label: Steps, expected behavior and actual result
+      description: Never include keys, private screenshots, account details, real notes or history.
     validations:
       required: true
   - type: textarea
     id: safe_diagnostics
     attributes:
-      label: Diagnostica sanitizzata rivista prima dell'invio
+      label: Sanitized diagnostics reviewed before sharing

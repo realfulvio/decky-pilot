@@ -1,10 +1,15 @@
 """Four native REST adapters. No live calls during offline tests or startup."""
 import base64
+import json
+from pathlib import Path
 from urllib.parse import quote
 
 from .errors import RpcError, require
 from .storage import PROVIDERS
 from .transport import check_response, validate_endpoint
+
+VISION_MODELS = json.loads((Path(__file__).resolve().parents[1] /
+                           "contracts/vision-models.json").read_text(encoding="utf-8"))["providers"]
 
 
 def normalize(answer, usage=None, input_key="input_tokens", output_key="output_tokens"):
@@ -38,9 +43,13 @@ class Provider:
             require(bool(secrets.get(self.id)), "NOT_CONFIGURED")
 
     def capabilities(self, settings):
-        return {"text": True, "images": settings["visionConfirmed"], "structured": False,
-                "model": settings["model"], "verification": "user_confirmed" if
-                settings["visionConfirmed"] else "unconfirmed"}
+        identifier = settings["model"].removeprefix("models/") if self.id == "gemini" else settings["model"]
+        documented = any(model["id"] == identifier
+                         for model in VISION_MODELS.get(self.id, []))
+        allowed = settings["visionConfirmed"] and (documented or self.id == "ollama")
+        return {"text": True, "images": bool(allowed), "structured": False,
+                "model": settings["model"], "verification": "official_docs" if documented else
+                "user_confirmed_pending_api/show" if allowed else "unconfirmed"}
 
     async def post(self, url, headers, body, settings, *, method="POST"):
         response = await self.transport.request(url, headers, body,
@@ -57,6 +66,7 @@ class OpenAI(Provider):
         self.validate_config(settings, secrets)
         items = [{"role": m["role"], "content": m["content"]} for m in messages]
         if image:
+            require(self.capabilities(settings)["images"], "IMAGE_UNSUPPORTED")
             items[-1]["content"] = [
                 {"type": "input_text", "text": messages[-1]["content"]},
                 {"type": "input_image", "image_url":
@@ -84,6 +94,7 @@ class Gemini(Provider):
         contents = [{"role": "model" if m["role"] == "assistant" else "user",
                      "parts": [{"text": m["content"]}]} for m in messages]
         if image:
+            require(self.capabilities(settings)["images"], "IMAGE_UNSUPPORTED")
             contents[-1]["parts"].append({"inlineData": {"mimeType": image["mime"],
                                                          "data": image_data(image)}})
         model = quote(settings["model"].removeprefix("models/"), safe="")
@@ -114,6 +125,7 @@ class Claude(Provider):
         self.validate_config(settings, secrets)
         items = [{"role": m["role"], "content": m["content"]} for m in messages]
         if image:
+            require(self.capabilities(settings)["images"], "IMAGE_UNSUPPORTED")
             items[-1]["content"] = [
                 {"type": "image", "source": {"type": "base64", "media_type": image["mime"],
                                              "data": image_data(image)}},

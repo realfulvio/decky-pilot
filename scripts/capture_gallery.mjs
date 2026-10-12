@@ -20,10 +20,12 @@ try {
   await shot('01-play.png');
   await button('Game').click(); await shot('02-game.png');
   await button('Preview first-time setup').click(); await button('Play').click();
-  await button('Get started').click(); await shot('03-onboarding.png');
+  await shot('03-onboarding.png');
+  await button('Get started').click(); await shot('09-guided-game.png');
   await load(); await button('Settings').click();
   await page.getByRole('combobox', {name:'AI service',exact:true}).scrollIntoViewIfNeeded(); await shot('04-service-sharing.png');
   await load(); await button('Settings').click(); await shot('05-languages.png');
+  await page.getByRole('combobox', {name:'Voice service',exact:true}).scrollIntoViewIfNeeded(); await shot('10-voice.png');
   await load();
   // Synthetic PNG fixture, contains no real gameplay, key or account details.
   const png = Buffer.from(await page.evaluate(() => {
@@ -40,13 +42,13 @@ try {
   await page.getByAltText('Image to be shared, with metadata removed').waitFor();
   await button('Allow this image to be shared').scrollIntoViewIfNeeded(); await shot('06-image-review.png');
   await load(); await button('Toggle request delay').click();
-  await page.getByLabel('Or ask a question').fill('Which symbol should I choose?');
-  await button('Ask DeckPilot').click(); await button('Cancel').waitFor();
+  await page.getByLabel('Ask a question').fill('Which symbol should I choose?');
+  await button('Ask Decky Pilot').click(); await button('Cancel').waitFor();
   await button('Cancel').scrollIntoViewIfNeeded(); await shot('07-pending.png');
   await load(); await page.setViewportSize({width:1280,height:720});
-  await button('Stop voice').scrollIntoViewIfNeeded(); await shot('08-play-720.png');
+  await button('Stop').scrollIntoViewIfNeeded(); await shot('08-play-720.png');
   if (errors.length) throw new Error('Gallery encountered browser errors');
   const commit = execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
-  await writeFile(join(output,'source.json'),JSON.stringify({commit,mode:'offline harness; synthetic data; no provider or device capture',images:8},null,2)+'\n');
-  process.stdout.write(`Saved eight English previews from ${commit} to ${output}\n`);
+  await writeFile(join(output,'source.json'),JSON.stringify({commit,mode:'offline harness; synthetic data; no provider or device capture',images:10},null,2)+'\n');
+  process.stdout.write(`Saved ten English previews from ${commit} to ${output}\n`);
 } finally { await browser.close(); }

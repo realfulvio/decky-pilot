@@ -6,11 +6,11 @@ Review date: 12 October 2026. Local workstation: Windows, Node 24.20.0, pnpm 10.
 |---|---|---|
 | Frozen install | PASS | Lockfile exact resolutions/integrity |
 | ESLint / TypeScript | PASS | Production components/strict types |
-| Frontend Vitest | PASS, 15 tests | Three-step onboarding, cleared keys, complete catalogs, independent languages, no diagnostics, errors, image approval, pending/cancel; contracts/popup/Steam/listeners/audio cleanup |
+| Frontend Vitest | PASS, 16 tests | Three-step onboarding, cleared keys, complete catalogs, independent languages, no diagnostics, errors, image approval, pending/cancel; contracts/popup/Steam/listeners/audio cleanup |
 | Tooling node tests | PASS, 13 tests | Confined cleanup/symlink refusal, audit high/critical/former exemption/registry failure |
 | Ruff | PASS | Backend/lifecycle/scripts/tests |
-| Python pytest | PASS, 128 passed / 2 skipped | Four native protocols, storage/session/scheduler/network/privacy/images/TTS, localization, disabled real capture adapter and synthetic capture lifecycle/session consent |
-| Playwright | PASS, 4 tests | English at 1280x800/720, focus/scroll/no overflow/errors, Italian independent defaults, per-image approval |
+| Python pytest | PASS, 132 passed / 2 skipped | Four native protocols, storage/session/scheduler/network/privacy/images/TTS, localization, disabled real capture adapter and synthetic capture lifecycle/session consent |
+| Playwright | PASS, 6 tests | English at 1280x800/720, focus/scroll/no overflow/errors, Italian independent defaults, per-image approval; narrow 360x800/720 and menu 20/24/32px |
 | Secret scan | PASS | No detected key/PEM matches; values never printed |
 | Registry audit + policy | PASS, zero advisories | No exception; high/critical and unavailable audit fail |
 | Rollup build | PASS | Official WASM, external React/Decky, no harness runtime |
@@ -31,3 +31,5 @@ Shared JSON Schema fixtures and actual backend records/events are validated in P
 ## Deferred checks
 
 [Hardware checklist](HARDWARE_VALIDATION.md): actual SteamOS/Decky/Python ABI/UID, install/load, controller/keyboard, Steam detection, picker, QAM toast, TTS routing/IPC and CPU/RAM/frame-rate/sleep-resume measurements. [Capture safety criteria](CAPTURE_VERIFICATION.md) require a safe acquisition mechanism before a hardware enablement test. Optional live provider smoke requires separate explicit permission/credentials and has not been run.
+
+Branding revision additionally verifies explicit language/consent/key/history preservation, assistant-language speech independent of UI/legacy voice field, official-docs cloud image admission and no silent model substitution. Original raster branding is preserved; the hand-drawn menu SVG was visually inspected at 20/24/32 pixels in the browser. Production Decky controller and actual API account access remain deferred.

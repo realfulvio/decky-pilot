@@ -1,4 +1,6 @@
-# DeckPilot
+# Decky Pilot
+
+<img src="assets/brand/decky-pilot-logo-dark.png" alt="Decky Pilot, simbolo portatile e nome" width="400">
 
 Assistente di gioco per Decky che aiuta a trovare il prossimo passo. L'inglese è predefinito; la traduzione italiana completa si sceglie nelle Impostazioni. [Read in English](README.md).
 
@@ -10,7 +12,7 @@ MVP in revisione nella [PR #1](https://github.com/realfulvio/decky-pilot/pull/1)
 2. In **Gioca**, usa **Aiutami ora** o scrivi una domanda. L'ultima risposta e i controlli voce sono insieme.
 3. Per assistenza visiva, abilita le immagini nelle Impostazioni, scegli un PNG o JPEG contenente soltanto il gioco, controlla anteprima e destinatario e approva quella singola immagine prima di inviarla. Su Deck, copia il file nella cartella import dedicata indicata nelle Opzioni avanzate e scegli con il selettore Decky.
 
-OpenAI, Claude e Gemini usano le API multimodali native reali; Ollama usa chat nativa e controlla le capacità del modello. Scegli un modello disponibile nel tuo account e confermane il supporto immagini. Nessun modello viene sostituito implicitamente e nessun provider cambia senza scelta e nuovo consenso. Le API possono costare; l'abbonamento ChatGPT non include credito API.
+OpenAI, Claude e Gemini usano le API multimodali native reali; Ollama usa chat nativa e controlla le capacità del modello. Scegli dal catalogo verificato nelle fonti ufficiali un modello con immagini disponibile nel tuo account. I modelli personalizzati esistenti sono conservati per testo; quelli cloud non documentati non ricevono immagini. Accesso account verificato soltanto con richiesta o test connessione esplicito: nessun controllo pagato automatico. Nessun modello viene sostituito implicitamente e nessun provider cambia senza scelta e nuovo consenso. Le API possono costare; l'abbonamento ChatGPT non include credito API.
 
 Uno screenshot può suggerire area e obiettivo, ma non ricostruisce progressi, inventario o missioni nascoste. I prompt chiedono di distinguere osservazioni e ipotesi, proponendo un passo concreto o una domanda se manca contesto. Accuratezza e rispetto degli spoiler non sono garantiti.
 
@@ -24,9 +26,9 @@ Il percorso automatico visivo opzionale è implementato e testato offline, ma no
 
 ## Lingue e voce
 
-Tre scelte indipendenti: lingua interfaccia, risposte AI e voce. Tutte iniziano in inglese; ciascuna supporta inglese e italiano. Cataloghi condivisi coprono interfaccia, errori sicuri e prompt. I nuovi default preservano impostazioni valide e chiavi esistenti.
+Due scelte indipendenti: lingua interfaccia e lingua dell’assistente (risposte e voce). Entrambe iniziano in inglese e supportano italiano. La lingua dell’assistente governa risposte generate e sintesi vocale, secondo l’ultima decisione del prodotto. Cataloghi condivisi coprono interfaccia, errori sicuri e prompt. I nuovi default preservano impostazioni valide e chiavi esistenti.
 
-La voce legge il testo già scritto con la pronuncia scelta: non traduce la risposta. Locale: espeak-ng soltanto se già installato. Online: OpenAI Speech con chiave/consenso separati e gpt-4o-mini-tts, che supporta istruzioni di pronuncia indipendenti. Voce sintetica dichiarata; il testo rimane se l'audio fallisce. Nessuna installazione automatica di espeak-ng.
+La voce legge il testo già scritto nella lingua dell’assistente: non traduce le vecchie conversazioni. Locale: espeak-ng soltanto se già installato. Online: OpenAI Speech con chiave/consenso separati e gpt-4o-mini-tts, che supporta istruzioni nella lingua dell’assistente. Voce sintetica dichiarata; il testo rimane se l'audio fallisce. Nessuna installazione automatica di espeak-ng.
 
 ## Sviluppo e verifiche
 
@@ -64,7 +66,7 @@ Prima dell'installazione futura verifica ABI Python Decky, SteamOS/glibc, UID e 
 
 ## Dati e problemi comuni
 
-Nessuna telemetria o server centrale DeckPilot. Consensi provider, immagini, endpoint Ollama e Speech separati. Chiavi in file backend privati in chiaro (0700/0600 POSIX), mai restituite da RPC o salvate nel browser. Software con lo stesso accesso locale può leggerle.
+Nessuna telemetria o server centrale Decky Pilot. Consensi provider, immagini, endpoint Ollama e Speech separati. Chiavi in file backend privati in chiaro (0700/0600 POSIX), mai restituite da RPC o salvate nel browser. Software con lo stesso accesso locale può leggerle.
 
 Cronologia in memoria salvo scelta esplicita: 100 messaggi/gioco, sette giorni, 20 giochi e 1,8 MB totali. Cancellare la conversazione conserva le chiavi. Cancellare i dati locali elimina impostazioni/chiavi/storia, ma conserva gli originali importati dall'utente. La disinstallazione Loader può conservare impostazioni: cancellale prima esplicitamente. Cancellazione locale/annullamento non ritirano dati già inviati e non garantiscono rimborsi.
 
@@ -73,3 +75,5 @@ Se la cattura manca, importa manualmente il gioco. Se il modello non supporta im
 [Privacy](docs/PRIVACY.md), [sicurezza e audit](docs/SECURITY.md), [architettura](docs/ARCHITECTURE.md), [backlog](docs/BACKLOG.md), [roadmap](docs/ROADMAP.md).
 
 Licenza BSD-3-Clause; attribuzione Steam Deck Homebrew e licenze dipendenze nelle [notices](docs/THIRD_PARTY_NOTICES.md). DECKPILOT_CODEX_SPEC.md originale italiano è conservato come base storica; richieste successive riportate nell'handoff sostituiscono lingua e layout predefiniti.
+
+[Decisioni aggiornate](docs/PRODUCT_DECISIONS.md) prevalgono sulle scelte storiche di lingua e nome; [branding](docs/BRANDING.md). Con il server anteprima attivo, `node scripts/capture_gallery.mjs` genera otto schermate inglesi e metadati sorgente in artifacts/gallery/.

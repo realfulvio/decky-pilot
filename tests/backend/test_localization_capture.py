@@ -77,9 +77,10 @@ async def test_rpc_errors_use_ui_language_and_generation_uses_response_language(
 
 
 @pytest.mark.parametrize('language', ['en', 'it'])
-async def test_remote_speech_language_is_independent_and_does_not_translate(language):
+async def test_assistant_language_controls_speech_independent_of_ui_and_legacy_voice_preference(language):
     transport = FakeTransport(b'RIFF0000WAVEsynthetic')
-    settings = {**DEFAULTS, 'ttsEngine': 'openai', 'ttsConsent': True, 'ttsLanguage': language}
+    settings = {**DEFAULTS, 'ttsEngine': 'openai', 'ttsConsent': True, 'responseLanguage': language,
+                'uiLanguage': 'en', 'ttsLanguage': 'en'}
     await TTS(transport).synthesize('Read this unchanged', settings, {'openai': 'synthetic'})
     body = transport.calls[0]['body']
     assert body['input'] == 'Read this unchanged'
@@ -87,6 +88,22 @@ async def test_remote_speech_language_is_independent_and_does_not_translate(lang
     with pytest.raises(RpcError):
         await TTS(transport).synthesize('Text', {**settings, 'ttsModel': 'tts-1'}, {'openai': 'synthetic'})
     assert len(transport.calls) == 1  # No silently ignored language option.
+
+
+def test_explicit_languages_secrets_and_history_survive_settings_migration(tmp_path):
+    store = PrivateStore(tmp_path)
+    saved = {'schemaVersion': 1, 'uiLanguage':'it', 'responseLanguage':'it', 'ttsLanguage':'en',
+             'remoteConsent':True, 'imagesEnabled':True, 'model':'gpt-4.1', 'provider':'openai'}
+    store.write('settings.json', saved)
+    store.write('secrets.json', {'openai':'synthetic-credential'})
+    store.write('history.json', {'synthetic': [{'role':'assistant','content':'Saved answer','at':1}]})
+    before = store.read('history.json', {})
+    config = Configuration(store)
+    assert config.settings['uiLanguage'] == config.settings['responseLanguage'] == 'it'
+    assert config.settings['remoteConsent'] and config.settings['imagesEnabled']
+    assert config.secrets['openai'] == 'synthetic-credential'
+    config.update({'uiLanguage':'en'})
+    assert store.read('history.json', {}) == before and config.settings['responseLanguage']=='it'
 
 
 async def test_production_capture_gate_is_closed():
