@@ -29,6 +29,7 @@ jobs:
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
+      - run: pnpm test:tooling
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm exec playwright test
         env:
@@ -39,11 +40,12 @@ jobs:
       - run: node scripts/audit.mjs
       - run: pnpm build
       - run: python scripts/vendor.py
-      - name: Validate packaged native dependency on Linux CPython3.11
-        run: PYTHONPATH=vendor/py_modules python -c 'from PIL import Image; print(Image.new("RGB", (1, 1)).size)'
       - run: python scripts/package.py
+      - name: Validate extracted package on isolated Linux CPython 3.11
+        run: python scripts/verify_package.py artifacts/deckpilot-0.1.0.zip --runtime
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: deckpilot-mvp
           path: artifacts/deckpilot-*.zip*
           retention-days: 7
+          if-no-files-found: error
