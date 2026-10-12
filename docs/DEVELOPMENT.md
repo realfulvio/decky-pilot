@@ -12,7 +12,7 @@ Decky Pilot is an MVP under review in [PR #1](https://github.com/realfulvio/deck
 2. In **Play**, use **Help me now**, or ask your own question. The latest answer and voice controls stay together.
 3. For visual help, enable images in Settings, choose a PNG or JPEG containing gameplay only, review the cleaned image and recipient, then approve that image before sending it. On Deck, copy the image into the dedicated import folder shown under Advanced options, then choose it with the Decky picker.
 
-OpenAI, Claude and Gemini use their real native multimodal APIs; Ollama uses its native chat API and checks model capabilities. Choose a model from the documented image-capable catalog that your account can use. Existing custom models are preserved for text; undocumented cloud models cannot receive images. Account availability is checked only by an optional explicit connection test or your request; no paid startup check occurs. No model is silently substituted and no provider changes without your choice and renewed consent. API usage can cost money; a ChatGPT subscription does not include API credit.
+ChatGPT plan access uses the official local/open-source OAuth flow; advanced OpenAI API access uses a separate developer key and billing. Claude, Gemini and Grok use their native APIs; Ollama uses its local chat API and checks model capabilities. Load the selected connection's catalog for actual IDs/names, then select a model. Image capability is separately gated. No model/provider is silently substituted, and consumer plans do not authorize developer API billing. Sign-in retrieves metadata only; game/image sharing remains separate. See [provider verification](PROVIDER_VERIFICATION.md).
 
 An image can suggest an area or objective. It cannot establish hidden progress, inventory or quests. Prompts require visible observations to be separated from guesses, with one concrete next step or a question when context is missing. Model accuracy and spoiler compliance are not guaranteed.
 
@@ -44,6 +44,7 @@ python -m ruff check backend main.py scripts tests/backend
 python -m pytest -q
 python scripts/scan_secrets.py
 node scripts/audit.mjs
+python scripts/audit_python.py
 corepack pnpm exec playwright install chromium
 # Linux: set PLAYWRIGHT_CHANNEL=chromium. Windows defaults to installed Edge.
 corepack pnpm exec playwright test
@@ -54,13 +55,13 @@ python scripts/verify_package.py artifacts/deckpilot-0.1.0.zip
 python scripts/verify_package.py artifacts/deckpilot-0.1.0.zip --runtime
 ```
 
-`corepack pnpm preview` serves the offline harness on `127.0.0.1:5173`. Its sample replies, delay/error buttons and DOM controls are for review; production injects real Decky components. Neither preview nor keyboard tests certify Steam controller behavior. Backend fixtures block provider networking and use synthetic data. No real key is needed for tests. With the preview server running, `node scripts/capture_gallery.mjs` saves ten reproducible English screenshots plus source metadata under `artifacts/gallery/`; use `PLAYWRIGHT_CHANNEL=chromium` on Linux.
+`corepack pnpm preview` serves the offline harness on `127.0.0.1:5173`. Its sample replies, delay/error buttons and DOM controls are for review; production injects real Decky components. Neither preview nor keyboard tests certify Steam controller behavior. Backend fixtures substitute provider transport and use synthetic data. No real key is needed. With the preview server running, `node scripts/capture_gallery.mjs` saves fifteen English views and fifteen directly captured panels plus source metadata under `artifacts/gallery/`; use `PLAYWRIGHT_CHANNEL=chromium` on Linux. Stop preview before Python tests on Windows to avoid watcher interference with atomic temporary-file operations.
 
 [Test evidence](TEST_PLAN.md), [API sources](API_VERIFICATION.md), [hardware checklist](HARDWARE_VALIDATION.md), [handoff](CODEX_HANDOFF.md).
 
 ## Package and future device validation
 
-The generated installable ZIP contains one `DeckPilot/` root, the frontend/backend, both locale catalogs and the hash-pinned Linux x86_64 CPython 3.11 Pillow wheel with licenses. The source ZIP is made from the committed revision. Checksums sit beside both archives; these are review artifacts, not a published release.
+The generated installable ZIP contains one `DeckPilot/` root, the frontend/backend, both locale catalogs and hash-pinned Linux x86_64 CPython 3.11 Pillow, PyJWT, cryptography, cffi and pycparser wheels with licenses. Auth pins/hashes are in `contracts/auth-wheels.json`. Linux CI verifies extracted RSA signing/verification and Pillow/plugin lifecycle. The source ZIP comes from the committed revision; checksums sit beside both archives. These are review artifacts, not a release.
 
 Before future installation, confirm the Decky's Python ABI, SteamOS/glibc, UID and Loader versions using the hardware checklist. Use the installed Loader's developer ZIP installation flow if desired. No project script installs on or changes SteamOS. No device, mini PC, store or release was used in this work.
 

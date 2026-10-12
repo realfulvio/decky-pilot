@@ -42,7 +42,11 @@ try {
       const label = name.replaceAll('/', '-').replace('.md', '');
       await page.screenshot({path:join(output,`${label}-${width}-full.png`),fullPage:true});
       await page.screenshot({path:join(output,`${label}-${width}-top.png`)});
-      if (name.startsWith('README')) await page.locator('img').nth(3).screenshot({path:join(output,`${label}-${width}-gallery.png`)});
+      if (name.startsWith('README')) {
+        await page.locator('img').nth(2).screenshot({path:join(output,`${label}-${width}-workflow.png`)});
+        await page.locator('table').first().screenshot({path:join(output,`${label}-${width}-status.png`)});
+        await page.locator('img').nth(3).screenshot({path:join(output,`${label}-${width}-gallery.png`)});
+      }
       console.log(`${name} ${width}px: GitHub-rendered HTML, all images decoded, no page overflow`);
       await page.close();
     }

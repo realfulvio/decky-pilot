@@ -1,40 +1,67 @@
 # Decky Pilot work checkpoint
 
-Updated 14 October 2026. Resume here before the historical CODEX_HANDOFF.
+Resume here before historical CODEX_HANDOFF. Current extension supersedes earlier completion claims.
 
-## Active extension — situation-aware assistant and account catalogs
+## Current scope and implementation
 
-Latest user instructions extend the delivered MVP; do not restart. Repository is already PUBLIC.
-MVP checkout remains `C:/Users/Admin/deckpilot` on `codex/deckpilot-mvp`; gallery worktree
-`C:/Users/Admin/deckpilot-gallery` on `docs/ui-gallery`; presentation worktree
-`C:/Users/Admin/deckpilot-presentation` on `main`. All started clean; other worktrees remain clean.
+Existing workspace `C:/Users/Admin/deckpilot`, branch `codex/deckpilot-mvp`; gallery worktree
+`C:/Users/Admin/deckpilot-gallery`, branch `docs/ui-gallery`; presentation worktree
+`C:/Users/Admin/deckpilot-presentation`, branch `main`. Preserve ignored caches/artifacts.
+Repository is already PUBLIC with the owner's explicit authorization. No merge, force push, store,
+release or device install. Main is presentation-only; application stays in PR #1, gallery in PR #2.
 
-In-progress uncommitted code: official OSS ChatGPT OAuth (127.0.0.1 listener, PKCE/state/nonce,
-issued dynamic client, PyJWT/JWKS/issuer/audience/expiry verification, separate account records,
-serialized rotating refresh and revocation), separate ChatGPT provider using public Responses SSE
-with store=false, stream=true and no unsupported output budget; native Grok/xAI Responses and
-language-model catalog/modalities; credential-scoped catalogs for all providers; no static GPT-4.1
-picker. Exact documented image allowlist remains conservative for providers lacking modalities.
-Tokens never returned in status, no browser cookies or other-app credential reads, no paid fallback.
-Contextual JSON estimates separate observations/inferences, one clarification, answer in session
-history; visual output must validate, automatic output must be structured and suppress menus,
-loading, ambiguity and useless results. Prepared images expire for sending after 45 seconds.
-Manual title correction is retained until an observed game switch. Existing capture safety gate stays
-disabled: game-only acquisition is not atomic; hardware/integration validation remains NOT RUN.
+Code source `205a861f423678fb2cefde0b287df9ae6c6ee070` includes native ChatGPT plan OAuth,
+separate advanced OpenAI key, Claude/Gemini/Grok/Ollama, account/service-returned catalogs,
+bounded documented pagination, exact image gates, refresh/revoke/limits and structured visual context.
+Own backend credentials only; no cookies/other-app secrets or paid/provider fallback.
+Help me now combines the player's question, confirmed game and recent approved image;
+observations/deductions and one clarification are distinct. Four bounded clarification replies remain
+session context beyond the rolling history; game change/clear/delete removes them.
+Auto admission >=90 seconds; stale frames >45 seconds, overlaps, duplicates, menu/loading and
+ambiguity are refused/suppressed. Manual corrections survive until actual game switch.
+Loopback integration exposed and fixed Python 3.13 callback shutdown deadlock; test uses fake identity.
 
-Local checks currently pass: `corepack pnpm verify` (lint/types, 25 frontend, 13 tooling, build),
-`.venv/Scripts/python.exe -m ruff check backend main.py scripts tests/backend`,
-`.venv/Scripts/python.exe -m pytest -q --basetemp artifacts/pytest-account` (178 pass, two Linux-only
-process checks skipped on Windows). Five shipped Python pins have zero OSV advisories.
-Auth Linux wheels are hash-pinned in contracts/auth-wheels.json and vendored by scripts/vendor.py;
-extracted ZIP CI now verifies real RSA JWT signing/verifying as well as Pillow/lifecycle.
+**Central unresolved blocker:** Gamescope command adapter exists but cannot atomically bind capture
+to the authorized game during transitions. `CAPTURE_SAFETY_VALIDATED=False`; production automatic
+and direct capture remain disabled. Manual import is an alternative, not completion. No Steam Deck
+available; no install/controller/browser/audio/capture hardware test run. No real account grant,
+catalog, refresh/revoke, paid inference, plan eligibility or live model-quality test run.
 
-Next: finish auth/capture edge review and tests, generate updated actual browser gallery and workflow,
-rewrite README EN/IT/provider verification docs, inspect rendered pages, audit history/assets, commit
-and push normal commits on existing branches, copy only presentation/docs/assets to main, update
-both PRs and repository English description, verify latest Linux CI/package artifacts. No merge/store.
-New concept cover generated with built-in imagegen is saved as assets/presentation/cover-v2.png;
-original branding and previous cover retained. No live account/API/hardware tests have run.
+## Verification and presentation
+
+Local checks: 182 backend passed / two Linux-only process checks skipped on Windows; 27 frontend;
+13 tooling; six browser. ESLint/types/Ruff/build pass. JS audit and OSV for five shipped Python pins
+report zero advisories. Vendor/package pass with 435 allowlisted files. Final committed source ZIP
+and installable ZIP/checksums regenerate after delivery commits. Linux CI must verify extracted
+CPython 3.11 Pillow/PyJWT/cryptography/RSA/lifecycle, plus the platform-specific tests.
+
+Commands: `corepack pnpm verify`; `.venv/Scripts/python.exe -m ruff check backend main.py scripts tests/backend`;
+`.venv/Scripts/python.exe -m pytest -q --basetemp artifacts/pytest-context`;
+`corepack pnpm exec playwright test`; `node scripts/audit.mjs`;
+`.venv/Scripts/python.exe scripts/audit_python.py`; `scripts/vendor.py`; `scripts/package.py`;
+`scripts/verify_package.py`; Linux only `scripts/verify_package.py artifacts/deckpilot-0.1.0.zip --runtime`.
+Stop Vite before backend tests on Windows (watcher interference with atomic temporary writes).
+
+15 actual browser views plus 15 direct panel captures from committed source 205a861 (metadata
+in docs/images/ui/source.json). Synthetic data/replies; capture capability explicitly simulated only
+for consent UI. No live auth/inference/capture/speech. New built-in imagegen cover is labelled concept;
+original branding/earlier art retained. Editable EN/IT workflow. README EN/IT, gallery, provider billing,
+privacy, status table and hardware blockers updated. GitHub Markdown API render at 1200/390px:
+all images decoded, no page overflow; 54 relative links and 35 current PNGs verified. Manual visual
+review covers cover, diagrams, contextual steps, onboarding and mobile layout.
+
+## Next authorized actions
+
+1. Commit reviewed presentation and docs, repeat source/history/private-metadata audit.
+2. Copy only README/translations/assets/gallery/presentation docs to main using LF-identical bytes;
+   integrate normal commits into existing gallery branch, preserve its review-specific doc.
+3. Push all existing branches, update English repository description and both PRs.
+4. Verify latest-head Linux PR/push CI and artifacts; verify published EN/IT GitHub pages anonymously.
+5. Record final heads/CI/artifact/publication evidence here. Do not treat older green heads as final.
+
+Initial extension CI on 903b080 passed [PR run 38318741305](https://github.com/realfulvio/decky-pilot/actions/runs/38318741305)
+and [push run 38318736988](https://github.com/realfulvio/decky-pilot/actions/runs/38318736988).
+These cover that earlier source only. Current-head checks remain authoritative.
 
 Historical completion statements below refer to the earlier scope and are superseded by this extension.
 

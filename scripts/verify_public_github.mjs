@@ -15,7 +15,7 @@ try {
       const article = page.locator('article.markdown-body').first();
       await article.waitFor();
       const images = article.locator('img');
-      if (await images.count() !== 9) throw new Error('Unexpected public README image count');
+      if (await images.count() !== 12) throw new Error('Unexpected public README image count');
       for (const image of await images.all()) {
         await image.scrollIntoViewIfNeeded();
         await image.evaluate(element => element.decode());
@@ -24,7 +24,7 @@ try {
       await article.locator('h1').first().scrollIntoViewIfNeeded();
       await page.screenshot({path:`artifacts/github-public/${name}-${width}-top.png`});
       await images.nth(3).screenshot({path:`artifacts/github-public/${name}-${width}-panel.png`});
-      console.log(`${name} ${width}px: anonymous GitHub 200, nine README images loaded`);
+      console.log(`${name} ${width}px: anonymous GitHub 200, twelve README images loaded`);
       await page.close();
     }
   }

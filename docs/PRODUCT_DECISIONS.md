@@ -15,7 +15,7 @@ This addendum records the owner's 12 October 2026 `DECKY_PILOT_NEXT_TASK.md`, re
 - Preserve full-solutions spoiler default, six-second popup/full reply, voice preference subject to capability/separate remote consent, backend secrets/private storage/cleanup/retention, no telemetry or recipient fallback.
 
 Offline tests, Linux CI and package checks are required now. Actual SteamOS installation, atomically safe acquisition, Decky/controller/focus, QAM popup, audio routing/IPC and performance remain **NOT RUN** until hardware is available. See CAPTURE_VERIFICATION, HARDWARE_VALIDATION and TEST_PLAN.
-# Situation-aware extension (14 October 2026)
+# Situation-aware extension
 
 The latest authorized scope adds separate ChatGPT plan OAuth and OpenAI API-key connections,
 native Grok/xAI, service-returned model catalogs, verified image gates and structured situation estimates.
@@ -27,4 +27,3 @@ at least 90 seconds apart; menu/loading/unknown estimates abstain. Image send fr
 Automatic capture remains central and incomplete on hardware: the existing Gamescope CLI hook is
 disabled until atomic game-only acquisition and sensitive-screen refusal are demonstrated.
 Manual import remains an alternative. Read the newest WORK_CHECKPOINT and PROVIDER_VERIFICATION.
-
