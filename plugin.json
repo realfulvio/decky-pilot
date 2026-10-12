@@ -1,0 +1,4 @@
+{
+  "name": "DeckPilot", "author": "DeckPilot contributors", "version": "0.1.0", "api_version": 1,
+  "flags": [], "publish": {"tags": ["assistant"], "description": "Assistente di gioco italiano con provider configurabili e consensi espliciti."}
+}
