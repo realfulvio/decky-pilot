@@ -8,7 +8,7 @@ from urllib.parse import unquote, urlsplit
 from PIL import Image
 
 DOCUMENTS = ("README.md", "README.it.md", "docs/UI_GALLERY.md",
-             "docs/PRESENTATION_ASSETS.md", "docs/PUBLICATION_REVIEW.md")
+             "docs/PRESENTATION_ASSETS.md", "docs/PUBLICATION_REVIEW.md", "docs/PROVIDER_VERIFICATION.md")
 
 
 def verify(root):

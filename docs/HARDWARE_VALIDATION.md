@@ -19,6 +19,10 @@ Record date/operator, LCD/OLED model, SteamOS/kernel/glibc, Steam client/channel
 | [ ] | Speakers/headphones/Bluetooth, volume/routing/game audio, no residual playback | NOT RUN / DP-015 |
 | [ ] | Offline/denied provider/rate limit/unreachable Ollama: safe errors/manual retry/no silent fallback | NOT RUN / DP-015 |
 | [ ] | Actual 0700/0600 ownership, no secret/content logs, consistent deletion/retention | NOT RUN / DP-015 |
+| [ ] | ChatGPT eligible account/workspace grant/denial, exact returned model labels, separate image eligibility, real refresh/revoke/limits | NOT RUN / account acceptance |
+| [ ] | Steam system browser opens official authorization, loopback returns to same backend device, Gaming/Desktop mode transitions and plugin unload cancel callback safely | NOT RUN / OAuth device acceptance |
+| [ ] | Native OpenAI/Claude/Gemini/xAI/Ollama text/image requests with dedicated authorized credentials; no consumer-plan/API billing confusion or fallback | NOT RUN / provider acceptance |
+| [ ] | Real ambiguous scene gives one useful question, player answer retained, observations/deductions honest, stale/mismatched image refused | NOT RUN / situation quality |
 | [ ] | CPU/RAM idle, latency/frame rate and sleep/resume; report tools/method/real measurements | NOT RUN / DP-017 |
 
 Use sanitized synthetic evidence and reproducible issues for failures. Do not tick hardware rows based on tests/build. Live API smoke is separate, optional and requires explicit consent and dedicated credentials. Hardware availability is not required to complete offline review and CI.

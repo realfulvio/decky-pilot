@@ -1,5 +1,15 @@
 # Test plan and evidence
 
+## Current situation-aware extension
+
+This section supersedes historical counts below. Local Windows checks: **182 backend passed, two Linux-only process checks skipped; 27 frontend; 13 tooling; six browser tests**. Lint, TypeScript, Ruff and build pass. JavaScript audit and OSV audit of five shipped Python pins report zero advisories. Commands: `corepack pnpm verify`, `.venv/Scripts/python.exe -m ruff check backend main.py scripts tests/backend`, `.venv/Scripts/python.exe -m pytest -q --basetemp artifacts/pytest-context`, `corepack pnpm exec playwright test`, `node scripts/audit.mjs`, `.venv/Scripts/python.exe scripts/audit_python.py`. Stop the Vite preview before backend tests: its watcher can interfere with atomic temporary-file replacement on Windows.
+
+Coverage adds official ChatGPT state/nonce/client/JWKS/identity/expiry/grant checks, renewal/revocation and terminal SSE/plan limits; six service-returned catalogs and bounded pagination; real xAI protocol fixtures/image modalities; game switch, revoked consent, 45-second image freshness, ambiguity, retained clarification replies, >=90-second admission and menu/loading abstention. A real local HTTP callback exercises the temporary loopback server with a **simulated identity service**; generated RSA keys exercise real JWT signing/verification. No real account authorization or paid inference was run.
+
+Fifteen actual browser views plus fifteen panel captures use synthetic data, fake replies and explicitly simulated capture availability. `source.json` gives the committed capture source. GitHub-rendered EN/IT README/gallery and actual anonymous public pages must be checked after final publication. Source/history scans and PNG metadata review are repeated for new commits. Final CI runs, artifact links and published heads are in WORK_CHECKPOINT; earlier run links below certify only their listed revisions.
+
+Linux CI runs the two platform-specific checks and verifies the extracted CPython 3.11 Pillow/PyJWT/cryptography runtime, using SHA-pinned Linux wheels. **Steam Deck and live-provider acceptance remain NOT RUN.** Safe atomic game-only capture is still blocked; manual import does not complete it.
+
 ## Resumed delivery, 13 October 2026
 
 Current local verification: **146 Python passed, no skips; 22 frontend; 13 tooling; six browser tests**. Both symlink cases execute on this workstation now. Frozen install, ESLint/TypeScript/Ruff, zero-advisory audit, secret scan, build, pinned vendor and package verification pass. Installable archive: 224 allowlisted files. Final source/package ZIPs must be regenerated after the delivery commit; current Linux CI also runs the isolated extracted-package runtime smoke.
