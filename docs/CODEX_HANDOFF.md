@@ -1,37 +1,27 @@
-# Handoff esecutivo
+# Codex handoff
 
-Repository locale: C:\Users\Admin\deckpilot. Branch: codex/deckpilot-mvp, base locale main con commit iniziale vuoto. La directory iniziale C:\Users\Admin non era un repository e la ricerca non ha trovato deckpilot. Il remote non è configurato: account GitHub collegato accessibile, ma nessun repository deckpilot nell'elenco e URL/percorso richiesto non ancora fornito. Nessun proprietario/remote inventato, nessun nuovo repository remoto creato, nessun push o PR dichiarati.
+Workspace: `C:/Users/Admin/deckpilot`. Existing branch: `codex/deckpilot-mvp`, base `main`. Remote **available and verified**: `https://github.com/realfulvio/deckpilot.git`.
 
-Specifica letta integralmente prima delle modifiche, copia originale in DECKPILOT_CODEX_SPEC.md. Nessun lavoro preesistente sovrascritto. Nessun SSH/mini PC usato, nessuna installazione su dispositivi, release/store, force push, reset o merge.
+- Existing MVP: [PR #1](https://github.com/realfulvio/deckpilot/pull/1), head `codex/deckpilot-mvp`, base `main`.
+- Existing gallery: [PR #2](https://github.com/realfulvio/deckpilot/pull/2), head `docs/ui-gallery`, base `codex/deckpilot-mvp`. Update its English images/docs independently; do not merge it into the MVP to coordinate review.
+- No new PR, merge, force push, reset, device installation, release/store or mini PC connection is authorized/performed. Preserve existing work and use normal commits/pushes.
 
-Implementazione: UI Decky italiana, dominio Python importabile senza Loader, quattro provider nativi reali, chiavi private/consensi separati, contesto manuale/Steam isolato, sessioni/cancel/idempotenza, scheduler90s, popup6s/crono intera, immagini ripulite/preview/handle monouso, TTS locale/Speech e fallback/Stop, cancellazione/retention, CI/package/docs/backlog.
+The complete original `DECKPILOT_CODEX_SPEC.md` was read and preserved. Later user requirements supersede its Italian default and original layout: English default and complete Italian catalogs, independent interface/AI/voice language choices, guided simple UI, visual assistance and strict sensitive-screen exclusion. Historical bootstrap statements about a missing remote/PR are obsolete.
 
-Verifiche locali:116 test backend passati,2 symlink skip per privilegi Windows;11 frontend;2 browser1280×800/720;Ruff/ESLint/TypeScript/build/scansione/wheel hash e packaging. Vedi TEST_PLAN e API_VERIFICATION. GitHub Actions/import nativo Linux CP311 e hardware NON ESEGUITI. Un advisory high braces build-only è mostrato ed ammesso da policy documentata, non audit clean. La policy Windows blocca il modulo Rollup nativo4.64.5; alternativa ufficiale WASM usata senza cambiare policy.
+## Implemented
 
-Artefatti in artifacts: deckpilot-0.1.0.zip e SHA256; source.zip e SHA256; preview1280×800/720; patch e git bundle della consegna. ZIP installabile strutturato DeckPilot/ con wheel CP311 Linux completa/licenze, codice API LGPL corrispondente e nessun file privato/test/venv. Il ZIP non dimostra compatibilità hardware. Gli hash finali sono nei file .sha256 accanto agli archivi (evita riferimenti circolari al proprio hash nel pacchetto).
+Real Decky components, Play/Game/Settings and three-step onboarding; primary Help me now, free question, actual image review, latest answer and voice. Provider/keys/permissions/languages/limits are Settings-only; diagnostics are not part of the user flow. Native OpenAI Responses, Claude Messages, Gemini generateContent and Ollama chat/show. Shared localized safe errors/policies, schema-compatible English defaults, independent voice pronunciation without translating answers. Sessions/cancel/idempotence, six-second popup/full history, cleaned one-use images, local/remote voice/Stop, private storage/deletion/retention.
 
-## Collegamento al remoto mancante
+Security commit `cefedad8497211990ea46a6a81991e2023886eba` removed the vulnerable Rollup preset/delete/glob/braces chain, preserved the bundle and removed the audit exemption. Zero advisories reported at review. CI now tests tooling and runs the actual extracted ZIP in isolated Linux CPython 3.11 outside the checkout, using vendored Pillow and Loader lifecycle. Verified successful [Linux run](https://github.com/realfulvio/deckpilot/actions/runs/38306051080). Latest redesign validation is recorded in TEST_PLAN and PR checks.
 
-Fornire il percorso del clone corretto o l'URL remote effettivo. Ispezionare default branch, istruzioni AGENTS e modifiche prima di portare i commit locali: se esiste già codice, creare worktree pulito dalla sua base e adattare/cherry-pick le modifiche senza sovrascrivere lavoro. Il branch locale nasce da bootstrap vuoto perché mancava il repository; **non** forzare la storia su una base diversa.
+## Capture is deliberately unavailable
 
-Se il remoto fornito è realmente un nuovo repository vuoto, il proprietario può scegliere di usare questa baseline. Solo dopo aver verificato la destinazione, configurare origin, controllare la base e trasferire il branch con push normale. Per un repository esistente, integrare dalla base appropriata e usare gli stessi controlli. Poi:
+Official Valve sources establish `gamescopectl screenshot <path>`, base-plane-only output and asynchronous completion. A real bounded adapter is implemented/tested with synthetic subprocesses. The command lacks atomic game-window targeting; focus checks cannot guarantee no sensitive surface was acquired during transitions. `CAPTURE_SAFETY_VALIDATED=False`; no production screenshot or automatic visual acquisition is enabled. Manual images and native multimodal analysis remain implemented. Do not describe mocks/previews as working capture. CAPTURE_VERIFICATION records pinned source and acceptance criteria.
 
-```powershell
-git remote -v
-git fetch origin
-git branch -av
-# Dopo verifica della base e integrazione non distruttiva:
-git push -u origin codex/deckpilot-mvp
-gh pr create --base <BASE_VERIFICATA> --head codex/deckpilot-mvp --title 'Implement DeckPilot MVP with secure providers, contextual hints and TTS' --body-file docs/PR_BODY.md
-gh pr view --json url,state,baseRefName,headRefName
-```
+Per-session automatic consent, status/pause, >=90-second reservation, fresh useful context, dedup/error controls and 20-attempt budget are implemented/tested offline. Visual activation rejects unavailable capture. Consent is not restored after reload/game/settings/key changes. No continuous screenshot polling or inferred hidden progress.
 
-Non usare placeholder come destinazioni reali. Nessun merge. La descrizione PR è concreta in PR_BODY.md; URL da riportare solo dopo verifica. CI remota da osservare e correggere prima della revisione.
+## Verification and next work
 
-## Prossimi gate
+TEST_PLAN separates local Windows checks, actual Ubuntu/Python 3.11 CI and hardware NOT RUN. Artifacts contain package/source ZIPs with adjacent SHA256 and English/Italian offline previews. The installable ZIP includes both catalogs and the full hash-pinned Linux CP311 Pillow wheel/licenses; source ZIP reflects HEAD and must be regenerated after the final commit.
 
-1. Remote/push/PR e CI Linux/import Pillow/permessi POSIX.
-2. Checklist hardware DP-015/017: versioni/ABI/UID, caricamento/focus/picker/Steam/popup/TTS/IPC/performance reali.
-3. Capture DP-016 e streaming/STT/OCR/retrieval solo con verifica/consensi/test dedicati.
-
-Nessuna chiave reale/live smoke è necessario per completare la revisione offline. La disponibilità futura della Deck è input al gate hardware, non motivo per riscrivere il backend come mock.
+Steam Deck unavailable. Next: review PR #1 and coordinated gallery #2; satisfy atomic capture safety criteria before enabling it; execute HARDWARE_VALIDATION on a future Deck and record ABI/UID/controller/picker/popup/audio/performance evidence. No real key or provider smoke is required for offline review. Do not recreate this project or request a device to complete verifiable work.

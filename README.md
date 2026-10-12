@@ -1,102 +1,75 @@
 # DeckPilot
 
-Assistente italiano per Steam Deck dal menu Decky: chat, suggerimenti contestuali, immagini approvate e voce sintetica. MVP implementato e verificato offline; **pronto per validazione hardware, non certificato SteamOS**. La Steam Deck non era disponibile per questa consegna.
+A Decky game assistant that helps you find your next step. English is the default; the complete Italian interface is available in Settings. [Leggi in italiano](README.it.md).
 
-## Funzioni
+DeckPilot is an MVP under review in [PR #1](https://github.com/realfulvio/deckpilot/pull/1). The [UI gallery in PR #2](https://github.com/realfulvio/deckpilot/pull/2) uses the same React screens in an explicitly labelled offline preview. A Steam Deck is not available, so device compatibility is still pending.
 
-- OpenAI Responses, Gemini generateContent, Claude Messages e Ollama chat attraverso REST reali nel backend Python. Nessun provider dimostrativo nel plugin.
-- Contesto manuale: titolo, AppID facoltativo, obiettivo, posizione e note; funziona anche per emulatori. L'adapter Steam interno legge soltanto metadati quando la libreria e il contesto sono disponibili e non ambigui.
-- Sessione nuova al cambio gioco, annullamento, una generazione globale, idempotenza locale e risultati obsoleti scartati.
-- Popup da 6 secondi, testo breve e risposta completa nella chat. Soluzioni complete è il livello spoiler iniziale.
-- Suggerimenti disattivati inizialmente: al massimo uno ogni 90 secondi, solo con contesto nuovo e recente. Pausa, deduplica, cooldown su errori e 20 tentativi automatici per sessione.
-- PNG/JPEG scelti esplicitamente, con preview della versione ripulita/ridimensionata; consenso per ciascuna immagine e destinazione, handle monouso. Cattura diretta in Gaming Mode non disponibile.
-- espeak-ng locale se già installato e OpenAI Speech remoto con consenso aggiuntivo. Un audio per volta; Stop e fallback testuale. Preferenza voce abilitata, disponibilità runtime rilevata.
+## Get help
 
-Il solo titolo/AppID non rivela missioni o posizione. DeckPilot chiede dettagli quando mancano informazioni. Non controlla il gioco e non legge memoria, salvataggi o anti-cheat. Nessuna telemetria o server centrale DeckPilot.
+1. Follow **Get started**: choose your game, connect an AI service, and choose what to share. Setup sends no AI requests.
+2. In **Play**, use **Help me now**, or ask your own question. The latest answer and voice controls stay together.
+3. For visual help, enable images in Settings, choose a PNG or JPEG containing gameplay only, review the cleaned image and recipient, then approve that image before sending it. On Deck, copy the image into the dedicated import folder shown under Advanced options, then choose it with the Decky picker.
 
-## Primo avvio
+OpenAI, Claude and Gemini use their real native multimodal APIs; Ollama uses its native chat API and checks model capabilities. Choose a model your account can use and confirm its image support. No model is silently substituted and no provider changes without your choice and renewed consent. API usage can cost money; a ChatGPT subscription does not include API credit.
 
-1. Imposta il titolo e il contesto del gioco.
-2. Nelle impostazioni scegli provider e un modello disponibile nel tuo account/server; non è predefinito alcun modello chat.
-3. Inserisci e salva la chiave del provider cloud. Ollama non richiede chiave; `localhost` indica la Deck, non il PC di sviluppo.
-4. Salva provider/modello/endpoint; il cambio destinazione revoca i consensi. Poi abilita e salva il consenso chat cloud o quello per lo specifico endpoint Ollama. Nessun test connessione viene avviato automaticamente.
-5. Se desideri, premi «Verifica provider ora»: una verifica cloud esegue una breve generazione che può avere costi; Ollama usa `/api/show` senza download di modelli.
-6. Immagini: conferma la capacità del modello, abilita import e scegli una singola immagine. Approva l'invio dopo aver visto preview, provider e modello. Per Ollama la capacità vision viene anche controllata via `/api/show`.
-7. TTS OpenAI: scegli motore, modello e voce, salva le impostazioni e poi abilita/salva il consenso separato. Puoi usare «Salva chiave OpenAI per voce» anche con chat Gemini, Claude o Ollama. La chiave OpenAI serve sia alla chat OpenAI sia a Speech. I default Speech `gpt-4o-mini-tts`/`coral` sono documentati; la disponibilità sull'account resta da verificare.
+An image can suggest an area or objective. It cannot establish hidden progress, inventory or quests. Prompts require visible observations to be separated from guesses, with one concrete next step or a question when context is missing. Model accuracy and spoiler compliance are not guaranteed.
 
-L'abbonamento ChatGPT/Codex non prova disponibilità o credito API OpenAI. Nessuna chiave, cookie o token di Codex viene riusato. Non sono promessi prezzi o uso gratuito. HTTP su LAN espone contenuti alla rete: autorizza consapevolmente l'endpoint e preferisci HTTPS o un tunnel gestito da te. Questo progetto non configura VPN, SSH, firewall o servizi remoti.
+## Screen capture and automatic help
 
-## Immagini sul dispositivo
+**Direct Gaming Mode capture is unavailable in this build.** We inspected Valve's actual Gamescope screenshot command and implemented a bounded adapter, but acquisition stays disabled: the upstream command is not atomically bound to a particular game window and can capture a different surface during a focus transition. This fails the requirement to avoid keys and account screens. There is no simulated production capture or invented Steam API. See [capture findings and acceptance criteria](docs/CAPTURE_VERIFICATION.md).
 
-Il plugin usa il selettore ufficiale `openFilePicker` di Decky, ristretto a una cartella dedicata, indicata nella UI: `<DECKY_PLUGIN_RUNTIME_DIR>/import-images`. Copia qui soltanto immagini che vuoi analizzare. Il backend riceve il nome file, mai un path libero, e rifiuta traversal, symlink e file non immagine. L'originale importato è un file fornito dall'utente e rimane in questa cartella: elimina manualmente gli originali quando non servono. Le copie ripulite e i consensi restano in memoria per massimo 5 minuti e vengono consumati o revocati al cambio sessione/provider.
+Manual image import and analysis are implemented. **Help me now** offers import when images are enabled; otherwise it uses the context you supplied.
 
-Il solo toggle non consente invii automatici. Nessun file viene letto prima di una scelta esplicita. Il selettore/controller in Gaming Mode è da verificare sul dispositivo; il browser harness usa upload di bytes per prove offline. JPEG/PNG: massimo 5 MiB, 20 MP, lato lungo 1280 px, payload ripulito fino a 1,5 MB. Nessun SVG o URL remoto.
+The optional automatic visual path is implemented and tested offline, but is unavailable while capture is disabled. It requires separate consent for the current session, shows an active indicator, offers immediate pause, and waits at least 90 seconds between attempts. Only fresh meaningful context permits a new analysis; identical context/images, unknown games, active requests or voice, errors and sleep/resume suppress work. It does not continuously scan the screen or infer that you are stuck. A game change/reload/settings or key change revokes session consent. Twenty attempts require another explicit allowance. No device test is claimed.
 
-## Sviluppo Windows
+## Language and voice
 
-Toolchain verificata: Node 24.20.0, pnpm 10.28.2, Python 3.13 sul workstation. Target pacchetto: Loader ufficiale compilato con Python 3.11.7, Linux x86_64/glibc >= 2.28. Il pacchetto contiene Pillow CPython 3.11; altri ABI richiedono una build dedicata, non un'installazione pip nascosta sul dispositivo.
+Settings has three independent choices: **Interface language**, **AI response language**, and **Voice language**. All initially default to English; each supports English and Italian. Shared catalogs cover the interface, safe errors and prompts. Existing valid settings and saved keys are preserved when the new defaults are added.
 
-```powershell
-corepack pnpm install --frozen-lockfile
-py -3.13 -m venv .venv
-.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
-corepack pnpm lint
-corepack pnpm typecheck
-corepack pnpm test
-.venv\Scripts\python.exe -m ruff check backend main.py scripts tests/backend
-.venv\Scripts\python.exe -m pytest -q
-.venv\Scripts\python.exe scripts/scan_secrets.py
-node scripts/audit.mjs
-corepack pnpm build
-.venv\Scripts\python.exe scripts/vendor.py
-.venv\Scripts\python.exe scripts/package.py
-```
+Voice reads the answer as written with the selected pronunciation; it does not translate it. Local voice uses espeak-ng when already installed. Online voice uses OpenAI Speech with a separate key/consent and `gpt-4o-mini-tts`, whose instructions support the independent pronunciation choice. Voice is synthetic; text remains available if audio fails. Nothing installs espeak-ng automatically.
 
-Rollup usa la distribuzione ufficiale WebAssembly alla stessa versione per evitare dipendenze native bloccate dalla policy Windows. React e Decky UI sono esterni come nel template (`SP_REACT`, `SP_JSX`, `DFL`), senza seconda copia di React nella build.
+## Development and verification
 
-## Linux e Cloud
+Pinned toolchain: Node 24.20.0, Corepack/pnpm 10.28.2, Python 3.11.7 in Linux CI. Windows development uses Python 3.13.15. Production uses Decky API 1.1.3 and Decky UI 4.12.1; React and Decky UI are external in the plugin bundle.
 
 ```sh
-corepack enable
-pnpm install --frozen-lockfile
-python3.11 -m venv .venv
-.venv/bin/python -m pip install -r requirements-dev.txt
-pnpm verify
-.venv/bin/python -m ruff check backend main.py scripts tests/backend
-.venv/bin/python -m pytest -q
-.venv/bin/python scripts/scan_secrets.py
+corepack pnpm install --frozen-lockfile
+python -m venv .venv
+# Activate the virtual environment for your shell, then:
+python -m pip install -r requirements-dev.txt
+corepack pnpm verify
+python -m ruff check backend main.py scripts tests/backend
+python -m pytest -q
+python scripts/scan_secrets.py
 node scripts/audit.mjs
-.venv/bin/python scripts/vendor.py
-PYTHONPATH=vendor/py_modules .venv/bin/python -c 'from PIL import Image; print(Image.new("RGB", (1,1)).size)'
-.venv/bin/python scripts/package.py
+corepack pnpm exec playwright install chromium
+# Linux: set PLAYWRIGHT_CHANNEL=chromium. Windows defaults to installed Edge.
+corepack pnpm exec playwright test
+python scripts/vendor.py
+python scripts/package.py
+python scripts/verify_package.py artifacts/deckpilot-0.1.0.zip
+# Linux CPython 3.11 only: verify the extracted deliverable in an isolated process
+python scripts/verify_package.py artifacts/deckpilot-0.1.0.zip --runtime
 ```
 
-In Cloud collega il repository effettivo e rendi la specifica disponibile nel checkout. Non usare un nome repository come ID di ambiente. Il workflow include import della dipendenza Linux e permessi storage; non è stato eseguito su GitHub finché non esiste un remote autorizzato.
+`corepack pnpm preview` serves the offline harness on `127.0.0.1:5173`. Its sample replies, delay/error buttons and DOM controls are for review; production injects real Decky components. Neither preview nor keyboard tests certify Steam controller behavior. Backend fixtures block provider networking and use synthetic data. No real key is needed for tests.
 
-## Harness e verifiche
+[Test evidence](docs/TEST_PLAN.md), [API sources](docs/API_VERIFICATION.md), [hardware checklist](docs/HARDWARE_VALIDATION.md), [handoff](docs/CODEX_HANDOFF.md).
 
-`corepack pnpm preview` apre un server solo su `127.0.0.1:5173`. Il banner «HARNESS OFFLINE» identifica risposte sintetiche e pulsanti di errore/attesa; non effettua chiamate API. `corepack pnpm exec playwright test` usa Microsoft Edge presente sul workstation e salva preview a 1280×800/720. Il test browser verifica focus da tastiera e flusso chat; non equivale a controller reale. Per Linux puoi impostare `PLAYWRIGHT_CHANNEL=chromium` e installare Chromium per Playwright.
+## Package and future device validation
 
-I test backend bloccano DNS e il trasporto HTTP di produzione; i test protocollo usano trasporti iniettati. Nessuna API key reale è necessaria. Consulta [piano e risultati](docs/TEST_PLAN.md), [verifica API](docs/API_VERIFICATION.md) e [checklist hardware](docs/HARDWARE_VALIDATION.md).
+The generated installable ZIP contains one `DeckPilot/` root, the frontend/backend, both locale catalogs and the hash-pinned Linux x86_64 CPython 3.11 Pillow wheel with licenses. The source ZIP is made from the committed revision. Checksums sit beside both archives; these are review artifacts, not a published release.
 
-## Pacchetto e installazione futura
+Before future installation, confirm the Decky's Python ABI, SteamOS/glibc, UID and Loader versions using the hardware checklist. Use the installed Loader's developer ZIP installation flow if desired. No project script installs on or changes SteamOS. No device, mini PC, store or release was used in this work.
 
-`artifacts/deckpilot-0.1.0.zip` e `.zip.sha256` sono generati localmente; non sono una release pubblicata. La struttura contiene `DeckPilot/plugin.json`, `main.py`, `dist/index.js`, backend, documenti e `py_modules` con wheel/licenze. Nessuna venv, cache, chiave o file utente. `scripts/verify_package.py` verifica layout, checksum, manifest senza privilegi extra e ABI.
+## Your data
 
-Sulla futura Deck, verifica versioni/ABI e abilita l'installazione ZIP dal menu sviluppatore Decky solo se desiderato; scegli lo ZIP locale secondo la UI del Loader installato. In alternativa copia reversibilmente la sola directory `DeckPilot` nel percorso plugin effettivo (spesso `~/homebrew/plugins`, da confermare sul target) usando le istruzioni del Loader. Nessuno script del progetto installa o modifica SteamOS.
+No telemetry or DeckPilot central server. Provider, image, Ollama endpoint and online Speech permissions are separate. Keys are plaintext private backend files (POSIX directories 0700/files 0600), never returned by RPC or stored in the browser. Local software with the same access can read them.
 
-Prima di disinstallare puoi cancellare tutti i dati dall'interfaccia. Unload ferma richieste, timer, processi audio e temporanei in memoria. Le impostazioni/chiavi possono essere mantenute dal Loader: elimina dati esplicitamente prima della rimozione. Gli originali nella cartella import rimangono file dell'utente e si eliminano manualmente. Nessuna directory esterna viene cancellata.
+History is in memory unless you opt in: at most 100 messages/game, seven days, 20 games and 1.8 MB overall. Delete conversation keeps keys. Delete local data removes plugin settings/keys/history but retains original imported files you supplied. Uninstall may retain Loader settings; delete explicitly first. Local deletion/cancellation does not retract already sent provider data or guarantee a refund.
 
-## Dati e troubleshooting
+If capture is unavailable, add a game image manually. If a model does not support images, choose a compatible model and renew consent; remove an attachment explicitly to continue with text. If voice fails, read the full answer or check the separate voice settings. Retry network/rate errors manually. Corrupt storage fails without silently resetting your files; never attach `secrets.json` to a bug report.
 
-Chiavi: file privati in chiaro, directory 0700/file 0600 su Linux; non cifrati e non isolati da software locale compromesso. La UI restituisce solo stato configurato. Cronologia in memoria; opzionalmente su disco, 100 messaggi/gioco per 7 giorni, max 20 giochi/1,8 MB globali (evizione locale). Cancellazione cronologia non cancella chiavi; cancellazione globale cancella configurazione, chiavi e cronologia, non copie già inviate ai provider o originali importati. Le diagnostiche sono sanitizzate e vanno riviste prima di condividerle.
+[Privacy](docs/PRIVACY.md), [security and audit](docs/SECURITY.md), [architecture](docs/ARCHITECTURE.md), [backlog](docs/BACKLOG.md), [roadmap](docs/ROADMAP.md).
 
-- Provider non configurato: salva modello/chiave, poi consenso; nessun fallback remoto implicito.
-- Immagine non supportata: verifica la capacità e il modello, rimuovi esplicitamente l'allegato se vuoi proseguire solo col testo.
-- Voce non disponibile: testo sempre accessibile; espeak-ng non viene installato automaticamente. Verifica separatamente consenso e chiave OpenAI per Speech.
-- Rete/rate limit: riprova manualmente dopo l'attesa; nessun retry automatico pagato. Annullare non garantisce che il provider annulli o rimborsi il lavoro.
-- Archivio corrotto/ownership errata: il caricamento fallisce senza azzerare dati. Conserva una copia locale sicura e ripara permessi/schema; non allegare `secrets.json` ai bug report.
-
-[Privacy](docs/PRIVACY.md), [sicurezza e audit](docs/SECURITY.md), [architettura](docs/ARCHITECTURE.md), [backlog](docs/BACKLOG.md), [handoff](docs/CODEX_HANDOFF.md).
-
-Licenza BSD-3-Clause; attribuzione al template Steam Deck Homebrew e licenze delle dipendenze in [THIRD_PARTY_NOTICES.md](docs/THIRD_PARTY_NOTICES.md) e nella wheel Pillow inclusa.
+BSD-3-Clause. Steam Deck Homebrew template attribution and dependency terms are in [third-party notices](docs/THIRD_PARTY_NOTICES.md). The original Italian `DECKPILOT_CODEX_SPEC.md` is preserved as the historical baseline; subsequent user requirements recorded in the handoff supersede its default language and product layout.

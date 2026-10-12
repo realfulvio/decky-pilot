@@ -1,193 +1,200 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import type { GameContext, PreparedImage, ProviderId, Settings } from '../domain/types';
+import { translate, type Language, type MessageKey } from '../domain/i18n';
 import { validateContext } from '../domain/validation';
 import type { Controller } from '../services/controller';
 import type { Controls } from './controls';
 
-const providerOptions = [{value: '', label: 'Nessuno'}, {value: 'openai', label: 'OpenAI'}, {value: 'gemini', label: 'Gemini'}, {value: 'claude', label: 'Claude'}, {value: 'ollama', label: 'Ollama'}];
-const spoilerOptions = [{value: 'none', label: 'Nessuno spoiler'}, {value: 'hints', label: 'Indizi'}, {value: 'full_solutions', label: 'Soluzioni complete'}];
-interface Props {controller: Controller; controls: Controls; detectGame?: () => Partial<GameContext> | null; pickImage?: () => Promise<string | null>}
-export function App({controller, controls: C, detectGame, pickImage}: Props) {
+interface Props {controller: Controller; controls: Controls; detectGame?: () => Partial<GameContext> | null; pickImage?: () => Promise<string | null>; closeMenus?: () => void}
+function useText(controller: Controller) {
+  const {status} = useSyncExternalStore(controller.subscribe, controller.snapshot);
+  return (key: MessageKey, values: Record<string, string | number> = {}) => translate(status?.settings.uiLanguage ?? 'en', key, values);
+}
+const styles = `
+.dp{color:#f2f5fa;font-size:16px;line-height:1.5;overflow-wrap:anywhere}.dp p{margin:8px 0}.dp h2{font-size:19px}.dp-nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}.dp-card{padding:12px;border:1px solid #344c61;border-radius:14px;margin:12px 0;background:linear-gradient(135deg,#17283d,#122336)}.dp-hero{background:linear-gradient(125deg,#214666,#183448);border-color:#4d889b}.dp-eyebrow{color:#88e0d0;font-size:12px;font-weight:700;letter-spacing:1.3px}.dp-game{font-size:24px;font-weight:750;line-height:1.2;margin:8px 0}.dp-subtle{color:#b9ccdb;font-size:14px}.dp-primary{border-radius:9px;background:#236b72;border:1px solid #83e1cd;padding:1px 5px;margin:12px 0}.dp-answer{border-left:3px solid #82e2cc;padding:3px 14px;white-space:pre-wrap}.dp-status{padding:8px 12px;border-radius:8px;background:#172f41}.dp section{min-width:0}.dp-scroll{max-height:68vh;overflow-y:auto;padding:0 2px 18px}.dp img{max-width:100%;max-height:180px;border-radius:10px}.dp button:focus-visible{outline:3px solid #a1f4df;outline-offset:3px}.dp-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+`;
+export function App(props: Props) {
+  const {controller, controls: C} = props;
   const view = useSyncExternalStore(controller.subscribe, controller.snapshot);
+  const t = useText(controller);
   const [tab, setTab] = useState<'chat' | 'context' | 'settings'>('chat');
-  if (!view.status) return <C.Section title="DeckPilot"><p>Caricamento backend…</p><p role="alert">{view.error}</p><C.Button onClick={() => { void controller.refresh(); }}>Riprova</C.Button></C.Section>;
+  const [wizard, setWizard] = useState<number | null>(null);
+  const language = view.status?.settings.uiLanguage ?? 'en';
+  useEffect(() => { document.documentElement.lang = language; }, [language]);
+  useEffect(() => { void controller.bridge.rpc('set_capture_guard', {blocked: tab !== 'chat' || wizard !== null}).catch(() => undefined); }, [controller, tab, wizard]);
+  if (!view.status) return <C.Section title="DeckPilot"><p>{t('loading')}</p>{view.error && <p role="alert">{t(view.error)}</p>}<C.Button onClick={() => { void controller.refresh(); }}>{t('retry')}</C.Button></C.Section>;
   const status = view.status;
-  return <div style={{fontSize: 16, lineHeight: 1.5, color: '#f2f5f8', display: 'flex', flexDirection: 'column', maxHeight: '72vh'}}>
-    <div style={{flexShrink: 0}}><C.Section title="DeckPilot">
-      <p>{status.context?.title ?? 'Imposta il gioco'} · {status.context?.source === 'steam_internal' ? 'Steam (interno)' : status.context?.source === 'unknown' ? 'Contesto non confermato' : 'Contesto manuale'}</p>
-      <p>{status.settings.provider ?? 'Provider non configurato'} · {spoilerOptions.find(o => o.value === status.settings.spoiler)?.label}</p>
-      <p>{view.voice}{!status.capabilities.tts.local && status.settings.ttsEngine === 'local' ? ' · Motore locale assente' : ''}</p>
-      {view.error && <p role="alert">{view.error}</p>}
-      <div style={{display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 6}}>
-      <C.Button onClick={() => setTab('chat')}>Chat</C.Button>
-      <C.Button onClick={() => setTab('context')}>Contesto del gioco</C.Button>
-      <C.Button onClick={() => setTab('settings')}>Impostazioni e consensi</C.Button>
-      </div>
-      <div style={{display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 6}}>
-      <C.Button onClick={() => { void controller.stopVoice(); }}>Interrompi voce</C.Button>
-      <C.Button onClick={() => { void controller.readLast(); }}>Leggi ultima risposta (massimo 1.000 caratteri)</C.Button>
-      </div>
-    </C.Section></div>
-    <div style={{overflowY: 'auto', minHeight: 0, paddingBottom: 20}}>
-    {tab === 'chat' && <Chat controller={controller} controls={C} pickImage={pickImage} />}
-    {tab === 'context' && <Context controller={controller} controls={C} detectGame={detectGame} />}
-    {tab === 'settings' && <SettingsPanel controller={controller} controls={C} />}
+  const configured = !!status.settings.provider && !!status.settings.model && (status.settings.provider === 'ollama' || status.settings.configured[status.settings.provider]);
+  const consent = status.settings.provider === 'ollama' ? status.settings.endpointConsent : status.settings.remoteConsent;
+  return <div className="dp"><style>{styles}</style>
+    <div className="dp-nav">
+      <C.Button onClick={() => { setWizard(null); setTab('chat'); }}>{t('home')}</C.Button>
+      <C.Button onClick={() => { setWizard(null); setTab('context'); }}>{t('context')}</C.Button>
+      <C.Button onClick={() => { setWizard(null); setTab('settings'); }}>{t('settings')}</C.Button>
+    </div>
+    {view.error && <p className="dp-status" role="alert">{t(view.error)}</p>}
+    <div className="dp-scroll">
+      {wizard !== null ? <div className="dp-card">
+        <C.Section title={t((['stepGame', 'stepProvider', 'stepConsent'] as const)[wizard])}>
+          {wizard === 0 ? <Context {...props} /> : <SettingsPanel {...props} mode={wizard === 1 ? 'provider' : 'sharing'} />}
+          <div className="dp-actions"><C.Button onClick={() => setWizard(wizard === 0 ? null : wizard - 1)}>{t('back')}</C.Button>
+          <C.Button disabled={wizard === 0 ? !status.context : wizard === 1 ? !configured : !configured || !consent} onClick={() => setWizard(wizard === 2 ? null : wizard + 1)}>{t(wizard === 2 ? 'finish' : 'next')}</C.Button></div>
+        </C.Section>
+      </div> : tab === 'chat' ? <>
+        <div className="dp-card dp-hero"><div className="dp-eyebrow">{t('activeGame')}</div>
+          <div className="dp-game">{status.context?.title || t('setGame')}</div>
+          <p>{t('helpSubtitle')}</p>
+        </div>
+        {(!configured || !consent) && <div className="dp-card"><C.Section title={t('onboardTitle')}><p>{t('onboardIntro')}</p><C.Button onClick={() => setWizard(0)}>{t('getStarted')}</C.Button></C.Section></div>}
+        <Chat {...props} ready={configured && consent} />
+      </> : tab === 'context' ? <Context {...props} /> : <SettingsPanel {...props} mode="full" />}
     </div>
   </div>;
 }
-function Chat({controller, controls: C, pickImage}: Props) {
-  const {status} = useSyncExternalStore(controller.subscribe, controller.snapshot);
+function Chat({controller, controls: C, pickImage, closeMenus, ready}: Props & {ready: boolean}) {
+  const view = useSyncExternalStore(controller.subscribe, controller.snapshot);
+  const status = view.status!;
+  const t = useText(controller);
   const [text, setText] = useState('');
   const [image, setImage] = useState<PreparedImage>();
   const [approved, setApproved] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [imageError, setImageError] = useState('');
+  const [imageError, setImageError] = useState<MessageKey | ''>('');
+  const [showHistory, setShowHistory] = useState(false);
+  const [captureDialog, setCaptureDialog] = useState(false);
+  const [confirmCapture, setConfirmCapture] = useState(false);
   const input = useRef<HTMLInputElement>(null);
-  const end = useRef<HTMLDivElement>(null);
   const imageRef = useRef<string | undefined>(undefined);
-  useEffect(() => { end.current?.scrollIntoView?.({block: 'nearest'}); }, [status?.history.length]);
-  useEffect(() => { setImage(undefined); setApproved(false); imageRef.current = undefined; }, [status?.context?.revision, status?.context?.sessionId, status?.settings.imagesEnabled, status?.settings.provider, status?.settings.model]);
+  const latest = [...status.history].reverse().find(message => message.role === 'assistant');
+  useEffect(() => { setImage(undefined); setApproved(false); imageRef.current = undefined; }, [status.context?.revision, status.context?.sessionId, status.settings.imagesEnabled, status.settings.provider, status.settings.model]);
   useEffect(() => () => { if (imageRef.current) void controller.act('discard_image', {imageRef: imageRef.current}); }, [controller]);
   useEffect(() => {
-    if (image && status?.pendingImageRef !== undefined && status.pendingImageRef !== image.imageRef) {
+    if (image && status.pendingImageRef !== undefined && status.pendingImageRef !== image.imageRef) {
       setImage(undefined); setApproved(false); imageRef.current = undefined;
     }
-  }, [status?.pendingImageRef, image]);
-  if (!status) return null;
-  const send = async (message: string) => {
+  }, [status.pendingImageRef, image]);
+  const prepared = (value?: PreparedImage) => { setImage(value); imageRef.current = value?.imageRef; setApproved(false); };
+  const send = async (help = false) => {
     setBusy(true);
-    try {
-      if (await controller.send(message, image)) { setText(''); setImage(undefined); setApproved(false); imageRef.current = undefined; }
-    } finally { setBusy(false); }
-  };
-  const selectFile = async (file?: File) => {
-    if (!file || !status.context) return;
-    if (!['image/png', 'image/jpeg'].includes(file.type) || file.size > 5 * 1024 * 1024) { setImageError('Scegli un PNG/JPEG fino a 5 MiB.'); return; }
-    setImageError(''); setBusy(true);
-    try {
-      const bytes = new Uint8Array(await file.arrayBuffer());
-      let binary = '';
-      for (let i = 0; i < bytes.length; i += 16384) binary += String.fromCharCode(...bytes.subarray(i, i + 16384));
-      const result = await controller.act<PreparedImage>('prepare_image', {dataBase64: btoa(binary), mime: file.type, sessionId: status.context.sessionId});
-      setImage(result); imageRef.current = result?.imageRef; setApproved(false);
-    } catch { setImageError('Immagine non leggibile.'); }
-    finally { setBusy(false); if (input.current) input.current.value = ''; }
+    try { if (await (help ? controller.helpNow(image) : controller.send(text, image))) { setText(''); prepared(); } }
+    finally { setBusy(false); }
   };
   const pick = async () => {
     if (!pickImage) { input.current?.click(); return; }
     setBusy(true); setImageError('');
     try {
       const filename = await pickImage();
-      if (!filename) return;
-      const result = await controller.act<PreparedImage>('prepare_import_image', {filename, sessionId: status.context?.sessionId});
-      setImage(result); imageRef.current = result?.imageRef; setApproved(false);
-    } catch { setImageError('Scegli un PNG/JPEG nella cartella di import indicata.'); }
+      if (filename) prepared(await controller.act<PreparedImage>('prepare_import_image', {filename, sessionId: status.context?.sessionId}));
+    } catch { setImageError('imageUnreadable'); }
     finally { setBusy(false); }
   };
-  return <C.Section title="Chat e suggerimenti">
-    <p>Invio: titolo, AppID facoltativo, note e ultime interazioni (fino a 12 / 8.000 caratteri). Immagine solo se approvata. Le chiamate cloud possono avere costi.</p>
-    <div role="log" aria-label="Cronologia" style={{maxHeight: 260, overflowY: 'auto', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere'}}>
-      {status.history.map((m, i) => <p key={i}><strong>{m.role === 'user' ? 'Tu' : 'DeckPilot'}: </strong>{m.content}</p>)}<div ref={end} />
-    </div>
-    <C.Input label="Domanda (massimo 4.000 caratteri)" value={text} onChange={setText} />
-    {imageError && <p role="alert">{imageError}</p>}
-    <input ref={input} type="file" accept="image/png,image/jpeg" aria-label="File immagine" style={{display: 'none'}} onChange={e => { void selectFile(e.target.files?.[0]); }} />
-    <C.Button disabled={!status.settings.imagesEnabled || !status.capabilities.images || !status.context || busy} onClick={() => { void pick(); }}>Scegli immagine PNG/JPEG</C.Button>
-    <p>Cattura Gaming Mode non disponibile. {pickImage ? `Copia il file nella cartella ${status.capabilities.importRoot ?? 'di import'} e sceglilo con il selettore Decky.` : 'Importa un file scelto esplicitamente.'} Focus e selettore sul dispositivo restano da verificare.</p>
-    {image && <div>
-      <img src={image.preview} alt="Anteprima effettiva senza metadati" style={{maxWidth: '100%', maxHeight: 200}} />
-      <p>Invio a {image.destination.provider} / {image.destination.model} ({image.destination.endpoint})</p>
-      <C.Button onClick={() => { void controller.act('approve_image_send', {imageRef: image.imageRef, sessionId: status.context?.sessionId, destination: image.destination}).then(value => setApproved(value !== undefined)); }}>Approva l'invio di questa immagine</C.Button>
-      <C.Button onClick={() => { void controller.act('discard_image', {imageRef: image.imageRef}); setImage(undefined); imageRef.current = undefined; setApproved(false); }}>Rimuovi immagine</C.Button>
+  const selectFile = async (file?: File) => {
+    if (!file || !status.context) return;
+    if (!['image/png', 'image/jpeg'].includes(file.type) || file.size > 5 * 1024 * 1024) { setImageError('imageLimit'); return; }
+    setImageError(''); setBusy(true);
+    try {
+      const bytes = new Uint8Array(await file.arrayBuffer()); let binary = '';
+      for (let i = 0; i < bytes.length; i += 16384) binary += String.fromCharCode(...bytes.subarray(i, i + 16384));
+      prepared(await controller.act<PreparedImage>('prepare_image', {dataBase64: btoa(binary), mime: file.type, sessionId: status.context.sessionId}));
+    } catch { setImageError('imageUnreadable'); }
+    finally { setBusy(false); if (input.current) input.current.value = ''; }
+  };
+  const capture = async () => {
+    setBusy(true);
+    try {
+      closeMenus?.();
+      await new Promise(resolve => setTimeout(resolve, 700));
+      prepared(await controller.act<PreparedImage>('prepare_capture', {sessionId: status.context?.sessionId, confirmGameplay: confirmCapture}));
+    } finally { setBusy(false); setConfirmCapture(false); setCaptureDialog(false); }
+  };
+  const disabled = !ready || !status.context || !!status.active || busy || (!!image && !approved);
+  return <>
+    <div className="dp-primary"><C.Button disabled={disabled} onClick={() => {
+      if (!image && status.capabilities.capture && status.settings.captureEnabled) setCaptureDialog(true);
+      else if (!image && status.settings.imagesEnabled) void pick();
+      else void send(true);
+    }}>{t('helpNow')}</C.Button></div>
+    {!status.capabilities.capture && <p className="dp-subtle">{t('captureUnavailable')}</p>}
+    {captureDialog && <div className="dp-card"><p>{t('captureConsent')}</p><C.Toggle label={t('captureConfirm')} checked={confirmCapture} onChange={setConfirmCapture} />
+      <C.Button disabled={!confirmCapture || busy} onClick={() => { void capture(); }}>{t('captureAction')}</C.Button></div>}
+    {imageError && <p role="alert">{t(imageError)}</p>}
+    {image && <div className="dp-card"><img src={image.preview} alt={t('imagePreview')} /><p>{t('imageDestination', image.destination)}</p><p className="dp-subtle">{t('imageSafety')}</p>
+      <C.Button onClick={() => { void controller.act('approve_image_send', {imageRef: image.imageRef, sessionId: status.context?.sessionId, destination: image.destination}).then(value => setApproved(value !== undefined)); }}>{t('approveImage')}</C.Button>
+      <C.Button onClick={() => { void controller.act('discard_image', {imageRef: image.imageRef}); prepared(); }}>{t('removeImage')}</C.Button>
     </div>}
-    <C.Button disabled={!text.trim() || text.length > 4000 || !!status.active || busy || (!!image && !approved)} onClick={() => { void send(text); }}>Chiedi</C.Button>
-    <C.Button disabled={!!status.active || busy || (!!image && !approved)} onClick={() => { void send('Dammi un prossimo passo concreto; chiedi chiarimenti se manca contesto.'); }}>Suggerimento ora</C.Button>
-    {status.active && <><p role="status">Richiesta in corso…</p><C.Button onClick={() => { void controller.act('cancel_request', {requestId: status.active, sessionId: status.context?.sessionId}); }}>Annulla richiesta</C.Button></>}
-    <p>Al massimo un suggerimento ogni {status.settings.hintIntervalSeconds} secondi, solo con contesto nuovo e recente. Tentativi: {status.auto.attempts}/20.</p>
-    <C.Toggle label="Abilita suggerimenti automatici (possibili costi)" checked={status.settings.autoHints} onChange={enabled => { void controller.act('set_auto_hints', {enabled}); }} />
-    <C.Button onClick={() => { void controller.act('set_auto_hints', {paused: !status.auto.paused}); }}>{status.auto.paused ? 'Riprendi suggerimenti' : 'Pausa per questa sessione'}</C.Button>
-    {status.auto.attempts >= 20 && <C.Button onClick={() => { void controller.act('set_auto_hints', {resetBudget: true, paused: false}); }}>Autorizza altri 20 tentativi</C.Button>}
-    <C.Button onClick={() => { void controller.act('clear_history'); }}>Cancella cronologia di questo gioco</C.Button>
-  </C.Section>;
+    <C.Input label={t('question')} value={text} onChange={setText} />
+    <div className="dp-actions"><C.Button disabled={disabled || !text.trim() || text.length > 4000} onClick={() => { void send(); }}>{t('ask')}</C.Button>
+      <C.Button disabled={!status.settings.imagesEnabled || !status.capabilities.images || !status.context || busy} onClick={() => { void pick(); }}>{t('importImage')}</C.Button></div>
+    <input ref={input} type="file" accept="image/png,image/jpeg" aria-label={t('imageFile')} style={{display: 'none'}} onChange={e => { void selectFile(e.target.files?.[0]); }} />
+    {status.active && <div className="dp-status"><p role="status">{t('pending')}</p><C.Button onClick={() => { void controller.act('cancel_request', {requestId: status.active, sessionId: status.context?.sessionId}); }}>{t('cancel')}</C.Button></div>}
+    <div className="dp-card"><C.Section title={t('latestAnswer')}><p className="dp-answer">{latest?.content ?? t('emptyAnswer')}</p>
+      <p className="dp-subtle">{t(view.voice)}</p><div className="dp-actions"><C.Button disabled={!latest} onClick={() => { void controller.readLast(); }}>{t('readLast')}</C.Button><C.Button onClick={() => { void controller.stopVoice(); }}>{t('stopVoice')}</C.Button></div>
+    </C.Section></div>
+    <div className="dp-status"><p role="status">{t(status.settings.autoHints && status.auto.sessionConsent ? status.auto.paused ? 'autoPaused' : 'autoActive' : 'autoOff')}</p>
+      {status.settings.autoHints && status.auto.sessionConsent && <><C.Button onClick={() => { void controller.act('set_auto_hints', {paused: true}); }}>{t('pauseAuto')}</C.Button><p className="dp-subtle">{t('autoLimit', {seconds: status.settings.hintIntervalSeconds, attempts: status.auto.attempts})}</p></>}
+      {status.capabilities.capture ? <C.Toggle label={t('autoConsent')} checked={status.settings.autoHints && !!status.auto.sessionConsent && !status.auto.paused} onChange={enabled => { void controller.act('set_auto_hints', {enabled, paused: !enabled, consent: enabled, visual: true, sessionId: status.context?.sessionId}); }} /> : <p className="dp-subtle">{t('autoUnavailable')}</p>}
+      {status.auto.attempts >= 20 && <C.Button onClick={() => { void controller.act('set_auto_hints', {resetBudget: true, paused: false, enabled: true, consent: true, visual: true, sessionId: status.context?.sessionId}); }}>{t('allowMore')}</C.Button>}
+    </div>
+    <C.Button onClick={() => setShowHistory(!showHistory)}>{t('showHistory')}</C.Button>
+    {showHistory && <div role="log" aria-label={t('history')}>{status.history.map((message, i) => <p key={i}><strong>{message.role === 'user' ? t('you') : 'DeckPilot'}: </strong>{message.content}</p>)}<C.Button onClick={() => { void controller.act('clear_history'); }}>{t('clearHistory')}</C.Button></div>}
+  </>;
 }
 function Context({controller, controls: C, detectGame}: Props) {
   const {status} = useSyncExternalStore(controller.subscribe, controller.snapshot);
-  const context = status?.context;
-  const [title, setTitle] = useState(context?.title ?? '');
-  const [appId, setAppId] = useState(context?.appId ?? '');
-  const [objective, setObjective] = useState(context?.objective ?? '');
-  const [location, setLocation] = useState(context?.location ?? '');
-  const [notes, setNotes] = useState(context?.userNotes ?? '');
-  const save = (newSession = false) => { void controller.setContext({title, appId, objective, location, userNotes: notes, source: 'manual', newSession}); };
-  const valid = validateContext(title, objective, location, notes) && (!appId || /^\d{1,20}$/.test(appId));
-  const detected = detectGame?.();
-  return <C.Section title="Contesto del gioco">
-    <p>Il titolo da solo non rivela missione, posizione o inventario. Aggiorna obiettivo e note quando cambia il gameplay.</p>
-    <C.Input label="Titolo del gioco" value={title} onChange={setTitle} />
-    <C.Input label="AppID facoltativo" value={appId} onChange={setAppId} />
-    <C.Input label="Obiettivo attuale" value={objective} onChange={setObjective} />
-    <C.Input label="Area / posizione" value={location} onChange={setLocation} />
-    <C.Input label="Note (totale contesto massimo 8.000 caratteri)" value={notes} onChange={setNotes} />
-    {!valid && <p>Inserisci un titolo, AppID numerico se presente e note entro i limiti.</p>}
-    <C.Button disabled={!valid} onClick={() => save()}>Salva contesto manuale</C.Button>
-    <C.Button disabled={!valid} onClick={() => save(true)}>Nuova sessione per questo gioco</C.Button>
-    <C.Button disabled={!detected} onClick={() => { if (detected) void controller.setContext(detected); }}>Usa gioco rilevato da Steam</C.Button>
-    {!detected && <p>Rilevamento automatico non disponibile o ambiguo. Il contesto manuale funziona anche per emulatori e giochi non Steam.</p>}
+  const t = useText(controller); const context = status?.context;
+  const [title, setTitle] = useState(context?.title ?? ''); const [appId, setAppId] = useState(context?.appId ?? '');
+  const [objective, setObjective] = useState(context?.objective ?? ''); const [location, setLocation] = useState(context?.location ?? ''); const [notes, setNotes] = useState(context?.userNotes ?? '');
+  const [advanced, setAdvanced] = useState(false);
+  const valid = validateContext(title, objective, location, notes) && (!appId || /^\d{1,20}$/.test(appId)); const detected = detectGame?.();
+  return <C.Section title={t('context')}><p className="dp-subtle">{t('gameIntro')}</p>
+    <C.Input label={t('gameTitle')} value={title} onChange={setTitle} /><C.Input label={t('objective')} value={objective} onChange={setObjective} />
+    <C.Input label={t('location')} value={location} onChange={setLocation} /><C.Input label={t('notes')} value={notes} onChange={setNotes} />
+    <C.Button onClick={() => setAdvanced(!advanced)}>{t('advanced')}</C.Button>{advanced && <C.Input label={t('appId')} value={appId} onChange={setAppId} />}
+    {!valid && <p role="alert">{t('invalidContext')}</p>}
+    <C.Button disabled={!valid} onClick={() => { void controller.setContext({title, appId, objective, location, userNotes: notes, source: 'manual'}); }}>{t('saveContext')}</C.Button>
+    <C.Button disabled={!valid} onClick={() => { void controller.setContext({title, appId, objective, location, userNotes: notes, source: 'manual', newSession: true}); }}>{t('newSession')}</C.Button>
+    <C.Button disabled={!detected} onClick={() => { if (detected) void controller.setContext(detected); }}>{t('useSteam')}</C.Button>{!detected && <p className="dp-subtle">{t('noSteam')}</p>}
   </C.Section>;
 }
-function SettingsPanel({controller, controls: C}: Props) {
-  const {status} = useSyncExternalStore(controller.subscribe, controller.snapshot);
-  const [draft, setDraft] = useState<Settings>(status!.settings);
-  const [key, setKey] = useState('');
-  const [saving, setSaving] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(false);
+function SettingsPanel({controller, controls: C, mode}: Props & {mode: 'provider' | 'sharing' | 'full'}) {
+  const {status} = useSyncExternalStore(controller.subscribe, controller.snapshot); const t = useText(controller);
+  const [draft, setDraft] = useState<Settings>(status!.settings); const [key, setKey] = useState(''); const [saving, setSaving] = useState(false); const [advanced, setAdvanced] = useState(false); const [confirmDelete, setConfirmDelete] = useState(false);
   const change = <K extends keyof Settings>(field: K, value: Settings[K]) => setDraft(d => ({...d, [field]: value}));
+  const languages = [{value: 'en', label: t('english')}, {value: 'it', label: t('italian')}];
   const changedRecipient = draft.provider !== status!.settings.provider || draft.model !== status!.settings.model || draft.ollamaEndpoint !== status!.settings.ollamaEndpoint;
-  const save = async () => {
-    setSaving(true);
-    try {
-      const patch = Object.fromEntries(Object.entries(draft).filter(([field]) => !['schemaVersion', 'configured'].includes(field)));
-      const saved = await controller.updateSettings(patch);
-      if (saved) setDraft(saved);
-    } finally { setSaving(false); }
-  };
-  const saveKey = async (provider = draft.provider) => {
-    setSaving(true);
-    try {
-      const result = await controller.act('set_api_key', {provider, key});
-      if (result) setKey('');
-    } finally { setSaving(false); }
-  };
-  return <C.Section title="Configurazione e privacy">
-    <p>DeckPilot invia dati direttamente al provider scelto. Nessuna chiamata viene eseguita prima del consenso. L'abbonamento ChatGPT non include automaticamente credito API.</p>
-    <C.Select label="Provider" value={draft.provider ?? ''} options={providerOptions} onChange={v => { change('provider', (v || null) as ProviderId | null); change('remoteConsent', false); change('endpointConsent', false); change('visionConfirmed', false); }} />
-    <C.Input label="Modello disponibile nel tuo account" value={draft.model} onChange={v => change('model', v)} />
-    {draft.provider === 'ollama' && <><C.Input label="Endpoint Ollama (localhost indica la Deck)" value={draft.ollamaEndpoint} onChange={v => change('ollamaEndpoint', v)} /><p>HTTP espone testo e immagini alla rete LAN. Usa HTTPS o un tunnel amministrato da te. Non viene configurata alcuna rete automaticamente.</p></>}
-    <C.Input label="Chiave API (salvataggio separato; mai restituita)" secret value={key} onChange={setKey} />
-    <p>Credenziale {draft.provider && status!.settings.configured[draft.provider] ? 'salvata; validità non verificata' : 'non salvata'}. TTS OpenAI usa una chiave OpenAI separata se la chat usa un altro provider.</p>
-    <C.Button disabled={saving || !key || !draft.provider || draft.provider === 'ollama'} onClick={() => { void saveKey(); }}>Salva chiave del provider selezionato</C.Button>
-    {draft.ttsEngine === 'openai' && <C.Button disabled={saving || !key} onClick={() => { void saveKey('openai'); }}>Salva chiave OpenAI per voce</C.Button>}
-    <C.Button disabled={!draft.provider || draft.provider === 'ollama'} onClick={() => { setKey(''); void controller.act('delete_api_key', {provider: draft.provider}); }}>Elimina chiave del provider selezionato</C.Button>
-    <C.Toggle label="Consento chat cloud: titolo, note e messaggi selezionati" checked={draft.remoteConsent} onChange={v => change('remoteConsent', v)} />
-    <C.Toggle label="Autorizzo questo endpoint Ollama" checked={draft.endpointConsent} onChange={v => change('endpointConsent', v)} />
-    {changedRecipient && <p>Salva prima provider/modello/endpoint, poi abilita e salva i consensi. Il cambio destinazione revoca quelli precedenti.</p>}
-    <C.Toggle label="Ho verificato che questo modello supporta immagini" checked={draft.visionConfirmed} onChange={v => change('visionConfirmed', v)} />
-    <C.Toggle label="Abilita import immagini; ogni invio richiede approvazione" checked={draft.imagesEnabled} onChange={v => change('imagesEnabled', v)} />
-    <C.Select label="Spoiler" value={draft.spoiler} options={spoilerOptions} onChange={v => change('spoiler', v as Settings['spoiler'])} />
-    <C.Input label="Durata popup in ms (2.000–15.000)" value={String(draft.popupDurationMs)} onChange={v => change('popupDurationMs', Number(v))} />
-    <C.Input label="Intervallo suggerimenti in secondi (90–3.600)" value={String(draft.hintIntervalSeconds)} onChange={v => change('hintIntervalSeconds', Number(v))} />
-    <C.Toggle label="Risposte vocali · voce sintetica" checked={draft.voiceEnabled} onChange={v => change('voiceEnabled', v)} />
-    <C.Select label="Motore voce" value={draft.ttsEngine} options={[{value: 'local', label: 'espeak-ng locale, se presente'}, {value: 'openai', label: 'OpenAI Speech (remoto)'}]} onChange={v => change('ttsEngine', v as Settings['ttsEngine'])} />
-    <C.Input label="Modello OpenAI Speech" value={draft.ttsModel} onChange={v => change('ttsModel', v)} />
-    <C.Input label="Voce OpenAI Speech" value={draft.ttsVoice} onChange={v => change('ttsVoice', v)} />
-    <C.Toggle label="Consento TTS OpenAI: invio del testo della risposta, possibili costi" checked={draft.ttsConsent} onChange={v => change('ttsConsent', v)} />
-    <C.Input label="Volume (0–1)" value={String(draft.volume)} onChange={v => change('volume', Number(v))} />
-    <C.Toggle label="Cronologia su disco (100 messaggi/gioco, 7 giorni)" checked={draft.persistentHistory} onChange={v => change('persistentHistory', v)} />
-    <C.Button disabled={saving || !Number.isFinite(draft.volume) || draft.hintIntervalSeconds < 90 || draft.hintIntervalSeconds > 3600 || !Number.isInteger(draft.hintIntervalSeconds)} onClick={() => { void save(); }}>Salva impostazioni</C.Button>
-    <C.Button onClick={() => { void controller.act('test_provider', {confirmCost: true}); }}>Verifica provider ora (può generare un costo)</C.Button>
-    <p>Archiviazione chiavi: file privati in chiaro con permessi Linux; nessuna cifratura dichiarata. Diagnostica sanitizzata:</p>
-    <pre style={{whiteSpace: 'pre-wrap', fontSize: 14}}>{JSON.stringify(status!.diagnostics, null, 2)}</pre>
-    <C.Toggle label="Confermo cancellazione di cronologia, impostazioni e chiavi locali" checked={confirmDelete} onChange={setConfirmDelete} />
-    <C.Button disabled={!confirmDelete} onClick={() => { setKey(''); void controller.act('delete_local_data', {confirm: true}).then(() => setDraft(controller.snapshot().status!.settings)); }}>Cancella tutti i dati locali</C.Button>
+  const save = async () => { setSaving(true); try { const saved = await controller.updateSettings(Object.fromEntries(Object.entries(draft).filter(([field]) => !['schemaVersion', 'configured'].includes(field)))); if (saved) setDraft(saved); } finally { setSaving(false); } };
+  const saveKey = async (provider = draft.provider) => { setSaving(true); try { if (await controller.act('set_api_key', {provider, key})) setKey(''); } finally { setSaving(false); } };
+  return <C.Section title={t(mode === 'sharing' ? 'sharing' : 'settings')}>
+    {mode === 'full' && <><C.Select label={t('uiLanguage')} value={draft.uiLanguage} options={languages} onChange={v => { change('uiLanguage', v as Language); void controller.updateSettings({uiLanguage: v as Language}); }} />
+      <C.Select label={t('responseLanguage')} value={draft.responseLanguage} options={languages} onChange={v => change('responseLanguage', v as Language)} />
+      <C.Select label={t('ttsLanguage')} value={draft.ttsLanguage} options={languages} onChange={v => change('ttsLanguage', v as Language)} /><p className="dp-subtle">{t('languageNote')}</p></>}
+    {mode !== 'sharing' && <><p>{t('providerIntro')}</p>
+      <C.Select label={t('provider')} value={draft.provider ?? ''} options={[{value: '', label: t('noneProvider')}, ...['OpenAI','Gemini','Claude','Ollama'].map(name => ({value: name.toLowerCase(), label: name}))]} onChange={v => { change('provider', (v || null) as ProviderId | null); change('remoteConsent', false); change('endpointConsent', false); change('visionConfirmed', false); }} />
+      <C.Input label={t('model')} value={draft.model} onChange={v => change('model', v)} />
+      {draft.provider === 'ollama' ? <><C.Input label={t('ollamaEndpoint')} value={draft.ollamaEndpoint} onChange={v => change('ollamaEndpoint', v)} /><p className="dp-subtle">{t('httpPrivacy')}</p></> : <><C.Input label={t('apiKey')} secret value={key} onChange={setKey} />
+        <p className="dp-subtle">{t(draft.provider && status!.settings.configured[draft.provider] ? 'keySaved' : 'keyMissing')}</p>
+        <div className="dp-actions"><C.Button disabled={saving || !key || !draft.provider} onClick={() => { void saveKey(); }}>{t('saveKey')}</C.Button><C.Button disabled={!draft.provider} onClick={() => { setKey(''); void controller.act('delete_api_key', {provider: draft.provider}); }}>{t('deleteKey')}</C.Button></div></>}
+    </>}
+    {mode !== 'provider' && <>
+      <C.Toggle label={t(draft.provider === 'ollama' ? 'endpointConsent' : 'chatConsent')} checked={draft.provider === 'ollama' ? draft.endpointConsent : draft.remoteConsent} onChange={v => change(draft.provider === 'ollama' ? 'endpointConsent' : 'remoteConsent', v)} />
+      {changedRecipient && <p>{t('recipientChanged')}</p>}
+      <C.Toggle label={t('visionConfirmed')} checked={draft.visionConfirmed} onChange={v => change('visionConfirmed', v)} />
+      <C.Toggle label={t('imagesEnabled')} checked={draft.imagesEnabled} onChange={v => change('imagesEnabled', v)} />
+      {status!.capabilities.capture && <C.Toggle label={t('captureEnabled')} checked={draft.captureEnabled} onChange={v => change('captureEnabled', v)} />}
+      {!status!.capabilities.capture && <p className="dp-subtle">{t('captureUnavailable')}</p>}
+    </>}
+    {mode === 'full' && <>
+      <C.Select label={t('spoilers')} value={draft.spoiler} options={[{value: 'none', label: t('spoilerNone')}, {value: 'hints', label: t('spoilerHints')}, {value: 'full_solutions', label: t('spoilerFull')}]} onChange={v => change('spoiler', v as Settings['spoiler'])} />
+      <C.Toggle label={t('voiceEnabled')} checked={draft.voiceEnabled} onChange={v => change('voiceEnabled', v)} />
+      <C.Select label={t('voiceEngine')} value={draft.ttsEngine} options={[{value: 'local', label: t('localVoice')}, {value: 'openai', label: t('remoteVoice')}]} onChange={v => change('ttsEngine', v as Settings['ttsEngine'])} />
+      {draft.ttsEngine === 'openai' && <><C.Input label={t('speechVoice')} value={draft.ttsVoice} onChange={v => change('ttsVoice', v)} /><C.Input label={t('apiKey')} secret value={key} onChange={setKey} /><C.Button disabled={saving || !key} onClick={() => { void saveKey('openai'); }}>{t('saveSpeechKey')}</C.Button><C.Toggle label={t('speechConsent')} checked={draft.ttsConsent} onChange={v => change('ttsConsent', v)} /></>}
+      <C.Input label={t('volume')} value={String(draft.volume)} onChange={v => change('volume', Number(v))} />
+      <C.Button onClick={() => setAdvanced(!advanced)}>{t('advanced')}</C.Button>
+      {advanced && <><C.Input label={t('popupDuration')} value={String(draft.popupDurationMs)} onChange={v => change('popupDurationMs', Number(v))} /><C.Input label={t('hintInterval')} value={String(draft.hintIntervalSeconds)} onChange={v => change('hintIntervalSeconds', Number(v))} /><C.Toggle label={t('persistHistory')} checked={draft.persistentHistory} onChange={v => change('persistentHistory', v)} />
+        <p className="dp-subtle">{t('storagePrivacy')}</p>{status!.capabilities.importRoot && <p className="dp-subtle">{t('importHint', {folder: status!.capabilities.importRoot})}</p>}
+        <C.Button onClick={() => { void controller.act('test_provider', {confirmCost: true}); }}>{t('checkProvider')}</C.Button><C.Toggle label={t('confirmDelete')} checked={confirmDelete} onChange={setConfirmDelete} /><C.Button disabled={!confirmDelete} onClick={() => { setKey(''); void controller.act('delete_local_data', {confirm: true}).then(() => setDraft(controller.snapshot().status!.settings)); }}>{t('deleteData')}</C.Button>
+      </>}
+    </>}
+    <C.Button disabled={saving || !Number.isFinite(draft.volume) || draft.hintIntervalSeconds < 90 || draft.hintIntervalSeconds > 3600 || !Number.isInteger(draft.hintIntervalSeconds)} onClick={() => { void save(); }}>{t('saveSettings')}</C.Button>
   </C.Section>;
 }

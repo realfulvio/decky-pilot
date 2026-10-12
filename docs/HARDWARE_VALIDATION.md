@@ -1,31 +1,24 @@
-# Validazione Steam Deck differita
+# Deferred Steam Deck validation
 
-Stato: **NON ESEGUITA — Steam Deck non disponibile**. Nessuna installazione su dispositivi/mini PC. Test offline e API non certificano Gaming Mode.
+**NOT RUN: Steam Deck unavailable.** No installation on the mini PC or any substitute device. Source review, mock processes, DOM previews and Linux CI do not certify Gaming Mode.
 
-| Campo target | Valore |
-|---|---|
-| Data/esecutore, modello LCD/OLED | NON ESEGUITA |
-| SteamOS/kernel/glibc | NON ESEGUITA |
-| Steam client/canale, Decky/versione/commit | NON ESEGUITA |
-| Python runtime/ABI | NON ESEGUITA |
-| DeckPilot commit/ZIP checksum | NON ESEGUITA |
-| UID/GID/ownership settings/runtime | NON ESEGUITA |
-| espeak-ng/versione, provider/modello/Ollama | NON ESEGUITA (mai annotare chiavi) |
+Record date/operator, LCD/OLED model, SteamOS/kernel/glibc, Steam client/channel, Decky version/commit, Python ABI, DeckPilot commit/ZIP SHA256, UID/GID/settings/runtime ownership, and installed espeak-ng/provider/model/Ollama versions. Never record keys. All target fields are currently NOT RUN.
 
-| Eseguito | Prova e criterio verificabile | Evidenza/risultato/issue |
+| Done | Test / measurable acceptance | Evidence |
 |---|---|---|
-| [ ] | Installazione ZIP/caricamento/upgrade/uninstall: backend/Pillow CP311, reversibilità, no task residui, retention coerente | NON ESEGUITA /DP-015 |
-| [ ] | Controller/tastiera virtuale/focus dopo dialoghi, scroll chat e Cancel/Stop accessibili | NON ESEGUITA /DP-015 |
-| [ ] | Layout1280×800/720 con gioco: testo leggibile, no overflow/focus sottratto, UI produzione Decky | NON ESEGUITA /DP-015 |
-| [ ] | Steam cambio titolo/non Steam/undefined/più app: fallback, unknown sospende auto, no risultati precedenti | NON ESEGUITA /DP-015 |
-| [ ] | Popup circa6s misurati con QAM chiuso/aperto, risposta completa, dismiss su cambio/unload | NON ESEGUITA /DP-015 |
-| [ ] | Auto minimo90s, sleep/resume/reload senza raffiche, no solo titolo, pause/errori/budget | NON ESEGUITA /DP-015 |
-| [ ] | Picker ristretto/preview effettiva/approvazione/destinatario/revoca, niente lettura automatica | NON ESEGUITA /DP-015 |
-| [ ] | Capture Gaming Mode resta unavailable; futura soluzione con capability/consensi/test separati | NON ESEGUITA /DP-016 |
-| [ ] | TTS locale/remoto: disclosure voce sintetica, motore assente→testo, IPC audio/cancel/stop | NON ESEGUITA /DP-015 |
-| [ ] | Altoparlanti/cuffie/Bluetooth, volume/routing/interferenza audio gioco, no voce residua | NON ESEGUITA /DP-015 |
-| [ ] | Offline/provider negato/rate limit/Ollama irraggiungibile: errori sicuri/retry esplicito/no fallback | NON ESEGUITA /DP-015 |
-| [ ] | Storage0700/0600 owner reale, log senza segreti/contenuti, cancellazione coerente | NON ESEGUITA /DP-015 |
-| [ ] | Misure CPU/RAM idle/latenza/frame rate/sleep-resume: riportare strumenti/metodo e dati reali | NON ESEGUITA /DP-017 |
+| [ ] | ZIP install/load/upgrade/uninstall; vendored Pillow ABI; reversible install; no leftover tasks | NOT RUN / DP-015 |
+| [ ] | Real Decky rendering at 1280x800/720; readable text, scroll, no clipped controls | NOT RUN / DP-015 |
+| [ ] | Controller/virtual keyboard, onboarding, focus after dropdowns/picker, Cancel and Stop reachable | NOT RUN / DP-015 |
+| [ ] | Full English/Italian UI; independent response/voice languages retained across reload | NOT RUN / DP-021 |
+| [ ] | Steam/non-Steam/unknown/multiple-app detection; changes reject stale results | NOT RUN / DP-015 |
+| [ ] | Six-second popup with QAM open/closed, full answer retained, dismiss on game change/unload | NOT RUN / DP-015 |
+| [ ] | Dedicated picker root, actual cleaned preview, destination approval/revocation, no background file reads | NOT RUN / DP-015 |
+| [ ] | Capture stays unavailable until atomically safe targeting; race/refusal tests from CAPTURE_VERIFICATION | NOT RUN / DP-016 |
+| [ ] | Once safe capture exists: separate session consent/visible indicator/immediate pause, >=90s, useful context only, dedup/error/budget controls | NOT RUN / DP-016 |
+| [ ] | Local/remote synthetic voice, absent engine/text fallback, IPC payload, cancel/Stop | NOT RUN / DP-015 |
+| [ ] | Speakers/headphones/Bluetooth, volume/routing/game audio, no residual playback | NOT RUN / DP-015 |
+| [ ] | Offline/denied provider/rate limit/unreachable Ollama: safe errors/manual retry/no silent fallback | NOT RUN / DP-015 |
+| [ ] | Actual 0700/0600 ownership, no secret/content logs, consistent deletion/retention | NOT RUN / DP-015 |
+| [ ] | CPU/RAM idle, latency/frame rate and sleep/resume; report tools/method/real measurements | NOT RUN / DP-017 |
 
-Registra evidenze sanitizzate e issue riproducibili per i fallimenti. Non pubblicare chiavi/account/gameplay privato. Nessuna spunta hardware dai mock/DOM/build. M4 richiede evidenze e correzioni prima di dichiarare compatibilità reale.
+Use sanitized synthetic evidence and reproducible issues for failures. Do not tick hardware rows based on tests/build. Live API smoke is separate, optional and requires explicit consent and dedicated credentials. Hardware availability is not required to complete offline review and CI.

@@ -5,7 +5,7 @@ const rpc = callable<[method: string, payload: Record<string, unknown>], {ok: bo
 export const deckyBridge: Bridge = {
   async rpc<T>(method: string, payload = {}) {
     const response = await rpc(method, payload);
-    if (!response.ok) throw new SafeError(response.error?.message ?? 'Operazione non riuscita.');
+    if (!response.ok) throw new SafeError(response.error?.code ?? 'INTERNAL_ERROR');
     return response.data as T;
   },
   listen(event, callback) {

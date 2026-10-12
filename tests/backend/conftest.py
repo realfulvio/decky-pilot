@@ -8,7 +8,7 @@ from backend.transport import Response, Transport, check_response
 
 class FakeTransport:
     def __init__(self, data=None, status=200, error=None):
-        self.data = data if data is not None else {"message": {"content": "Apri la porta blu."},
+        self.data = data if data is not None else {"message": {"content": "Open the blue door."},
                                                    "capabilities": ["completion", "vision"]}
         self.status, self.error = status, error
         self.calls = []
