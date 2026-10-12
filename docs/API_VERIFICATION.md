@@ -1,5 +1,7 @@
 # API verification
 
+Current account/model/xAI implementation and source checks supersede the earlier provider snapshot below: see [PROVIDER_VERIFICATION](PROVIDER_VERIFICATION.md). The picker now uses service-returned catalogs; the exact image allowlist is a capability gate, not a fixed list of offered models.
+
 Reviewed 12 October 2026. Official source inspection, offline protocol tests, Linux packaging checks and deferred hardware validation are separate. No account credentials were consulted and no live provider call was made. Chat models are user-selected; no invented latest aliases, price claims or universal vision support.
 
 ## Decky and toolchain
@@ -21,7 +23,7 @@ Reviewed 12 October 2026. Official source inspection, offline protocol tests, Li
 
 ## Providers and voice
 
-Adapters validate configuration/capabilities and generate through distinct native APIs. Bounded transport verifies TLS and pinned DNS, refuses redirects/proxies, and has no generation retries, streaming or cross-provider fallback. Connect/TLS timeout is about five seconds, cloud deadline 45 seconds, Ollama 45-120 seconds; JSON up to two MB and audio up to eight MB. Safe error payloads never expose remote bodies/headers and use the selected UI language.
+Adapters validate configuration/capabilities and use native APIs. Bounded transport verifies TLS/pinned DNS and refuses redirects/proxies, generation retries and cross-provider fallback. ChatGPT plan consumes required SSE through a terminal event; other generation routes use JSON. Connect/TLS timeout is about five seconds, cloud deadline 45 seconds, Ollama 45-120 seconds; response body up to two MB and audio eight MB. Safe errors never expose remote bodies/headers and use the UI language.
 
 | Integration / official source | Actual request / auth | Tests / unverified parts |
 |---|---|---|
@@ -41,6 +43,6 @@ Npm licenses were inspected: Decky API/UI LGPL-2.1, template/preset BSD-3-Clause
 
 ## Documented image-input catalog
 
-Reviewed 12 October 2026, no live account calls. OpenAI [GPT-4.1](https://developers.openai.com/api/docs/models/gpt-4.1) documents image input and Responses support; the selector offers the pinned `gpt-4.1-2025-04-14` and documented alias `gpt-4.1`. Claude [Sonnet 4.6](https://platform.claude.com/docs/en/models/sonnet-4-6/overview) documents text/images to text, ID `claude-sonnet-4-6` and active legacy status. Google [Gemini 3.1 Flash-Lite](https://ai.google.dev/gemini-api/docs/models/gemini-3.1-flash-lite) documents image inputs and ID `gemini-3.1-flash-lite`. These are compatible examples, not claims to be newest/cheapest or accessible in every account.
+Historical review on 12 October 2026, no live calls: OpenAI [GPT-4.1](https://developers.openai.com/api/docs/models/gpt-4.1), Claude [Sonnet 4.6](https://platform.claude.com/docs/en/models/sonnet-4-6/overview) and Google [Gemini 3.1 Flash-Lite](https://ai.google.dev/gemini-api/docs/models/gemini-3.1-flash-lite) supplied initial verified image examples. The current contract also includes exact image-input IDs from [OpenAI's current models documentation](https://developers.openai.com/api/docs/models). These are capability references, not promised account entitlements. Returned catalog entries alone populate the current picker; no invented GPT-5.6/GPT-6.1 model is offered.
 
-`contracts/vision-models.json` supplies exact IDs, friendly labels, source URLs and review date to both frontend and backend. Unknown custom models remain unchanged for text but image admission fails before networking; no fallback. Account rejection has a safe MODEL_UNAVAILABLE/AUTH_FAILED error. To add a model, verify official input support and protocol compatibility, update the catalog and native tests. No automatic model/provider upgrade is performed.
+`contracts/vision-models.json` supplies exact image-capability IDs/source URLs/review dates to backend admission. Picker labels come from the selected service. Unknown models remain text-only; Grok uses actual catalog modalities, Ollama checks api/show. Access errors are sanitized with no fallback. To extend the allowlist, verify official input/protocol support and update native tests. No automatic model/provider upgrade.

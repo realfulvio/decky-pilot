@@ -388,7 +388,9 @@ class Service:
                         situation["phase"] != "gameplay" or question):
                     record["state"] = "duplicate"
                     return
-                if question and question == self.last_clarification:
+                answered_questions = {" ".join(pair["question"].casefold().split())
+                                      for pair in self.clarification_answers}
+                if question and (question == self.last_clarification or question in answered_questions):
                     raise RpcError("CONTEXT_NEEDED")
                 if question:
                     self.last_clarification = question

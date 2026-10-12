@@ -10,13 +10,15 @@ Existing workspace `C:/Users/Admin/deckpilot`, branch `codex/deckpilot-mvp`; gal
 Repository is already PUBLIC with the owner's explicit authorization. No merge, force push, store,
 release or device install. Main is presentation-only; application stays in PR #1, gallery in PR #2.
 
-Code source `205a861f423678fb2cefde0b287df9ae6c6ee070` includes native ChatGPT plan OAuth,
+Browser capture source `205a861f423678fb2cefde0b287df9ae6c6ee070` includes native ChatGPT plan OAuth,
 separate advanced OpenAI key, Claude/Gemini/Grok/Ollama, account/service-returned catalogs,
 bounded documented pagination, exact image gates, refresh/revoke/limits and structured visual context.
 Own backend credentials only; no cookies/other-app secrets or paid/provider fallback.
 Help me now combines the player's question, confirmed game and recent approved image;
 observations/deductions and one clarification are distinct. Four bounded clarification replies remain
-session context beyond the rolling history; game change/clear/delete removes them.
+session context beyond the rolling history; game change/clear/delete removes them. The final
+follow-up also refuses a clarification already answered among the retained pairs, even after
+another intervening question; its reproducing regression passes.
 Auto admission >=90 seconds; stale frames >45 seconds, overlaps, duplicates, menu/loading and
 ambiguity are refused/suppressed. Manual corrections survive until actual game switch.
 Loopback integration exposed and fixed Python 3.13 callback shutdown deadlock; test uses fake identity.
@@ -50,14 +52,31 @@ privacy, status table and hardware blockers updated. GitHub Markdown API render 
 all images decoded, no page overflow; 54 relative links and 35 current PNGs verified. Manual visual
 review covers cover, diagrams, contextual steps, onboarding and mobile layout.
 
-## Next authorized actions
+## Publication and current verification
 
-1. Commit reviewed presentation and docs, repeat source/history/private-metadata audit.
-2. Copy only README/translations/assets/gallery/presentation docs to main using LF-identical bytes;
-   integrate normal commits into existing gallery branch, preserve its review-specific doc.
-3. Push all existing branches, update English repository description and both PRs.
-4. Verify latest-head Linux PR/push CI and artifacts; verify published EN/IT GitHub pages anonymously.
-5. Record final heads/CI/artifact/publication evidence here. Do not treat older green heads as final.
+Public main is `c574cf5`: exactly 47 presentation-only files, LF-identical to shared MVP files,
+no application code. English repository description and both existing PRs updated. Gallery was
+brought to the same MVP tree with a normal commit preserving history; only GALLERY_REVIEW differs
+between current trees. Three-dot GitHub comparison can show inherited changes because histories
+diverge; no merge/rewrite was used. PRs are open and conflict-free.
+
+Published EN/IT README pages checked anonymously at 1200/390px: HTTP 200 and all 12 images load.
+Actual page screenshots inspected. Source/history audit at this delivery: 39 commits, 379 blobs,
+59 distinct decoded historical/current rasters, no finding. Original image metadata and branding
+preserved; no private credentials/account/gameplay used. Caches/temporary files remain ignored.
+
+Full Linux checks passed on MVP `90958cf` [PR 38320636675](https://github.com/realfulvio/decky-pilot/actions/runs/38320636675)
+and [push 38320631917](https://github.com/realfulvio/decky-pilot/actions/runs/38320631917), plus gallery
+`c32b527` [38320642211](https://github.com/realfulvio/decky-pilot/actions/runs/38320642211).
+These passed 184 backend tests without skips, 27 frontend, 13 tooling, six browser, audits and
+extracted cryptographic/Pillow runtime on their listed heads. Final clarification/documentation
+follow-up must also pass [current MVP checks](https://github.com/realfulvio/decky-pilot/pull/1/checks)
+and [current gallery checks](https://github.com/realfulvio/decky-pilot/pull/2/checks); older runs do not
+certify a later head. Review ZIP/source/checksums are workflow artifacts, not a release.
+
+Remaining work requires external inputs: eligible account/dedicated API credentials for real provider
+acceptance, and actual Steam Deck for hardware acceptance. Establish atomic game-only acquisition
+before enabling the capture gate. No ordinary technical decision or publication permission is pending.
 
 Initial extension CI on 903b080 passed [PR run 38318741305](https://github.com/realfulvio/decky-pilot/actions/runs/38318741305)
 and [push run 38318736988](https://github.com/realfulvio/decky-pilot/actions/runs/38318736988).
