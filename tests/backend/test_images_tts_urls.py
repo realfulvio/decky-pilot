@@ -144,7 +144,8 @@ async def test_remote_tts_consent_no_implicit_fallback_and_audio():
     assert len(call["body"]["input"]) == 1000 and call["body"]["voice"] == "coral"
 
 
-async def test_local_tts_uses_stdin_safe_argv_and_stop():
+@pytest.mark.parametrize("language", ["en", "it"])
+async def test_local_tts_uses_stdin_safe_argv_and_stop(language):
     captured = {}
 
     class Input:
@@ -183,8 +184,8 @@ async def test_local_tts_uses_stdin_safe_argv_and_stop():
         captured["argv"] = args
         return Process()
     tts = TTS(FakeTransport(), executable="/usr/bin/espeak-ng", spawn=spawn)
-    await tts.synthesize("$(touch /tmp/injection); & secret", DEFAULTS, {})
-    assert captured["argv"] == ("/usr/bin/espeak-ng", "-v", "it", "--stdout", "--stdin")
+    await tts.synthesize("$(touch /tmp/injection); & secret", {**DEFAULTS, "ttsLanguage": language}, {})
+    assert captured["argv"] == ("/usr/bin/espeak-ng", "-v", language, "--stdout", "--stdin")
     assert captured["stdin"] == b"$(touch /tmp/injection); & secret"
     assert tts.process is None
     tts.process = Process()

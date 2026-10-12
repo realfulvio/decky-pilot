@@ -1,27 +1,33 @@
-# Test e risultati
+# Test plan and evidence
 
-Verifica locale 12 ottobre 2026, Windows workstation, Node24.20.0/pnpm10.28.2/Python3.13. Il target Linux CP311 è incluso nel pacchetto ma non eseguibile su Windows. WSL non installato, Docker non disponibile: nessuna validazione Linux/SteamOS dichiarata. GitHub Actions predisposto ma non osservato senza remote del progetto.
+Review date: 12 October 2026. Local workstation: Windows, Node 24.20.0, pnpm 10.28.2, Python 3.13.15, Microsoft Edge browser. CI: Ubuntu 24.04, Node 24.20.0, Python 3.11.7, Chromium. Steam Deck: **NOT RUN**.
 
-| Comando | Risultato locale | Copertura |
+| Check | Latest local evidence | Coverage |
 |---|---|---|
-| `pnpm install --frozen-lockfile` | PASS | Versioni e integrità lockfile |
-| `pnpm lint` / `pnpm typecheck` | PASS | ESLint e tipi rigorosi |
-| `pnpm test` | PASS, 11 test | Onboarding, chiave pulita, manuale, pending/cancel, errori, preview/approvazione, contratto, toast, Steam shape, listener/sessioni, TTS no replay, audio cleanup |
-| `python -m ruff check backend main.py scripts tests/backend` | PASS | Backend/lifecycle/scripts/test |
-| `python -m pytest -q` | PASS,116 test;2 SKIP | Quattro protocolli/vision/errori, default/range/migrazione/corruzione/atomicità, sessioni/lock, clock0/89/90/resume/pause/dedup/errori, immagini/TTL/consensi, TTS/stop/revoca/SSRF/import/contratto/lifecycle |
-| `pnpm exec playwright test` | PASS,2 test | Edge: chat/contesto/focus Tab/Stop visibile, no overflow/errori, preview1280×800/720 |
-| `python scripts/scan_secrets.py` | PASS | Nessun match, valori non stampati |
-| `node scripts/audit.mjs` | PASS con1 advisory high ammesso dalla policy | `braces` build-only senza patch upstream: vedere SECURITY. Non audit clean |
-| `pnpm build` | PASS | Rollup WASM4.64.5, React esterna, nessun harness |
-| `python scripts/vendor.py` | PASS | SHA256 wheel Pillow Linux CP311 |
-| `python scripts/package.py` / `verify_package.py` | PASS | Layout/allowlist/manifest/runtime/licenze/checksum; hash finali nei file accanto al ZIP |
+| Frozen install | PASS | Lockfile exact resolutions/integrity |
+| ESLint / TypeScript | PASS | Production components/strict types |
+| Frontend Vitest | PASS, 15 tests | Three-step onboarding, cleared keys, complete catalogs, independent languages, no diagnostics, errors, image approval, pending/cancel; contracts/popup/Steam/listeners/audio cleanup |
+| Tooling node tests | PASS, 13 tests | Confined cleanup/symlink refusal, audit high/critical/former exemption/registry failure |
+| Ruff | PASS | Backend/lifecycle/scripts/tests |
+| Python pytest | PASS, 128 passed / 2 skipped | Four native protocols, storage/session/scheduler/network/privacy/images/TTS, localization, disabled real capture adapter and synthetic capture lifecycle/session consent |
+| Playwright | PASS, 4 tests | English at 1280x800/720, focus/scroll/no overflow/errors, Italian independent defaults, per-image approval |
+| Secret scan | PASS | No detected key/PEM matches; values never printed |
+| Registry audit + policy | PASS, zero advisories | No exception; high/critical and unavailable audit fail |
+| Rollup build | PASS | Official WASM, external React/Decky, no harness runtime |
+| Vendor / ZIP verify | PASS | Pinned Linux CP311 Pillow wheel, catalogs, licenses, layout/allowlist/checksum |
 
-I2 SKIP sono test symlink: Windows non permette di crearli in questa sessione. Il workflow Linux esegue gli stessi test, controlla mode0700/0600 e importa Pillow vendorizzata. Il ramo permessi POSIX è da eseguire in Linux; non è verificato dai mock Windows.
+Local Windows skips are the two symlink cases because privileges are unavailable. Linux CI executes them and POSIX permission assertions without skips. Before the redesign, [PR run 38306051080](https://github.com/realfulvio/deckpilot/actions/runs/38306051080) passed the complete workflow, including 118 Python tests and isolated extracted ZIP smoke. Current redesign CI evidence is recorded below after observing the pushed revision; do not infer success from workflow configuration alone.
 
-## Determinismo
+The extracted-package smoke runs `python -I` outside the checkout, asserts that Pillow and its native `_imaging` load from the ZIP, encodes/decodes PNG and starts/status-checks/unloads the packaged backend with only the Decky lifecycle shim. This validates Linux CP311 packaging, not an actual Loader installation or Deck ABI.
 
-Fixture backend blocca DNS e l'entry point del trasporto produzione. Asyncio Windows usa socketpair loopback per wakeup, distinto da una chiamata provider. Test del worker HTTP reale sostituiscono DNS/socket/HTTP e verificano IP pinned, dimensioni e redirect rifiutati. Tutte le immagini/risposte/credenziali fixture sono sintetiche, nessun egress provider.
+## Test isolation
 
-Adapter reali in produzione, trasporti iniettati nei test. Verificati request native/auth/output/usage,401/403/404/429/5xx,timeout,risposta vuota/bloccata/malformata e nessuna esposizione di body d'errore. Ollama vision controlla /api/show, senza pull. Fixture JSON Schema validate da Python e Ajv; eventi/result backend effettivi nello stesso schema.
+Backend fixtures block DNS and the production transport entry point. Native adapter tests inject HTTP/process responses, inspect actual request payloads/auth/vision/output/usage and test 401/403/404/429/5xx, timeout and malformed/empty/blocked replies. Network-worker tests inject DNS/socket/HTTP and check pinned IP/size/redirect behavior. Synthetic credentials/images never leave the test process. Windows asyncio loopback wakeups are not provider calls.
 
-Ancora da eseguire: CI remota/import CP311 Linux, live smoke con consenso esplicito e chiavi separate se richiesto, [checklist Steam Deck](HARDWARE_VALIDATION.md). Le preview HTML sono harness dichiarato con controlli DOM; produzione usa componenti Decky. Non equivalgono a rendering Steam/controller reale.
+Capture tests use explicit synthetic subprocesses/test-only injection, check fixed CLI arguments/focus refusal/private cleanup, approval, immediate guard cancellation, current-session consent and 89/90-second behavior. Production capture remains disabled in a separate assertion. No screenshot acquisition on SteamOS is certified by these tests.
+
+Shared JSON Schema fixtures and actual backend records/events are validated in Python and TypeScript. Catalog key/placeholders parity and English/Italian safe errors are checked. Browser tests run the same App with labelled DOM stand-ins; production uses Decky controls. Keyboard focus tests are not controller tests.
+
+## Deferred checks
+
+[Hardware checklist](HARDWARE_VALIDATION.md): actual SteamOS/Decky/Python ABI/UID, install/load, controller/keyboard, Steam detection, picker, QAM toast, TTS routing/IPC and CPU/RAM/frame-rate/sleep-resume measurements. [Capture safety criteria](CAPTURE_VERIFICATION.md) require a safe acquisition mechanism before a hardware enablement test. Optional live provider smoke requires separate explicit permission/credentials and has not been run.

@@ -15,7 +15,7 @@ export default definePlugin(() => {
   void controller.start().then(() => { if (!dismounted) contextAdapter.start(); });
   return {
     name: 'DeckPilot', titleView: <div className={staticClasses.Title}>DeckPilot</div>,
-    content: <App controller={controller} controls={deckyControls} detectGame={() => detectGame(Router)} pickImage={async () => {
+    content: <App closeMenus={() => Router.CloseSideMenus()} controller={controller} controls={deckyControls} detectGame={() => detectGame(Router)} pickImage={async () => {
       const root = controller.snapshot().status?.capabilities.importRoot;
       if (!root) return null;
       const selected = await openFilePicker(FileSelectionType.FILE, root, true, false, undefined, ['png', 'jpg', 'jpeg'], false, false, 1);

@@ -1,6 +1,7 @@
 export type ProviderId = 'openai' | 'gemini' | 'claude' | 'ollama';
 export type SpoilerLevel = 'none' | 'hints' | 'full_solutions';
 export interface Settings {
+  uiLanguage: 'en' | 'it'; responseLanguage: 'en' | 'it'; ttsLanguage: 'en' | 'it'; captureEnabled: boolean;
   schemaVersion: 1; provider: ProviderId | null; model: string; remoteConsent: boolean;
   ollamaEndpoint: string; endpointConsent: boolean; visionConfirmed: boolean; spoiler: SpoilerLevel;
   popupDurationMs: number; hintIntervalSeconds: number; voiceEnabled: boolean; ttsEngine: 'local' | 'openai';
@@ -35,7 +36,7 @@ export interface Status {
   history: {role: 'user' | 'assistant'; content: string; at: number}[];
   requests: RequestState[]; active: string | null; tts: VoiceState;
   pendingImageRef?: string | null;
-  auto: {paused: boolean; attempts: number; limit: number; errors: number};
+  auto: {paused: boolean; attempts: number; limit: number; errors: number; sessionConsent?: boolean; visual?: boolean};
   capabilities: {capture: boolean; images: boolean; importRoot?: string; tts: {local: boolean; openai: boolean; syntheticVoice: boolean}};
   diagnostics: Record<string, string | boolean | number>;
 }

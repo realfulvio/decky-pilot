@@ -7,8 +7,9 @@ export function fixtureStatus(): Status {
     schemaVersion: 1, context: fixture.context as GameContext, history: [], requests: [], active: null,
     tts: {state: 'idle'}, auto: {paused: false, attempts: 0, limit: 20, errors: 0},
     capabilities: {capture: false, images: true, tts: {local: false, openai: true, syntheticVoice: true}},
-    diagnostics: {mode: 'HARNESS OFFLINE · nessuna API reale', hardwareValidated: false},
+    diagnostics: {mode: 'OFFLINE PREVIEW · no real API calls', hardwareValidated: false},
     settings: {
+      uiLanguage: 'en', responseLanguage: 'en', ttsLanguage: 'en', captureEnabled: false,
       schemaVersion: 1, provider: null, model: '', remoteConsent: false, endpointConsent: false,
       ollamaEndpoint: 'http://127.0.0.1:11434', visionConfirmed: false, spoiler: 'full_solutions',
       popupDurationMs: 6000, hintIntervalSeconds: 90, voiceEnabled: true, ttsEngine: 'local',
@@ -33,6 +34,8 @@ export class FakeBridge implements Bridge {
   async rpc<T>(method: string, payload: Record<string, unknown> = {}): Promise<T> {
     // Never store key values, even in preview instrumentation.
     this.calls.push({method, payload: {...payload, ...(method === 'set_api_key' ? {key: '[redacted]'} : {})}});
+    if (method === 'set_capture_guard') return {blocked: payload.blocked} as T;
+    if (method === 'prepare_capture') throw new SafeError('CAPTURE_UNAVAILABLE');
     if (method === 'get_status') return structuredClone(this.status) as T;
     if (method === 'update_settings') {
       this.status.settings = {...this.status.settings, ...payload} as Settings;
@@ -49,12 +52,14 @@ export class FakeBridge implements Bridge {
     }
     if (method === 'set_auto_hints') {
       if (typeof payload.enabled === 'boolean') this.status.settings.autoHints = payload.enabled;
+      if (typeof payload.consent === 'boolean') this.status.auto.sessionConsent = payload.consent;
+      if (typeof payload.visual === 'boolean') this.status.auto.visual = payload.visual;
       if (typeof payload.paused === 'boolean') this.status.auto.paused = payload.paused;
       return {} as T;
     }
     if (method === 'start_assistant_request') {
-      if (this.failNext) { this.failNext = false; throw new SafeError('Errore provider sintetico. Riprova.'); }
-      if (!this.status.settings.provider) throw new SafeError('Configura prima un provider (harness).');
+      if (this.failNext) { this.failNext = false; throw new SafeError('NETWORK_ERROR'); }
+      if (!this.status.settings.provider) throw new SafeError('NOT_CONFIGURED');
       const requestId = String(payload.requestId);
       this.status.active = requestId;
       this.status.requests.push({requestId, sessionId: String(payload.sessionId), contextRevision: Number(payload.contextRevision), kind: 'manual', state: 'pending'});
@@ -71,12 +76,12 @@ export class FakeBridge implements Bridge {
       destination: {provider: this.status.settings.provider, model: this.status.settings.model, endpoint: 'HARNESS'}} as T;
     if (method === 'approve_image_send' || method === 'discard_image') return {} as T;
     if (method === 'start_tts') { this.status.tts = {state: 'error', requestId: String(payload.requestId), sessionId: this.status.context?.sessionId,
-      contextRevision: this.status.context?.revision, error: {code: 'VOICE_UNAVAILABLE', message: 'Voce non disponibile (harness)', retryable: false}}; return this.status.tts as T; }
+      contextRevision: this.status.context?.revision, error: {code: 'VOICE_UNAVAILABLE', message: 'Voice unavailable (offline preview)', retryable: false}}; return this.status.tts as T; }
     if (method === 'stop_tts') { this.status.tts = {state: 'idle'}; return this.status.tts as T; }
     if (method === 'clear_history') { this.status.history = []; this.status.requests = []; return {} as T; }
     if (method === 'delete_local_data') { this.status = fixtureStatus(); this.status.context = null; return {} as T; }
     if (method === 'test_provider') return {mode: 'offline'} as T;
-    throw new SafeError('RPC non implementata nel solo harness');
+    throw new SafeError('INVALID_INPUT');
   }
   complete(payload: Record<string, unknown>) {
     const result = {...fixture.result, requestId: payload.requestId, sessionId: payload.sessionId, contextRevision: payload.contextRevision} as AssistantResult;

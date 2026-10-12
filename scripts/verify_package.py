@@ -10,6 +10,7 @@ REQUIRED = {"DeckPilot/main.py", "DeckPilot/plugin.json", "DeckPilot/package.jso
             "DeckPilot/backend/service.py", "DeckPilot/backend/providers.py", "DeckPilot/LICENSE",
             "DeckPilot/py_modules/PIL/_imaging.cpython-311-x86_64-linux-gnu.so",
             "DeckPilot/py_modules/deckpilot-vendor.json"}
+REQUIRED |= {"DeckPilot/locales/en.json", "DeckPilot/locales/it.json"}
 REQUIRED |= {"DeckPilot/docs/licenses/decky-api-LGPL-2.1.txt", "DeckPilot/third_party/decky-api/src/index.ts"}
 
 
@@ -30,7 +31,7 @@ def verify(path):
         if manifest.get("flags") != [] or manifest.get("api_version") != 1:
             raise ValueError("Unexpected privileges or API version")
         bundle = archive.read("DeckPilot/dist/index.js").decode()
-        if "SP_REACT" not in bundle or "HARNESS OFFLINE" in bundle or "FakeBridge" in bundle:
+        if "SP_REACT" not in bundle or "FakeBridge" in bundle:
             raise ValueError("React bundling or harness contamination")
         vendor = json.loads(archive.read("DeckPilot/py_modules/deckpilot-vendor.json"))
         if vendor["sha256"] != "23d27a3e0307ec2244cc51e7287b919aa68d097504ebe19df4e76a98a3eea5bd":
