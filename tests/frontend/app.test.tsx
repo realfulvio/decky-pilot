@@ -5,18 +5,63 @@ import { harnessControls } from '../../src/harness/controls';
 import { FakeBridge } from '../../src/harness/fakeBridge';
 import { Controller } from '../../src/services/controller';
 import { translate } from '../../src/domain/i18n';
+import type { GameContext } from '../../src/domain/types';
 import en from '../../locales/en.json';
 import itCatalog from '../../locales/it.json';
 afterEach(cleanup);
-async function setup(ready = false) {
+async function setup(ready = false, detectGame?: () => Partial<GameContext> | null) {
   const bridge = new FakeBridge();
   if (ready) Object.assign(bridge.status.settings, {provider: 'openai', model: 'sample', configured: {openai: true}, remoteConsent: true, imagesEnabled: true, visionConfirmed: true});
   const popup = {show: vi.fn(), clear: vi.fn()}; const audio = {play: vi.fn(), stop: vi.fn()};
   const controller = new Controller(bridge, popup, audio); await controller.start();
-  render(<App controller={controller} controls={harnessControls} />);
+  render(<App controller={controller} controls={harnessControls} detectGame={detectGame} />);
   return {bridge, controller, popup, audio};
 }
 describe('English-first UI and complete Italian localization', () => {
+  it.each(['revision', 'session', 'cleared'] as const)('refreshes all game fields after a %s context event', async change => {
+    const {bridge, controller} = await setup(true);
+    fireEvent.click(screen.getByRole('button', {name: 'Game'}));
+    fireEvent.click(screen.getByText('Advanced options'));
+    for (const label of ['Game title', 'What are you trying to do?', 'Where are you? (optional)', 'Anything else we should know?', 'Steam AppID (optional)']) {
+      fireEvent.change(screen.getByLabelText(label), {target: {value: label.includes('AppID') ? '123' : 'Old draft'}});
+    }
+    await act(async () => {
+      bridge.status.context = change === 'cleared' ? null : {...bridge.status.context!,
+        title: 'New game', appId: '456', objective: 'New objective', location: 'New area', userNotes: 'New notes',
+        ...(change === 'session' ? {sessionId: 'new-session'} : {revision: bridge.status.context!.revision + 1})};
+      bridge.emit('context_changed', bridge.status.context);
+      await controller.refresh();
+    });
+    const expected = change === 'cleared' ? ['', '', '', '', ''] : ['New game', 'New objective', 'New area', 'New notes', '456'];
+    ['Game title', 'What are you trying to do?', 'Where are you? (optional)', 'Anything else we should know?', 'Steam AppID (optional)'].forEach((label, index) => {
+      expect((screen.getByLabelText(label) as HTMLInputElement).value).toBe(expected[index]);
+    });
+    if (change !== 'cleared') {
+      fireEvent.click(screen.getByText('Save game'));
+      await waitFor(() => expect(bridge.calls.find(call => call.method === 'set_game_context')?.payload).toMatchObject({title: 'New game', appId: '456', objective: 'New objective', location: 'New area', userNotes: 'New notes'}));
+    }
+    await controller.close();
+  });
+  it('preserves an unsaved game draft during status polling and unrelated settings updates', async () => {
+    const {controller} = await setup(true);
+    fireEvent.click(screen.getByRole('button', {name: 'Game'}));
+    fireEvent.change(screen.getByLabelText('Game title'), {target: {value: 'Unsaved title'}});
+    await act(async () => { await controller.refresh(); await controller.updateSettings({voiceEnabled: false}); });
+    expect((screen.getByLabelText('Game title') as HTMLInputElement).value).toBe('Unsaved title');
+    await controller.close();
+  });
+  it.each([false, true])('updates the draft when choosing the detected Steam game (onboarding=%s)', async onboarding => {
+    const detected = {title: 'Detected game', appId: '789', objective: '', location: '', userNotes: '', source: 'steam' as const};
+    const {bridge, controller} = await setup(!onboarding, () => detected);
+    fireEvent.click(screen.getByText(onboarding ? 'Get started' : 'Game'));
+    fireEvent.change(screen.getByLabelText('Game title'), {target: {value: 'Stale game'}});
+    fireEvent.click(screen.getByText('Use detected game'));
+    await waitFor(() => expect((screen.getByLabelText('Game title') as HTMLInputElement).value).toBe('Detected game'));
+    fireEvent.click(screen.getByText('Save game'));
+    await waitFor(() => expect(bridge.calls.filter(call => call.method === 'set_game_context')).toHaveLength(2));
+    expect(bridge.calls.filter(call => call.method === 'set_game_context')[1].payload).toMatchObject({title: 'Detected game', appId: '789', objective: '', location: '', userNotes: ''});
+    await controller.close();
+  });
   it('keeps chat and online voice credentials separate and never sends setup requests', async () => {
     const {bridge,controller}=await setup(true);
     fireEvent.click(screen.getByRole('button',{name:'Settings'}));

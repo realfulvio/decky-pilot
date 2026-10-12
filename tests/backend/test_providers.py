@@ -21,6 +21,52 @@ CASES = [
 ]
 
 
+@pytest.mark.parametrize("auto", [False, True])
+async def test_openai_keeps_text_when_output_budget_is_exhausted(auto):
+    data = {"status": "incomplete", "incomplete_details": {"reason": "max_output_tokens"},
+            "output": [{"type": "reasoning", "summary": []},
+                       {"type": "message", "content": [
+                           {"type": "output_text", "text": "Open"},
+                           {"type": "output_text", "text": "the door."}]}],
+            "usage": {"input_tokens": 7, "output_tokens": 200 if auto else 1200}}
+    transport = FakeTransport(data)
+    settings = {**DEFAULTS, "model": "test-model", "remoteConsent": True}
+    result = await OpenAI(transport).generate(settings, {"openai": "synthetic"}, "policy",
+                                            [{"role": "user", "content": "q"}], auto=auto)
+    assert result == {"answer": "Open\nthe door.", "usage": {
+        "inputTokens": 7, "outputTokens": 200 if auto else 1200}}
+    assert len(transport.calls) == 1
+    assert transport.calls[0]["body"]["max_output_tokens"] == (200 if auto else 1200)
+
+
+@pytest.mark.parametrize("status,details", [
+    ("incomplete", {"reason": "content_filter"}), ("incomplete", {}),
+    ("incomplete", None), ("failed", None), ("cancelled", None),
+    ("queued", None), ("in_progress", None)])
+async def test_openai_rejects_non_budget_incomplete_and_failed_output(status, details):
+    data = {"status": status, "incomplete_details": details,
+            "output": [{"type": "message", "content": [
+                {"type": "output_text", "text": "Do not deliver this."}]}]}
+    settings = {**DEFAULTS, "model": "test-model", "remoteConsent": True}
+    with pytest.raises(RpcError) as error:
+        await OpenAI(FakeTransport(data)).generate(settings, {"openai": "synthetic"},
+                                                 "policy", [{"role": "user", "content": "q"}])
+    assert error.value.code == "PROVIDER_BLOCKED"
+
+
+@pytest.mark.parametrize("output", [[], [{"type": "reasoning", "summary": []}],
+    [{"type": "message", "content": [{"type": "output_text", "text": "   "}]}]])
+async def test_openai_empty_budget_exhaustion_still_fails_without_retry(output):
+    transport = FakeTransport({"status": "incomplete", "output": output,
+                               "incomplete_details": {"reason": "max_output_tokens"}})
+    settings = {**DEFAULTS, "model": "test-model", "remoteConsent": True}
+    with pytest.raises(RpcError) as error:
+        await OpenAI(transport).generate(settings, {"openai": "synthetic"}, "policy",
+                                        [{"role": "user", "content": "q"}])
+    assert error.value.code == "PROVIDER_BLOCKED"
+    assert len(transport.calls) == 1
+
+
 @pytest.mark.parametrize("cls,data,url,auth", CASES)
 @pytest.mark.parametrize("with_image", [False, True])
 async def test_native_protocols(cls, data, url, auth, with_image):

@@ -76,7 +76,11 @@ class OpenAI(Provider):
             {"model": settings["model"], "instructions": system, "input": items,
              "store": False, "max_output_tokens": 200 if auto else 1200}, settings)
         try:
-            require(data.get("status", "completed") == "completed", "PROVIDER_BLOCKED")
+            status = data.get("status", "completed")
+            details = data.get("incomplete_details")
+            exhausted = (status == "incomplete" and isinstance(details, dict) and
+                         details.get("reason") == "max_output_tokens")
+            require(status == "completed" or exhausted, "PROVIDER_BLOCKED")
             text = "\n".join(block["text"] for item in data.get("output", [])
                              if item.get("type") == "message"
                              for block in item.get("content", [])
