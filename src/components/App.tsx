@@ -48,6 +48,11 @@ function Chat({controller, controls: C, pickImage}: Props) {
   useEffect(() => { end.current?.scrollIntoView?.({block: 'nearest'}); }, [status?.history.length]);
   useEffect(() => { setImage(undefined); setApproved(false); imageRef.current = undefined; }, [status?.context?.revision, status?.context?.sessionId, status?.settings.imagesEnabled, status?.settings.provider, status?.settings.model]);
   useEffect(() => () => { if (imageRef.current) void controller.act('discard_image', {imageRef: imageRef.current}); }, [controller]);
+  useEffect(() => {
+    if (image && status?.pendingImageRef !== undefined && status.pendingImageRef !== image.imageRef) {
+      setImage(undefined); setApproved(false); imageRef.current = undefined;
+    }
+  }, [status?.pendingImageRef, image]);
   if (!status) return null;
   const send = async (message: string) => {
     setBusy(true);

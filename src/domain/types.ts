@@ -34,6 +34,7 @@ export interface Status {
   schemaVersion: 1; settings: Settings; context: GameContext | null;
   history: {role: 'user' | 'assistant'; content: string; at: number}[];
   requests: RequestState[]; active: string | null; tts: VoiceState;
+  pendingImageRef?: string | null;
   auto: {paused: boolean; attempts: number; limit: number; errors: number};
   capabilities: {capture: boolean; images: boolean; importRoot?: string; tts: {local: boolean; openai: boolean; syntheticVoice: boolean}};
   diagnostics: Record<string, string | boolean | number>;
