@@ -50,8 +50,16 @@ try {
   await button('Cancel').scrollIntoViewIfNeeded(); await shot('07-pending.png');
   await load(); await page.setViewportSize({width:1280,height:720});
   await button('Stop').scrollIntoViewIfNeeded(); await shot('08-play-720.png');
+  await load(); await page.setViewportSize({width:1280,height:800});
+  await button('Preview ChatGPT setup').click(); await button('Get started').click(); await button('Next').click();
+  await page.getByLabel('AI service', {exact:true}).scrollIntoViewIfNeeded(); await shot('11-ai-connection.png');
+  await button('Continue with ChatGPT').scrollIntoViewIfNeeded(); await shot('14-chatgpt-sign-in.png');
+  await load(); await button('Preview capture controls (simulated)').click(); await button('Help me now').click();
+  await button('Capture game image').scrollIntoViewIfNeeded(); await shot('12-capture-consent.png');
+  await load(); await button('Preview clarification').click();
+  await page.getByText('Which objective are you trying to complete?', {exact:false}).scrollIntoViewIfNeeded(); await shot('13-clarification.png');
   if (errors.length) throw new Error('Gallery encountered browser errors');
   const commit = execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
-  await writeFile(join(output,'source.json'),JSON.stringify({commit,mode:'offline harness; synthetic data; no provider or device capture',images:20,fullViewportImages:10,panelImages:10,browser:process.env.PLAYWRIGHT_CHANNEL === 'chromium' ? 'Chromium' : 'Microsoft Edge',capturedAt:new Date().toISOString()},null,2)+'\n');
-  process.stdout.write(`Saved ten English views and ten panel screenshots from ${commit} to ${output}\n`);
+  await writeFile(join(output,'source.json'),JSON.stringify({commit,mode:'actual React browser harness; synthetic data, AI replies and capture availability; no sign-in, live inference, speech or device capture',images:28,fullViewportImages:14,panelImages:14,browser:process.env.PLAYWRIGHT_CHANNEL === 'chromium' ? 'Chromium' : 'Microsoft Edge',capturedAt:new Date().toISOString()},null,2)+'\n');
+  process.stdout.write(`Saved fourteen English views and fourteen panel screenshots from ${commit} to ${output}\n`);
 } finally { await browser.close(); }
