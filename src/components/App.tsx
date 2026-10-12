@@ -152,6 +152,10 @@ function Context({controller, controls: C, detectGame}: Props) {
   const [title, setTitle] = useState(context?.title ?? ''); const [appId, setAppId] = useState(context?.appId ?? '');
   const [objective, setObjective] = useState(context?.objective ?? ''); const [location, setLocation] = useState(context?.location ?? ''); const [notes, setNotes] = useState(context?.userNotes ?? '');
   const [advanced, setAdvanced] = useState(false);
+  useEffect(() => {
+    setTitle(context?.title ?? ''); setAppId(context?.appId ?? '');
+    setObjective(context?.objective ?? ''); setLocation(context?.location ?? ''); setNotes(context?.userNotes ?? '');
+  }, [context?.sessionId, context?.revision, context?.title, context?.appId, context?.objective, context?.location, context?.userNotes]);
   const valid = validateContext(title, objective, location, notes) && (!appId || /^\d{1,20}$/.test(appId)); const detected = detectGame?.();
   return <C.Section title={t('context')}><p className="dp-subtle">{t('gameIntro')}</p>
     <C.Input label={t('gameTitle')} value={title} onChange={setTitle} /><C.Input label={t('objective')} value={objective} onChange={setObjective} />
