@@ -1,79 +1,110 @@
-# Decky Pilot
+<p align="center">
+  <img src="assets/brand/decky-pilot-logo-dark.png" alt="Decky Pilot" width="360">
+</p>
 
-<img src="assets/brand/decky-pilot-logo-dark.png" alt="Decky Pilot handheld and wordmark" width="400">
+# Your next move, made clearer.
 
-A Decky game assistant that helps you find your next step. English is the default; the complete Italian interface is available in Settings. [Leggi in italiano](README.it.md).
+**Decky Pilot is a game companion for Decky: ask for a useful next step, share a game image you approve, and listen to the answer if you want.** Choose your AI service and keep control of what you send.
 
-Decky Pilot is an MVP under review in [PR #1](https://github.com/realfulvio/decky-pilot/pull/1). The [UI gallery in PR #2](https://github.com/realfulvio/decky-pilot/pull/2) uses the same React screens in an explicitly labelled offline preview. A Steam Deck is not available, so device compatibility is still pending.
+[Italiano](README.it.md) · [UI gallery](docs/UI_GALLERY.md) · [MVP PR #1](https://github.com/realfulvio/decky-pilot/pull/1) · [Gallery PR #2](https://github.com/realfulvio/decky-pilot/pull/2)
 
-## Get help
+![Decky Pilot concept artwork: a fictional handheld adventure, an image card and a voice waveform; hardware validation is pending](assets/presentation/cover.png)
 
-1. Follow **Get started**: choose your game, connect an AI service, and choose what to share. Setup sends no AI requests.
-2. In **Play**, use **Help me now**, or ask your own question. The latest answer and voice controls stay together.
-3. For visual help, enable images in Settings, choose a PNG or JPEG containing gameplay only, review the cleaned image and recipient, then approve that image before sending it. On Deck, copy the image into the dedicated import folder shown under Advanced options, then choose it with the Decky picker.
+*AI-generated concept artwork, not a device photograph, application screenshot or Steam Deck test.*
 
-OpenAI, Claude and Gemini use their real native multimodal APIs; Ollama uses its native chat API and checks model capabilities. Choose a model from the documented image-capable catalog that your account can use. Existing custom models are preserved for text; undocumented cloud models cannot receive images. Account availability is checked only by an optional explicit connection test or your request; no paid startup check occurs. No model is silently substituted and no provider changes without your choice and renewed consent. API usage can cost money; a ChatGPT subscription does not include API credit.
+> **MVP in review.** `main` contains this presentation only. Application code remains in the existing PRs. Offline tests and Linux package checks verify the implementation; installation and behavior on a real Steam Deck remain **NOT RUN**. Direct game capture and automatic visual help are currently unavailable.
 
-An image can suggest an area or objective. It cannot establish hidden progress, inventory or quests. Prompts require visible observations to be separated from guesses, with one concrete next step or a question when context is missing. Model accuracy and spoiler compliance are not guaranteed.
+## How it works
 
-## Screen capture and automatic help
+![Illustrated workflow: open a game, press Help me now, approve a manually imported game image, receive a suggestion and optional voice](assets/presentation/how-it-works-en.svg)
 
-**Direct Gaming Mode capture is unavailable in this build.** We inspected Valve's actual Gamescope screenshot command and implemented a bounded adapter, but acquisition stays disabled: the upstream command is not atomically bound to a particular game window and can capture a different surface during a focus transition. This fails the requirement to avoid keys and account screens. There is no simulated production capture or invented Steam API. See [capture findings and acceptance criteria](docs/CAPTURE_VERIFICATION.md).
+1. **Open your game.** Add its title and what you are trying to do. Manual context also supports non-Steam games.
+2. **Press Help me now.** Ask for a concrete next step, or write your own question.
+3. **Share only the screenshot you approve.** With images enabled, manually import a gameplay PNG/JPEG, review the cleaned preview and named recipient, then approve that image and send. There is no working one-button device capture in this build.
+4. **Get a suggestion, with optional voice.** Read the full answer, listen or stop playback. Voice needs an existing local engine or separate online Speech permission; actual Deck audio routing is unverified.
 
-Manual image import and analysis are implemented. **Help me now** offers import when images are enabled; otherwise it uses the context you supplied.
+The workflow diagram is an illustration of the implemented manual-image path, not a screenshot. Without an image, help uses the context you supplied. Images cannot establish hidden inventory, quests or progress; prompts distinguish observations from guesses.
 
-The optional automatic visual path is implemented and tested offline, but is unavailable while capture is disabled. It requires separate consent for the current session, shows an active indicator, offers immediate pause, and waits at least 90 seconds between attempts. Only fresh meaningful context permits a new analysis; identical context/images, unknown games, active requests or voice, errors and sleep/resume suppress work. It does not continuously scan the screen or infer that you are stuck. A game change/reload/settings or key change revokes session consent. Twenty attempts require another explicit allowance. No device test is claimed.
+## The interface
 
-## Language and voice
+**Actual browser screenshots of the final React App, using labelled HTML stand-ins and synthetic data.** These are not mockups or Steam Deck captures. No live AI request, real credential or audio playback is demonstrated. Production injects Decky controls; controller behavior needs device validation.
 
-Settings has two independent choices: **Interface language** and **Assistant language (answers and voice)**. Both initially default to English and support English and Italian. The assistant language governs both generated answers and synthesized speech, following the latest product decision. Shared catalogs cover the interface, safe errors and prompts. Existing valid settings and saved keys are preserved when the new defaults are added.
+### Play: one clear action
 
-Voice reads the answer as written in the selected assistant language; it does not translate old conversation text. Local voice uses espeak-ng when already installed. Online voice uses OpenAI Speech with a separate key/consent and `gpt-4o-mini-tts`, whose instructions support the assistant language. Voice is synthetic; text remains available if audio fails. Nothing installs espeak-ng automatically.
+Active game, a question and your latest answer.
 
-## Development and verification
+<img src="docs/images/ui/panel-01-play.png" alt="Actual offline browser screenshot of Play with Help me now" width="420">
 
-Pinned toolchain: Node 24.20.0, Corepack/pnpm 10.28.2, Python 3.11.7 in Linux CI. Windows development uses Python 3.13.15. Production uses Decky API 1.1.3 and Decky UI 4.12.1; React and Decky UI are external in the plugin bundle.
+### Welcome and onboarding
+
+A short welcome, followed by game, service and sharing choices.
+
+<img src="docs/images/ui/panel-03-onboarding.png" alt="Actual offline browser screenshot of first-use welcome" width="420">
+
+### Image review before analysis
+
+Check the cleaned image and named destination before sharing. The fixture is visibly labelled synthetic.
+
+<img src="docs/images/ui/panel-06-image-review.png" alt="Actual browser screenshot of a synthetic image awaiting recipient approval" width="420">
+
+### Suggestions and voice controls
+
+Full text stays available, with Listen and Stop. The preview does not play speech.
+
+<img src="docs/images/ui/panel-08-play-720.png" alt="Actual browser screenshot of a synthetic answer with Listen and Stop controls" width="420">
+
+### Settings and languages
+
+English by default, complete Italian; independent interface and assistant languages.
+
+<img src="docs/images/ui/panel-05-languages.png" alt="Actual browser screenshot of independent interface and assistant languages" width="420">
+
+### Voice settings
+
+Existing local voice or separately authorized online Speech, with text fallback.
+
+<img src="docs/images/ui/panel-10-voice.png" alt="Actual browser screenshot of voice settings" width="420">
+
+[See all ten views, including guided setup and cancellation →](docs/UI_GALLERY.md)
+
+## What is available
+
+| Capability | Current evidence and limits |
+|---|---|
+| Text help and free questions | Implemented with native OpenAI Responses, Claude Messages, Gemini generateContent and Ollama chat adapters; offline protocol tests. Live account access is not verified. |
+| Manual visual analysis | Image validation, metadata removal, preview and per-image recipient approval are implemented. Cloud models must be in the documented image-input catalog; Ollama checks model capabilities. |
+| Guided setup and languages | Real Decky components, three-step setup, English/Italian catalogs and independent interface/assistant languages. Assistant language also governs speech. |
+| Full answers, cancellation and history | Implemented with session isolation, stale-result rejection, a six-second popup and optional local history. Actual QAM visibility needs a Deck. |
+| Optional voice and Stop | Existing espeak-ng or separately permitted OpenAI Speech; text fallback and cleanup are tested. No engine is installed automatically. Device routing/IPC is unverified. |
+| Direct game screenshots | **Disabled.** The inspected Gamescope command does not atomically target the authorized game, so sensitive surfaces cannot be reliably excluded. |
+| Automatic visual help | Session consent, pause, cooldown and attempt limits are implemented offline; activation remains unavailable while safe capture is unestablished. |
+| Steam Deck readiness | **NOT RUN:** ABI, installation, controller focus, picker, detection, QAM popup, audio and performance/sleep-resume. No store publication or certified device support. |
+
+## Your service, your sharing choices
+
+Choose OpenAI, Claude, Gemini or Ollama and a model available to you. Chat context, images, an Ollama endpoint and online voice have separate permissions. No silent model/provider substitution. Provider/API usage can incur costs; availability and terms depend on your account. Setup does not automatically send a paid connection test.
+
+No telemetry or Decky Pilot central server. API keys stay in private backend files and are never returned to the frontend; local software with the same access can read them. History is in memory unless you opt in. You can delete conversation or local plugin data. Deleting locally cannot retract data already sent to a provider. Share only gameplay images you intend to send; do not import account or credential screens.
+
+## Review or try the offline preview
+
+The application is on `codex/deckpilot-mvp`, **not on `main`**. For a separate developer checkout:
 
 ```sh
+git clone --branch codex/deckpilot-mvp https://github.com/realfulvio/decky-pilot.git
+cd decky-pilot
 corepack pnpm install --frozen-lockfile
-python -m venv .venv
-# Activate the virtual environment for your shell, then:
-python -m pip install -r requirements-dev.txt
-corepack pnpm verify
-python -m ruff check backend main.py scripts tests/backend
-python -m pytest -q
-python scripts/scan_secrets.py
-node scripts/audit.mjs
-corepack pnpm exec playwright install chromium
-# Linux: set PLAYWRIGHT_CHANNEL=chromium. Windows defaults to installed Edge.
-corepack pnpm exec playwright test
-python scripts/vendor.py
-python scripts/package.py
-python scripts/verify_package.py artifacts/deckpilot-0.1.0.zip
-# Linux CPython 3.11 only: verify the extracted deliverable in an isolated process
-python scripts/verify_package.py artifacts/deckpilot-0.1.0.zip --runtime
+corepack pnpm preview
 ```
 
-`corepack pnpm preview` serves the offline harness on `127.0.0.1:5173`. Its sample replies, delay/error buttons and DOM controls are for review; production injects real Decky components. Neither preview nor keyboard tests certify Steam controller behavior. Backend fixtures block provider networking and use synthetic data. No real key is needed for tests. With the preview server running, `node scripts/capture_gallery.mjs` saves ten reproducible English screenshots plus source metadata under `artifacts/gallery/`; use `PLAYWRIGHT_CHANNEL=chromium` on Linux.
+Use Node 24.20.0 and pnpm 10.28.2. The browser harness runs at `http://127.0.0.1:5173` with synthetic replies and no AI account needed. Python tests, build, vendor/package instructions and hardware acceptance criteria live on the MVP branch:
 
-[Test evidence](docs/TEST_PLAN.md), [API sources](docs/API_VERIFICATION.md), [hardware checklist](docs/HARDWARE_VALIDATION.md), [handoff](docs/CODEX_HANDOFF.md).
+- [Development and verification](https://github.com/realfulvio/decky-pilot/blob/codex/deckpilot-mvp/docs/DEVELOPMENT.md)
+- [Test evidence and Linux CI](https://github.com/realfulvio/decky-pilot/blob/codex/deckpilot-mvp/docs/TEST_PLAN.md)
+- [Capture safety findings](https://github.com/realfulvio/decky-pilot/blob/codex/deckpilot-mvp/docs/CAPTURE_VERIFICATION.md)
+- [Hardware checklist](https://github.com/realfulvio/decky-pilot/blob/codex/deckpilot-mvp/docs/HARDWARE_VALIDATION.md)
+- [Privacy](https://github.com/realfulvio/decky-pilot/blob/codex/deckpilot-mvp/docs/PRIVACY.md) and [security](https://github.com/realfulvio/decky-pilot/blob/codex/deckpilot-mvp/docs/SECURITY.md)
 
-## Package and future device validation
+Review ZIPs and SHA256 files are CI artifacts, not a release or installation recommendation. No PR has been merged and nothing has been published to the Decky store.
 
-The generated installable ZIP contains one `DeckPilot/` root, the frontend/backend, both locale catalogs and the hash-pinned Linux x86_64 CPython 3.11 Pillow wheel with licenses. The source ZIP is made from the committed revision. Checksums sit beside both archives; these are review artifacts, not a published release.
-
-Before future installation, confirm the Decky's Python ABI, SteamOS/glibc, UID and Loader versions using the hardware checklist. Use the installed Loader's developer ZIP installation flow if desired. No project script installs on or changes SteamOS. No device, mini PC, store or release was used in this work.
-
-## Your data
-
-No telemetry or Decky Pilot central server. Provider, image, Ollama endpoint and online Speech permissions are separate. Keys are plaintext private backend files (POSIX directories 0700/files 0600), never returned by RPC or stored in the browser. Local software with the same access can read them.
-
-History is in memory unless you opt in: at most 100 messages/game, seven days, 20 games and 1.8 MB overall. Delete conversation keeps keys. Delete local data removes plugin settings/keys/history but retains original imported files you supplied. Uninstall may retain Loader settings; delete explicitly first. Local deletion/cancellation does not retract already sent provider data or guarantee a refund.
-
-If capture is unavailable, add a game image manually. If a model does not support images, choose a compatible model and renew consent; remove an attachment explicitly to continue with text. If voice fails, read the full answer or check the separate voice settings. Retry network/rate errors manually. Corrupt storage fails without silently resetting your files; never attach `secrets.json` to a bug report.
-
-[Privacy](docs/PRIVACY.md), [security and audit](docs/SECURITY.md), [architecture](docs/ARCHITECTURE.md), [backlog](docs/BACKLOG.md), [roadmap](docs/ROADMAP.md).
-
-BSD-3-Clause. Steam Deck Homebrew template attribution and dependency terms are in [third-party notices](docs/THIRD_PARTY_NOTICES.md). The original Italian `DECKPILOT_CODEX_SPEC.md` is preserved as the historical baseline; subsequent user requirements recorded in the handoff supersede its default language and product layout.
-
-[Current product decisions](docs/PRODUCT_DECISIONS.md) replace conflicting language/name choices in the historical spec. [Brand sources and small-menu implementation](docs/BRANDING.md).
+[Image provenance and reproduction](docs/PRESENTATION_ASSETS.md) · [Publication review](docs/PUBLICATION_REVIEW.md) · [BSD-3-Clause application license](https://github.com/realfulvio/decky-pilot/blob/codex/deckpilot-mvp/LICENSE)
