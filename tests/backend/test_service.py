@@ -94,6 +94,9 @@ async def tick_at(service, clock, seconds):
 
 
 async def test_scheduler_0_89_90_fresh_context_lock_pause_no_repeats(tmp_path, clock, transport):
+    transport.data = {"message": {"content": json.dumps({"observations": [], "inferences": [],
+        "goal": "Open the door", "obstacle": "Closed door", "steps": ["Try the lever."],
+        "clarification": "", "phase": "gameplay", "useful": True})}}
     service, _ = await configured(tmp_path, clock, transport)
     await service.rpc("set_auto_hints", {"enabled": True, "consent": True, "sessionId": service.context["sessionId"]})
     assert await service.tick() is None

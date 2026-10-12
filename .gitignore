@@ -12,3 +12,5 @@ test-results/
 playwright-report/
 .env*
 *.log
+# Local OAuth credentials (normally outside the checkout).
+chatgpt-auth.json

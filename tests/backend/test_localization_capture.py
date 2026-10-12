@@ -1,6 +1,7 @@
 import asyncio
 import base64
 import io
+import json
 from pathlib import Path
 
 import pytest
@@ -187,6 +188,10 @@ async def test_settings_guard_immediately_cancels_pending_capture(tmp_path, cloc
 
 
 async def test_visual_auto_separate_session_consent_cooldown_pause_and_game_change(tmp_path, clock, transport):
+    transport.data = {"capabilities": ["completion", "vision"], "message": {"content": json.dumps({
+        "observations": ["A door is visible."], "inferences": ["The lever may open it."],
+        "goal": "Open the door", "obstacle": "Closed door", "steps": ["Try the lever."],
+        "clarification": "", "phase": "gameplay", "useful": True})}}
     service = await capture_ready(tmp_path, clock, transport)
     assert (await service.rpc('set_auto_hints', {'enabled': True}))['error']['code'] == 'CONSENT_REQUIRED'
     await service.rpc('set_capture_guard', {'blocked': False})
@@ -198,11 +203,14 @@ async def test_visual_auto_separate_session_consent_cooldown_pause_and_game_chan
     await finish(service)
     assert len(service.capture.calls) == 1 and len(transport.calls) == 2  # Ollama show + chat.
     assert base64.b64decode(transport.calls[-1]['body']['messages'][-1]['images'][0])
+    assert service.records[next(reversed(service.records))]['state'] == 'completed'
     await tick_at(service, clock, 180)
-    assert len(service.capture.calls) == 1  # No new context, no repeated capture.
+    await finish(service)
+    assert len(service.capture.calls) == 2  # Fresh capture; identical pixels never sent twice.
+    assert len(transport.calls) == 2
     await service.rpc('set_auto_hints', {'paused': True})
     await service.rpc('set_game_context', {'title': 'Another game', 'objective': 'A new door'})
     assert not service.auto_session_consent
     await tick_at(service, clock, 280)
-    assert len(service.capture.calls) == 1
+    assert len(service.capture.calls) == 2
     await service.close()

@@ -14,6 +14,8 @@ PATTERNS = [re.compile(rb"-----BEGIN (?:RSA |OPENSSH |EC )?PRIVATE KEY-----"),
             re.compile(rb"\b(?:gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{50,})"),
             re.compile(rb"\b(?:AKIA|ASIA)[A-Z0-9]{16}\b"),
             re.compile(rb"\bxox[baprs]-[A-Za-z0-9-]{24,}"),
+            re.compile(rb"\bxai-[A-Za-z0-9_-]{32,}"),
+            re.compile(rb"\beyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}"),
             # Exact SSRF rejection fixture, never a production credential.
             re.compile(rb"\b(?:https?|ssh)://(?!user:pass@localhost\b)[^\s/:]+:[^\s/@]+@")]
 
@@ -59,7 +61,7 @@ def scan_history():
                     failed.append(identifier.decode() + ": image metadata requires review")
     # The public history must not include accidentally tracked runtime/cache files.
     paths = [line.split(b" ", 1)[1] for line in objects.splitlines() if b" " in line]
-    private_names = {b".env", b"secrets.json", b"settings.json", b"history.json",
+    private_names = {b".env", b"secrets.json", b"settings.json", b"history.json", b"chatgpt-auth.json",
                      b"id_rsa", b"id_ed25519", b"node_modules", b".venv", b".api-cache"}
     if any(private_names.intersection(path.replace(b"\\", b"/").split(b"/")) for path in paths):
         failed.append("tracked runtime/cache/private filename")

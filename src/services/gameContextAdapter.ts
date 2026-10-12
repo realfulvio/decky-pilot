@@ -15,6 +15,7 @@ export function detectGame(router: unknown) {
 export class GameContextAdapter {
   private timer?: ReturnType<typeof setInterval>;
   private syncing = false;
+  private observedId?: string;
   constructor(private controller: Controller, private router: unknown) {}
   available() { return detectGame(this.router) !== null; }
   async sync() {
@@ -32,7 +33,13 @@ export class GameContextAdapter {
       }
       return;
     }
-    if (current?.source === 'manual' || current?.appId === game.appId && current.source === 'steam_internal') return;
+    const changed = this.observedId !== undefined && this.observedId !== game.appId;
+    this.observedId = game.appId;
+    if (current?.source === 'manual' && !changed) return;
+    if (current?.appId === game.appId && current.source === 'steam_internal') {
+      await this.controller.bridge.rpc('observe_active_game', {appId:game.appId}).catch(() => undefined);
+      return;
+    }
     this.syncing = true;
     try { await this.controller.setContext(game); }
     finally { this.syncing = false; }

@@ -121,9 +121,10 @@ export class Controller {
     });
     return result !== undefined;
   }
-  async helpNow(image?: PreparedImage) {
+  async helpNow(image?: PreparedImage, question = '') {
     const language = this.state.status?.settings.responseLanguage ?? 'en';
-    return this.send(translate(language, image ? 'visualPrompt' : 'hintPrompt'), image);
+    const prompt = translate(language, image ? 'visualPrompt' : 'hintPrompt');
+    return this.send(question.trim() ? `${prompt}\n${question.trim()}` : prompt, image);
   }
   async updateSettings(settings: Partial<Settings>) { return this.act<Settings>('update_settings', settings); }
   async setContext(context: Partial<GameContext> & {newSession?: boolean}) { return this.act<GameContext>('set_game_context', context); }

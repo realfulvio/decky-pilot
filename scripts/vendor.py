@@ -32,6 +32,23 @@ def vendor():
         archive.extractall(output)
     (output / "deckpilot-vendor.json").write_text(json.dumps({"wheel": WHEEL, "sha256": SHA256,
         "target": "Linux x86_64 glibc>=2.28 CPython3.11"}, indent=2), encoding="utf-8")
+    dependencies = json.loads((ROOT / "contracts/auth-wheels.json").read_text(encoding="utf-8"))
+    for entry in dependencies:
+        wheel = ROOT / ".api-cache" / entry["wheel"]
+        if not wheel.exists():
+            with urllib.request.urlopen(entry["url"], timeout=45) as response:
+                data = response.read(20_000_001)
+            if len(data) > 20_000_000 or hashlib.sha256(data).hexdigest() != entry["sha256"]:
+                raise ValueError("Auth wheel checksum/size mismatch")
+            wheel.write_bytes(data)
+        if hashlib.sha256(wheel.read_bytes()).hexdigest() != entry["sha256"]:
+            raise ValueError("Cached auth wheel checksum mismatch")
+        with ZipFile(wheel) as archive:
+            if any(not (output / item.filename).resolve().is_relative_to(output.resolve())
+                   for item in archive.infolist()):
+                raise ValueError("Unsafe auth wheel path")
+            archive.extractall(output)
+    (output / "deckpilot-auth-vendor.json").write_text(json.dumps(dependencies, indent=2), encoding="utf-8")
     print(f"Verified and vendored {WHEEL}")
 
 

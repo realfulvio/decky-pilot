@@ -18,6 +18,39 @@ async function setup(ready = false, detectGame?: () => Partial<GameContext> | nu
   return {bridge, controller, popup, audio};
 }
 describe('English-first UI and complete Italian localization', () => {
+  it('shows only returned catalog names and preserves unknown vision restrictions', async () => {
+    const {bridge, controller} = await setup();
+    bridge.catalog = [{id:'returned-account-slug',label:'Name returned by the account',images:false,verification:'unconfirmed'}];
+    fireEvent.click(screen.getByRole('button', {name:'Settings'}));
+    fireEvent.change(screen.getByLabelText('AI service'), {target:{value:'chatgpt'}});
+    expect(screen.queryByRole('option', {name:/GPT-6.1/})).toBeNull();
+    expect(screen.queryByLabelText('API key')).toBeNull();
+    fireEvent.click(screen.getByText('Load available models'));
+    await screen.findByRole('option', {name:'Name returned by the account · image input unverified'});
+    expect(bridge.calls.find(call => call.method === 'list_models')?.payload).toEqual({provider:'chatgpt',consent:true});
+    expect(bridge.calls.some(call => call.method === 'start_assistant_request')).toBe(false);
+    await controller.close();
+  });
+  it('keeps Grok API billing separate from consumer subscriptions', async () => {
+    const {bridge, controller} = await setup();
+    fireEvent.click(screen.getByRole('button', {name:'Settings'}));
+    fireEvent.change(screen.getByLabelText('AI service'), {target:{value:'grok'}});
+    expect(screen.getByText(/API keys connect a developer API/)).toBeTruthy();
+    expect(screen.getByLabelText('API key')).toBeTruthy();
+    expect(screen.queryByText('Continue with ChatGPT')).toBeNull();
+    expect(bridge.calls.some(call => call.method === 'start_assistant_request')).toBe(false);
+    await controller.close();
+  });
+  it('includes the player question in Help me now without an automatic provider change', async () => {
+    const {bridge, controller} = await setup(true);
+    bridge.status.settings.imagesEnabled = false;
+    await act(async () => {await controller.refresh();});
+    fireEvent.change(screen.getByLabelText('Ask a question'), {target:{value:'I tried the lever. What next?'}});
+    fireEvent.click(screen.getByText('Help me now'));
+    await waitFor(() => expect(bridge.calls.find(call => call.method === 'start_assistant_request')?.payload.text).toContain('I tried the lever. What next?'));
+    expect(bridge.status.settings.provider).toBe('openai');
+    await controller.close();
+  });
   it.each(['revision', 'session', 'cleared'] as const)('refreshes all game fields after a %s context event', async change => {
     const {bridge, controller} = await setup(true);
     fireEvent.click(screen.getByRole('button', {name: 'Game'}));
@@ -184,7 +217,7 @@ describe('English-first UI and complete Italian localization', () => {
     await waitFor(() => expect((screen.getByText('Help me now') as HTMLButtonElement).disabled).toBe(false));
     fireEvent.click(screen.getByText('Help me now'));
     await waitFor(() => expect(bridge.calls.some(c => c.method === 'start_assistant_request' && c.payload.imageRef === 'harness-image')).toBe(true));
-    expect(String(bridge.calls.find(c => c.method === 'start_assistant_request')?.payload.text)).toContain('separate observations from guesses');
+    expect(String(bridge.calls.find(c => c.method === 'start_assistant_request')?.payload.text)).toContain('observations from deductions');
     await controller.close();
   });
   it('does not offer automatic capture when the capability is absent', async () => {

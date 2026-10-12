@@ -1,6 +1,42 @@
 # Decky Pilot work checkpoint
 
-Updated 13 October 2026. Resume here before the historical CODEX_HANDOFF.
+Updated 14 October 2026. Resume here before the historical CODEX_HANDOFF.
+
+## Active extension — situation-aware assistant and account catalogs
+
+Latest user instructions extend the delivered MVP; do not restart. Repository is already PUBLIC.
+MVP checkout remains `C:/Users/Admin/deckpilot` on `codex/deckpilot-mvp`; gallery worktree
+`C:/Users/Admin/deckpilot-gallery` on `docs/ui-gallery`; presentation worktree
+`C:/Users/Admin/deckpilot-presentation` on `main`. All started clean; other worktrees remain clean.
+
+In-progress uncommitted code: official OSS ChatGPT OAuth (127.0.0.1 listener, PKCE/state/nonce,
+issued dynamic client, PyJWT/JWKS/issuer/audience/expiry verification, separate account records,
+serialized rotating refresh and revocation), separate ChatGPT provider using public Responses SSE
+with store=false, stream=true and no unsupported output budget; native Grok/xAI Responses and
+language-model catalog/modalities; credential-scoped catalogs for all providers; no static GPT-4.1
+picker. Exact documented image allowlist remains conservative for providers lacking modalities.
+Tokens never returned in status, no browser cookies or other-app credential reads, no paid fallback.
+Contextual JSON estimates separate observations/inferences, one clarification, answer in session
+history; visual output must validate, automatic output must be structured and suppress menus,
+loading, ambiguity and useless results. Prepared images expire for sending after 45 seconds.
+Manual title correction is retained until an observed game switch. Existing capture safety gate stays
+disabled: game-only acquisition is not atomic; hardware/integration validation remains NOT RUN.
+
+Local checks currently pass: `corepack pnpm verify` (lint/types, 25 frontend, 13 tooling, build),
+`.venv/Scripts/python.exe -m ruff check backend main.py scripts tests/backend`,
+`.venv/Scripts/python.exe -m pytest -q --basetemp artifacts/pytest-account` (178 pass, two Linux-only
+process checks skipped on Windows). Five shipped Python pins have zero OSV advisories.
+Auth Linux wheels are hash-pinned in contracts/auth-wheels.json and vendored by scripts/vendor.py;
+extracted ZIP CI now verifies real RSA JWT signing/verifying as well as Pillow/lifecycle.
+
+Next: finish auth/capture edge review and tests, generate updated actual browser gallery and workflow,
+rewrite README EN/IT/provider verification docs, inspect rendered pages, audit history/assets, commit
+and push normal commits on existing branches, copy only presentation/docs/assets to main, update
+both PRs and repository English description, verify latest Linux CI/package artifacts. No merge/store.
+New concept cover generated with built-in imagegen is saved as assets/presentation/cover-v2.png;
+original branding and previous cover retained. No live account/API/hardware tests have run.
+
+Historical completion statements below refer to the earlier scope and are superseded by this extension.
 
 ## Authorization and scope
 

@@ -63,6 +63,12 @@ from types import SimpleNamespace
 root = Path(sys.argv[1]).resolve()
 sys.path[:0] = [str(root / "py_modules"), str(root)]
 from PIL import Image, _imaging
+import jwt
+from cryptography.hazmat.primitives.asymmetric import rsa
+assert Path(jwt.__file__).is_relative_to(root / "py_modules")
+key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+token = jwt.encode({"sub": "synthetic"}, key, algorithm="RS256")
+assert jwt.decode(token, key.public_key(), algorithms=["RS256"])["sub"] == "synthetic"
 assert Path(Image.__file__).is_relative_to(root / "py_modules")
 assert Path(_imaging.__file__).is_relative_to(root / "py_modules")
 data = io.BytesIO()

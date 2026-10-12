@@ -7,9 +7,8 @@ import type { Controls } from './controls';
 import { PRODUCT_NAME } from '../domain/brand';
 import logo from '../../assets/brand/decky-pilot-logo-dark.png';
 import menuIcon from '../../assets/brand/decky-pilot-menu.svg';
-import visionModels from '../../contracts/vision-models.json';
 
-interface Props {controller: Controller; controls: Controls; detectGame?: () => Partial<GameContext> | null; pickImage?: () => Promise<string | null>; closeMenus?: () => void}
+interface Props {controller: Controller; controls: Controls; detectGame?: () => Partial<GameContext> | null; pickImage?: () => Promise<string | null>; closeMenus?: () => void; openExternal?: (url: string) => void}
 function useText(controller: Controller) {
   const {status} = useSyncExternalStore(controller.subscribe, controller.snapshot);
   return (key: MessageKey, values: Record<string, string | number> = {}) => translate(status?.settings.uiLanguage ?? 'en', key, values);
@@ -72,6 +71,7 @@ function Chat({controller, controls: C, pickImage, closeMenus, ready}: Props & {
   const input = useRef<HTMLInputElement>(null);
   const imageRef = useRef<string | undefined>(undefined);
   const latest = [...status.history].reverse().find(message => message.role === 'assistant');
+  const latestResult = [...status.requests].reverse().find(record => record.state === 'completed')?.result;
   const readable = !!latest && status.requests.some(record => record.state === 'completed' && record.sessionId === status.context?.sessionId && record.contextRevision === status.context?.revision);
   useEffect(() => { setImage(undefined); setApproved(false); imageRef.current = undefined; }, [status.context?.revision, status.context?.sessionId, status.settings.imagesEnabled, status.settings.provider, status.settings.model]);
   useEffect(() => () => { if (imageRef.current) void controller.act('discard_image', {imageRef: imageRef.current}); }, [controller]);
@@ -83,7 +83,7 @@ function Chat({controller, controls: C, pickImage, closeMenus, ready}: Props & {
   const prepared = (value?: PreparedImage) => { setImage(value); imageRef.current = value?.imageRef; setApproved(false); };
   const send = async (help = false) => {
     setBusy(true);
-    try { if (await (help ? controller.helpNow(image) : controller.send(text, image))) { setText(''); prepared(); } }
+    try { if (await (help ? controller.helpNow(image, text) : controller.send(text, image))) { setText(''); prepared(); } }
     finally { setBusy(false); }
   };
   const pick = async () => {
@@ -134,7 +134,7 @@ function Chat({controller, controls: C, pickImage, closeMenus, ready}: Props & {
       <C.Button disabled={!status.settings.imagesEnabled || !status.capabilities.images || !status.context || busy} onClick={() => { void pick(); }}>{t('importImage')}</C.Button></div>
     <input ref={input} type="file" accept="image/png,image/jpeg" aria-label={t('imageFile')} style={{display: 'none'}} onChange={e => { void selectFile(e.target.files?.[0]); }} />
     {status.active && <div className="dp-status"><p role="status">{t('pending')}</p><C.Button onClick={() => { void controller.act('cancel_request', {requestId: status.active, sessionId: status.context?.sessionId}); }}>{t('cancel')}</C.Button></div>}
-    <div className="dp-card"><C.Section title={t('latestAnswer')}><p className="dp-answer">{latest?.content ?? t('emptyAnswer')}</p>
+    <div className="dp-card"><C.Section title={t(latestResult?.situation?.clarification ? 'clarificationTitle' : 'latestAnswer')}><p className="dp-answer">{latest?.content ?? t('emptyAnswer')}</p>
       <p className="dp-subtle">{t(view.voice)}</p><div className="dp-actions"><C.Button disabled={!readable} onClick={() => { void controller.readLast(); }}>{t('readLast')}</C.Button><C.Button onClick={() => { void controller.stopVoice(); }}>{t('stopVoice')}</C.Button></div>
     </C.Section></div>
     <div className="dp-status"><p role="status">{t(status.settings.autoHints && status.auto.sessionConsent ? status.auto.paused ? 'autoPaused' : 'autoActive' : 'autoOff')}</p>
@@ -166,12 +166,27 @@ function Context({controller, controls: C, detectGame}: Props) {
     <C.Button disabled={!detected} onClick={() => { if (detected) void controller.setContext(detected); }}>{t('useSteam')}</C.Button>{!detected && <p className="dp-subtle">{t('noSteam')}</p>}
   </C.Section>;
 }
-function SettingsPanel({controller, controls: C, mode}: Props & {mode: 'provider' | 'sharing' | 'full'}) {
+function SettingsPanel({controller, controls: C, mode, openExternal}: Props & {mode: 'provider' | 'sharing' | 'full'}) {
   const {status} = useSyncExternalStore(controller.subscribe, controller.snapshot); const t = useText(controller);
   const [draft, setDraft] = useState<Settings>(status!.settings); const [key, setKey] = useState(''); const [speechKey, setSpeechKey] = useState(''); const [saving, setSaving] = useState(false); const [advanced, setAdvanced] = useState(false); const [confirmDelete, setConfirmDelete] = useState(false);
   const change = <K extends keyof Settings>(field: K, value: Settings[K]) => setDraft(d => ({...d, [field]: value}));
   const languages = [{value: 'en', label: t('english')}, {value: 'it', label: t('italian')}];
-  const documentedModels = draft.provider && draft.provider !== 'ollama' ? visionModels.providers[draft.provider] : [];
+  const [models, setModels] = useState<{id: string; label: string; images: boolean}[]>([]);
+  const [partial, setPartial] = useState(false);
+  const [account, setAccount] = useState(status?.chatgpt?.active ?? '');
+  useEffect(() => {setModels([]);setPartial(false);}, [draft.provider, status?.chatgpt?.active, status?.chatgpt?.connected]);
+  useEffect(() => {if(draft.provider) setModels(status?.catalogs?.[draft.provider] ?? []);}, [draft.provider,status?.catalogs]);
+  const loadModels = async () => {
+    setSaving(true);
+    try { const result = await controller.act<{models: typeof models; partial: boolean}>('list_models', {provider: draft.provider, consent: true});
+      if (result) {setModels(result.models);setPartial(result.partial);} } finally {setSaving(false);}
+  };
+  const signIn = async () => {
+    try {
+      const result = await controller.act<{authorizationUrl: string}>('begin_chatgpt_sign_in', account ? {accountId: account} : {});
+      if (result) {if(openExternal) openExternal(result.authorizationUrl); else window.open(result.authorizationUrl, '_blank', 'noopener,noreferrer');}
+    } catch { await controller.act('cancel_chatgpt_sign_in'); }
+  };
   const changedRecipient = draft.provider !== status!.settings.provider || draft.model !== status!.settings.model || draft.ollamaEndpoint !== status!.settings.ollamaEndpoint;
   const save = async () => { setSaving(true); try { const saved = await controller.updateSettings(Object.fromEntries(Object.entries(draft).filter(([field]) => !['schemaVersion', 'configured'].includes(field)))); if (saved) setDraft(saved); } finally { setSaving(false); } };
   const saveKey = async (speech = false) => { setSaving(true); try { if (await controller.act('set_api_key', {provider:speech ? 'openai' : draft.provider, key:speech ? speechKey : key})) {if(speech) setSpeechKey(''); else setKey('');} } finally { setSaving(false); } };
@@ -180,10 +195,22 @@ function SettingsPanel({controller, controls: C, mode}: Props & {mode: 'provider
       <C.Select label={t('responseLanguage')} value={draft.responseLanguage} options={languages} onChange={v => change('responseLanguage', v as Language)} />
       <p className="dp-subtle">{t('languageNote')}</p></>}
     {mode !== 'sharing' && <><p>{t('providerIntro')}</p>
-      <C.Select label={t('provider')} value={draft.provider ?? ''} options={[{value: '', label: t('noneProvider')}, ...['OpenAI','Gemini','Claude','Ollama'].map(name => ({value: name.toLowerCase(), label: name}))]} onChange={v => { setKey(''); change('provider', (v || null) as ProviderId | null); change('remoteConsent', false); change('endpointConsent', false); change('visionConfirmed', false); }} />
-      {draft.provider === 'ollama' ? <C.Input label={t('model')} value={draft.model} onChange={v => change('model', v)} /> : <C.Select label={t('model')} value={draft.model} options={[{value:'',label:t('chooseModel')}, ...documentedModels.map(model => ({value:model.id,label:model.label})), ...(!documentedModels.some(model => model.id === draft.model) && draft.model ? [{value:draft.model,label:t('customModel')}] : [])]} onChange={v => {change('model',v);change('remoteConsent',false);change('visionConfirmed',false);}} />}
+      <C.Select label={t('provider')} value={draft.provider ?? ''} options={[{value: '', label: t('noneProvider')}, {value:'chatgpt',label:'ChatGPT'}, {value:'openai',label:t('openaiAdvanced')}, ...['Claude','Gemini','Grok','Ollama'].map(name => ({value: name.toLowerCase(), label: name}))]} onChange={v => { setKey(''); change('provider', (v || null) as ProviderId | null); change('model',''); change('remoteConsent', false); change('endpointConsent', false); change('visionConfirmed', false); }} />
+      {draft.provider === 'ollama' && <C.Input label={t('model')} value={draft.model} onChange={v => change('model',v)} />}
+      <C.Select label={t(draft.provider === 'ollama' ? 'catalogModel' : 'model')} value={draft.model} options={[{value:'',label:t('chooseModel')}, ...models.map(model => ({value:model.id,label:model.label + (model.images ? ` · ${t('visionReady')}` : ` · ${t('visionUnknown')}`)})), ...(!models.some(model => model.id === draft.model) && draft.model ? [{value:draft.model,label:draft.model}] : [])]} onChange={v => {change('model',v);change('remoteConsent',false);change('visionConfirmed',false);}} />
+      <C.Button disabled={saving || !draft.provider} onClick={() => {void loadModels();}}>{t('loadModels')}</C.Button>
+      <p className="dp-subtle">{t('catalogConsent')}</p>{partial && <p>{t('catalogPartial')}</p>}
       <p className="dp-subtle">{t('modelAvailability')}</p>
-      {draft.provider === 'ollama' ? <><C.Input label={t('ollamaEndpoint')} value={draft.ollamaEndpoint} onChange={v => change('ollamaEndpoint', v)} /><p className="dp-subtle">{t('httpPrivacy')}</p></> : <><C.Input label={t('apiKey')} secret value={key} onChange={setKey} />
+      {draft.provider === 'chatgpt' ? <div className="dp-card"><p>{t('chatgptPlan')}</p>
+        <C.Select label={t('chatgptAccount')} value={account} options={[{value:'',label:t('newAccount')}, ...(status?.chatgpt?.accounts ?? []).map(value => ({value:value.id,label:`${value.label} · ${value.registration}`}))]} onChange={setAccount} />
+        <C.Button onClick={() => {void signIn();}}>{t('continueChatGPT')}</C.Button>
+        <p role="status">{t(status?.chatgpt?.connected ? 'accountConnected' : 'accountDisconnected')}</p>
+        <p className="dp-subtle">{t('chatgptHardware')}</p>
+        {status?.chatgpt?.state === 'pending' && <C.Button onClick={() => {void controller.act('cancel_chatgpt_sign_in');}}>{t('cancelSignIn')}</C.Button>}
+        {status?.chatgpt?.error && <p role="alert">{translate(draft.uiLanguage, ('error.' + status.chatgpt.error) as MessageKey)}</p>}
+        <C.Button onClick={() => {void controller.act('disconnect_chatgpt');}}>{t('disconnectAccount')}</C.Button>
+        <a href="https://chatgpt.com/settings/usage" target="_blank" rel="noreferrer">{t('planUsage')}</a>
+      </div> : draft.provider === 'ollama' ? <><C.Input label={t('ollamaEndpoint')} value={draft.ollamaEndpoint} onChange={v => change('ollamaEndpoint', v)} /><p className="dp-subtle">{t('httpPrivacy')}</p></> : <><p className="dp-subtle">{t('apiBilling')}</p><C.Input label={t('apiKey')} secret value={key} onChange={setKey} />
         <p className="dp-subtle">{t(draft.provider && status!.settings.configured[draft.provider] ? 'keySaved' : 'keyMissing')}</p>
         <div className="dp-actions"><C.Button disabled={saving || !key || !draft.provider} onClick={() => { void saveKey(); }}>{t('saveKey')}</C.Button><C.Button disabled={!draft.provider} onClick={() => { setKey(''); void controller.act('delete_api_key', {provider: draft.provider}); }}>{t('deleteKey')}</C.Button></div></>}
     </>}

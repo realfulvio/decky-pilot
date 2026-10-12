@@ -12,7 +12,8 @@ from urllib.parse import urlsplit
 
 from .errors import RpcError, require, string
 
-CLOUD_HOSTS = {"api.openai.com", "generativelanguage.googleapis.com", "api.anthropic.com"}
+CLOUD_HOSTS = {"api.openai.com", "auth.openai.com", "api.x.ai",
+               "generativelanguage.googleapis.com", "api.anthropic.com"}
 
 
 def validate_endpoint(endpoint):
@@ -112,7 +113,7 @@ class Transport:
             require(parsed.scheme == "https" and parsed.hostname in CLOUD_HOSTS)
         cancelled = threading.Event()
         holder = []
-        payload = None if body is None else json.dumps(body).encode("utf-8")
+        payload = body if isinstance(body, bytes) else None if body is None else json.dumps(body).encode("utf-8")
         try:
             async with asyncio.timeout(deadline):
                 return await asyncio.to_thread(self._request, parsed, headers, payload, private,
