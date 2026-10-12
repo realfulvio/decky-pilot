@@ -10,7 +10,7 @@ try {
   ]) {
     for (const width of [1200,390]) {
       const page = await browser.newPage({viewport:{width,height:900}});
-      const response = await page.goto(url, {waitUntil:'domcontentloaded'});
+      const response = await page.goto(`${url}?presentationVerification=${Date.now()}`, {waitUntil:'domcontentloaded'});
       if (response?.status() !== 200) throw new Error('Anonymous GitHub page unavailable');
       const article = page.locator('article.markdown-body').first();
       await article.waitFor();
@@ -21,7 +21,7 @@ try {
         await image.evaluate(element => element.decode());
         if (!await image.evaluate(element => element.naturalWidth > 0)) throw new Error('Broken public image');
       }
-      await article.scrollIntoViewIfNeeded();
+      await article.locator('h1').first().scrollIntoViewIfNeeded();
       await page.screenshot({path:`artifacts/github-public/${name}-${width}-top.png`});
       await images.nth(3).screenshot({path:`artifacts/github-public/${name}-${width}-panel.png`});
       console.log(`${name} ${width}px: anonymous GitHub 200, nine README images loaded`);

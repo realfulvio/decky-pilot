@@ -25,12 +25,13 @@ Updated 13 October 2026. Resume here before the historical CODEX_HANDOFF.
 - English/Italian README and gallery rendered from GitHub Markdown API output at 1200/390 pixels: all images decoded, 39 relative links resolve, no page overflow; visual review passed after stacking gallery images for phone readability.
 - Reachable-history scan after presentation commits: 19 commits, 255 blobs, 32 distinct decoded raster images; no secret/private metadata finding. Eight historical screenshots were visually reviewed and contain only synthetic offline UI. Author identity is the existing public GitHub handle/noreply email. Repeat audit after final pushes.
 
-## Final remote steps
+## Completed remote delivery
 
 Main presentation is pushed at `3db36bb` (33 presentation files, no application code). Gallery is pushed at `1083353`, based on the MVP. Both PRs are conflict-free; both original review threads are resolved after reproducing regression coverage. No merge commits exist. Shared gallery line endings were normalized to avoid an add/add review conflict. The public-history recheck covers 24 commits / 262 blobs / 32 decoded raster images. Final Linux runs are in progress; query current GitHub checks rather than assuming a previous head covers this one.
 
-1. Push normal commits to MVP/gallery/main, update existing PR metadata and verify final Linux CI (including isolated extracted-package runtime).
-2. Repeat reachable-history audit for all final refs.
-3. After checks pass, set visibility PUBLIC using existing explicit owner authorization and verify anonymous README/assets. Record resulting visibility/evidence here.
+- Repository visibility changed to **PUBLIC** on 13 October 2026 after green current MVP PR/push runs [38315477004](https://github.com/realfulvio/decky-pilot/actions/runs/38315477004) / [38315471465](https://github.com/realfulvio/decky-pilot/actions/runs/38315471465) on `d613d77`, plus gallery [38315386247](https://github.com/realfulvio/decky-pilot/actions/runs/38315386247) on `1083353`. Full Linux checks pass: 146 backend, 22 frontend, 13 tooling, six browsers, clean audit, presentation verification, build/vendor/package and isolated extracted ZIP runtime. Artifacts uploaded. Gallery combined archive has its additional review doc (225 files); MVP has 224.
+- Anonymous actual GitHub page checks pass for English/Italian at 1200/390 pixels: HTTP 200, all nine README images loaded. Relative image URLs now explicitly request raw responses; local links/provenance/PNG checks still pass. Verification uses a fresh page URL to avoid cached private-era responses. Temporary diagnostics remain ignored.
+- Main stays presentation-only (33 files), no application code. Shared SVG workflow files include intrinsic dimensions for full-width rendering. Both PRs remain open/unmerged; no release, store publication or device install.
+- Final documentation/asset-link/verification-source commits require their own green current CI. Do not confuse recorded successful prerequisite runs with subsequent heads; GitHub current checks are authoritative. No further implementation work is required for this authorized offline scope.
 
 Hardware validation remains NOT RUN: safe atomic game-only capture, Deck ABI/install/controller/picker/QAM/audio/performance. Production capture remains disabled. Optional live credentials/account smoke is deferred.

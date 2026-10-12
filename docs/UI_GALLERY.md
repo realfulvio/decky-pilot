@@ -10,57 +10,57 @@ The full viewport captures below show the surrounding review harness. Panel-only
 
 Active game, readiness, one primary **Help me now** action, free question and the latest answer. The capture notice states the actual capability; the synthetic answer is explicitly based on notes, not a claimed observation of gameplay.
 
-![English Play screen with active game and primary Help me now action](images/ui/01-play.png)
+![English Play screen with active game and primary Help me now action](images/ui/01-play.png?raw=true)
 
 ## Game context
 
 A game title and objective are enough to begin. Optional area, notes and AppID stay under Advanced options. Detection is unavailable in this offline harness, and manual entry remains available.
 
-![Simple Game screen with title, objective and manual fallback](images/ui/02-game.png)
+![Simple Game screen with title, objective and manual fallback](images/ui/02-game.png?raw=true)
 
 ## Welcome and guided setup
 
 Original wordmark, short explanation and a Get started action. Setup does not send a remote request. The next image shows the first of three steps: game, AI service, then sharing permissions and an explicitly requested connection check that may cost money.
 
-![First-use welcome with Decky Pilot wordmark](images/ui/03-onboarding.png)
+![First-use welcome with Decky Pilot wordmark](images/ui/03-onboarding.png?raw=true)
 
-![First guided setup step with game fields](images/ui/09-guided-game.png)
+![First guided setup step with game fields](images/ui/09-guided-game.png?raw=true)
 
 ## Service and sharing
 
 Credentials stay in Settings and inputs are empty in the preview. Chat context, image capability and manual image sharing have distinct controls; there is no silent recipient/model substitution. Selected model support is verified against official documentation, while access in an actual account remains untested.
 
-![AI service credentials and explicit chat/image sharing settings](images/ui/04-service-sharing.png)
+![AI service credentials and explicit chat/image sharing settings](images/ui/04-service-sharing.png?raw=true)
 
 ## Independent languages
 
 Interface and assistant language initially use English; complete Italian translation is available. Assistant language governs both answers and synthesized speech, independently of interface language. The legacy voice-language field is preserved in storage without overriding this decision.
 
-![English interface and assistant language selectors with AI service settings](images/ui/05-languages.png)
+![English interface and assistant language selectors with AI service settings](images/ui/05-languages.png?raw=true)
 
 ## Image review and recipient approval
 
 The image is an explicitly labelled synthetic test fixture, not gameplay. The actual import flow validates and cleans images, previews the destination, and offers removal and per-image approval before analysis. **Help me now** cannot share an unapproved attachment. Native acquisition and automatic visual sharing remain unavailable because the verified Gamescope mechanism does not atomically bind acquisition to the authorized game.
 
-![Synthetic image preview naming the recipient and requiring explicit approval](images/ui/06-image-review.png)
+![Synthetic image preview naming the recipient and requiring explicit approval](images/ui/06-image-review.png?raw=true)
 
 ## Pending request and cancellation
 
 The harness deliberately delays a synthetic response to exercise the real pending/cancel layout. There is no real provider request or background capture.
 
-![Pending question with a visible Cancel action](images/ui/07-pending.png)
+![Pending question with a visible Cancel action](images/ui/07-pending.png?raw=true)
 
 ## Latest answer, voice and automatic state at 720 pixels
 
 Full text remains readable, with Listen / Stop, a visible automatic-help state and secondary conversation access. Voice is unavailable in the offline harness; this screen does not demonstrate speech playback. Automatic help is off, and its information flow explains the unavailable capture capability.
 
-![Scrolled Play view at 1280x720 with answer, Listen and Stop, automatic state and history](images/ui/08-play-720.png)
+![Scrolled Play view at 1280x720 with answer, Listen and Stop, automatic state and history](images/ui/08-play-720.png?raw=true)
 
 ## Voice settings
 
 On-device voice is used only when an engine is already installed. OpenAI voice requires a separate key and explicit permission to send answer text, potentially incurring costs. Missing voice falls back to text; no engine is installed automatically.
 
-![Voice enablement, service and volume settings](images/ui/10-voice.png)
+![Voice enablement, service and volume settings](images/ui/10-voice.png?raw=true)
 
 ## Reproduction and historical assets
 

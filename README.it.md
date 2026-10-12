@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/brand/decky-pilot-logo-dark.png" alt="Decky Pilot" width="360">
+  <img src="assets/brand/decky-pilot-logo-dark.png?raw=true" alt="Decky Pilot" width="360">
 </p>
 
 # Il prossimo passo, più chiaro.
@@ -8,7 +8,7 @@
 
 [English](README.md) · [Galleria UI](docs/UI_GALLERY.md) · [MVP PR #1](https://github.com/realfulvio/decky-pilot/pull/1) · [Galleria PR #2](https://github.com/realfulvio/decky-pilot/pull/2)
 
-![Concept Decky Pilot: avventura su dispositivo immaginario, scheda immagine e forma d'onda vocale; verifica hardware differita](assets/presentation/cover.png)
+![Concept Decky Pilot: avventura su dispositivo immaginario, scheda immagine e forma d'onda vocale; verifica hardware differita](assets/presentation/cover.png?raw=true)
 
 *Concept generato con AI: non è una foto del dispositivo, una schermata dell'applicazione o un test sulla Steam Deck. La copertina riporta lo stesso messaggio del titolo e indica che la verifica hardware è differita.*
 
@@ -16,7 +16,7 @@
 
 ## Come funziona
 
-![Flusso illustrato: apri il gioco, premi Aiutami ora, approva un'immagine importata manualmente, ricevi un suggerimento e voce opzionale](assets/presentation/how-it-works-it.svg)
+![Flusso illustrato: apri il gioco, premi Aiutami ora, approva un'immagine importata manualmente, ricevi un suggerimento e voce opzionale](assets/presentation/how-it-works-it.svg?raw=true)
 
 1. **Apri il gioco.** Indica titolo e ciò che stai cercando di fare. Il contesto manuale supporta anche giochi non Steam.
 2. **Premi Aiutami ora.** Chiedi un prossimo passo concreto oppure scrivi una domanda libera.
@@ -33,37 +33,37 @@ Il diagramma illustra il percorso manuale implementato: non è uno screenshot. S
 
 Gioco attivo, una domanda e l'ultima risposta.
 
-<img src="docs/images/ui/panel-01-play.png" alt="Screenshot reale offline di Gioca con Help me now" width="420">
+<img src="docs/images/ui/panel-01-play.png?raw=true" alt="Screenshot reale offline di Gioca con Help me now" width="420">
 
 ### Benvenuto e configurazione
 
 Breve benvenuto, poi gioco, servizio e condivisione.
 
-<img src="docs/images/ui/panel-03-onboarding.png" alt="Screenshot reale del browser della schermata iniziale" width="420">
+<img src="docs/images/ui/panel-03-onboarding.png?raw=true" alt="Screenshot reale del browser della schermata iniziale" width="420">
 
 ### Revisione immagine prima dell'analisi
 
 Controlla l'immagine ripulita e il destinatario prima di condividere. L'immagine di test è dichiarata sintetica.
 
-<img src="docs/images/ui/panel-06-image-review.png" alt="Screenshot reale del browser con immagine sintetica da approvare" width="420">
+<img src="docs/images/ui/panel-06-image-review.png?raw=true" alt="Screenshot reale del browser con immagine sintetica da approvare" width="420">
 
 ### Suggerimenti e controlli voce
 
 Il testo completo resta disponibile, con Listen e Stop. L'anteprima non riproduce voce.
 
-<img src="docs/images/ui/panel-08-play-720.png" alt="Screenshot reale con risposta sintetica e controlli Listen e Stop" width="420">
+<img src="docs/images/ui/panel-08-play-720.png?raw=true" alt="Screenshot reale con risposta sintetica e controlli Listen e Stop" width="420">
 
 ### Impostazioni e lingue
 
 Inglese predefinito, italiano completo; lingue di interfaccia e assistente indipendenti.
 
-<img src="docs/images/ui/panel-05-languages.png" alt="Screenshot reale delle lingue indipendenti per interfaccia e assistente" width="420">
+<img src="docs/images/ui/panel-05-languages.png?raw=true" alt="Screenshot reale delle lingue indipendenti per interfaccia e assistente" width="420">
 
 ### Impostazioni voce
 
 Voce locale già presente o Speech online autorizzato separatamente, con fallback testuale.
 
-<img src="docs/images/ui/panel-10-voice.png" alt="Screenshot reale del browser delle impostazioni voce" width="420">
+<img src="docs/images/ui/panel-10-voice.png?raw=true" alt="Screenshot reale del browser delle impostazioni voce" width="420">
 
 [Tutte le dieci viste, configurazione guidata e annullamento →](docs/UI_GALLERY.md)
 
