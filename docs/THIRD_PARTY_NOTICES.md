@@ -9,7 +9,11 @@ Decky Pilot is BSD-3-Clause (LICENSE). Configuration/lifecycle follow the Steam 
 | Config adapted from @decky/rollup 1.0.2 | Build | BSD-3-Clause attribution in LICENSE; preset removed, direct plugin pins |
 | tslib 2.8.1 | TypeScript helpers | 0BSD; full notice docs/licenses/tslib-0BSD.txt |
 | React 19.1.1 | Harness; external in production | MIT; not bundled in installable ZIP |
-| Pillow 12.3.0 | Decode/resize | HPND and native licenses in complete vendored wheel's dist-info/licenses/LICENSE |
+| Pillow 12.3.0 | Decode/resize | Wheel metadata: MIT-CMU; complete license/native notices retained |
+| PyJWT 2.15.1 | OIDC/JWT verification | MIT; complete wheel license/authors retained |
+| cryptography 50.0.2 | RSA/JWKS verification | Apache-2.0 OR BSD-3-Clause; both full texts retained |
+| cffi 2.0.0 | Cryptographic native runtime | MIT; complete wheel license/authors retained |
+| pycparser 2.23 | cffi runtime dependency | BSD-3-Clause; complete wheel license retained |
 | espeak-ng | Optional external process | GPL-3.0; no binary copied, installed or distributed |
 | Test/build toolchain | Development | Not shipped as runtime; terms in installed dependencies |
 
