@@ -76,4 +76,4 @@ Se la cattura manca, importa manualmente il gioco. Se il modello non supporta im
 
 Licenza BSD-3-Clause; attribuzione Steam Deck Homebrew e licenze dipendenze nelle [notices](docs/THIRD_PARTY_NOTICES.md). DECKPILOT_CODEX_SPEC.md originale italiano è conservato come base storica; richieste successive riportate nell'handoff sostituiscono lingua e layout predefiniti.
 
-[Decisioni aggiornate](docs/PRODUCT_DECISIONS.md) prevalgono sulle scelte storiche di lingua e nome; [branding](docs/BRANDING.md). Con il server anteprima attivo, `node scripts/capture_gallery.mjs` genera otto schermate inglesi e metadati sorgente in artifacts/gallery/.
+[Decisioni aggiornate](docs/PRODUCT_DECISIONS.md) prevalgono sulle scelte storiche di lingua e nome; [branding](docs/BRANDING.md). Con il server anteprima attivo, `node scripts/capture_gallery.mjs` genera dieci schermate inglesi e metadati sorgente in artifacts/gallery/.

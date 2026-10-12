@@ -23,7 +23,7 @@ try {
   await shot('03-onboarding.png');
   await button('Get started').click(); await shot('09-guided-game.png');
   await load(); await button('Settings').click();
-  await page.getByRole('combobox', {name:'AI service',exact:true}).scrollIntoViewIfNeeded(); await shot('04-service-sharing.png');
+  await page.getByLabel('Allow game context and messages to be sent to this AI service', {exact:true}).scrollIntoViewIfNeeded(); await shot('04-service-sharing.png');
   await load(); await button('Settings').click(); await shot('05-languages.png');
   await page.getByRole('combobox', {name:'Voice service',exact:true}).scrollIntoViewIfNeeded(); await shot('10-voice.png');
   await load();
