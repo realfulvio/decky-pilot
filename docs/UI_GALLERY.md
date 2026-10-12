@@ -1,10 +1,10 @@
 # Decky Pilot interface gallery
 
-English previews of the implemented React application, captured on 12 October 2026 from MVP source commit `9f2a93c164f32c758a602e4cbc2ecbddc3b4adbf`. Generated with `node scripts/capture_gallery.mjs`, Microsoft Edge, at 1280x800 (1280x720 for the last Play view). The panel scrolls: each image shows a portion of its content.
+English previews of the implemented React application, captured on 13 October 2026 from MVP source commit `d192330cc36816c7e15d522932de0c1202c240d1`. Generated with `node scripts/capture_gallery.mjs`, Microsoft Edge, at 1280x800 (1280x720 for the last Play view). The panel scrolls: each image shows a portion of its content.
 
 **Offline preview: synthetic game, answers and image; no AI calls, credentials, audio playback or device capture.** These are browser screenshots of the real App using explicitly labelled HTML stand-ins. Production injects `@decky/ui` controls and vertical/horizontal Focusable groups. Font/rendering/controller focus, installation, QAM notifications, audio routing and performance on Steam Deck remain **NOT RUN**. Keyboard/browser tests do not certify controller behavior.
 
-The right panel is the plugin. The left illustration and simulation buttons belong only to the review harness. Original opaque PNG branding from PR #2 is preserved; the compact menu symbol is a separately drawn matching SVG. [Brand sources](BRANDING.md). Browser tests also inspect a 360-pixel viewport and the menu symbol at 20/24/32 pixels.
+The full viewport captures below show the surrounding review harness. Panel-only screenshots in the README are captured directly from the browser as well; neither version is a mockup. The right panel is the plugin. The left illustration and simulation buttons belong only to the review harness. Original opaque PNG branding from PR #2 is preserved; the compact menu symbol is a separately drawn matching SVG. [Asset sources](PRESENTATION_ASSETS.md). Browser tests also inspect a 360-pixel viewport and the menu symbol at 20/24/32 pixels.
 
 ## Play: a clear next step
 
@@ -64,8 +64,8 @@ On-device voice is used only when an engine is already installed. OpenAI voice r
 
 ## Reproduction and historical assets
 
-Run the existing MVP preview server, then `node scripts/capture_gallery.mjs`; ten PNGs and commit metadata are written under `artifacts/gallery/`. Use `PLAYWRIGHT_CHANNEL=chromium` on Linux. Source metadata is included alongside these images.
+Run the existing MVP preview server, then `node scripts/capture_gallery.mjs`; ten full views, ten panel PNGs and commit/browser/time metadata are written under `artifacts/gallery/`. Use `PLAYWRIGHT_CHANNEL=chromium` on Linux. Source metadata is included alongside these images.
 
 The eight earlier captures from `c60e6d7` were intentionally replaced. They remain in Git history and are not presented as the redesigned UI. Branding source commit `1b5cc03` was integrated into the MVP without merging either PR. PR #2 stays based on `codex/deckpilot-mvp`; no application code/dependency change is made here, and neither PR is merged.
 
-Next hardware work follows the MVP's `docs/HARDWARE_VALIDATION.md` and `docs/CAPTURE_VERIFICATION.md`: first establish a safe acquisition mechanism, then verify Deck ABI/install, actual controller/picker, popup/audio and performance. No unavailable Steam Deck is needed to reproduce these offline previews.
+Next hardware work follows the MVP branch's [hardware checklist](https://github.com/realfulvio/decky-pilot/blob/codex/deckpilot-mvp/docs/HARDWARE_VALIDATION.md) and [capture findings](https://github.com/realfulvio/decky-pilot/blob/codex/deckpilot-mvp/docs/CAPTURE_VERIFICATION.md): first establish a safe acquisition mechanism, then verify Deck ABI/install, actual controller/picker, popup/audio and performance. No unavailable Steam Deck is needed to reproduce these offline previews.

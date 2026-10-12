@@ -1,0 +1,10 @@
+<!-- Hand-drawn small menu mark matching the raster identity. Original PNGs preserved. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 48">
+  <rect x="2" y="5" width="60" height="38" rx="11" fill="#21E6C1"/>
+  <rect x="21" y="10" width="23" height="28" rx="4" fill="#0B1320"/>
+  <path d="m29 17 8 7-8 7" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="12" cy="17" r="4" fill="#0B1320"/>
+  <path d="M8 31h8m-4-4v8" stroke="#0B1320" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="53" cy="17" r="4" fill="#0B1320"/>
+  <path d="M50 31h6" stroke="#0B1320" stroke-width="4" stroke-linecap="round"/>
+</svg>

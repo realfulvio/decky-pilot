@@ -1,5 +1,9 @@
 {
-  "commit": "9f2a93c164f32c758a602e4cbc2ecbddc3b4adbf",
+  "commit": "d192330cc36816c7e15d522932de0c1202c240d1",
   "mode": "offline harness; synthetic data; no provider or device capture",
-  "images": 10
+  "images": 20,
+  "fullViewportImages": 10,
+  "panelImages": 10,
+  "browser": "Microsoft Edge",
+  "capturedAt": "2026-10-12T22:03:50.358Z"
 }
