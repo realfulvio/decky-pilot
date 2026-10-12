@@ -1,4 +1,4 @@
-# Decky Pilot MVP: guided English-first UI and safe visual assistance
+# Decky Pilot MVP: safe visual help, guided UI and reviewed public presentation
 
 Decky Pilot now offers a simple Play screen with the active game, Help me now, a free question, the latest full answer and voice controls. Guided onboarding moves provider/model/keys/permissions into Settings. Production uses real Decky components; shared complete English/Italian catalogs provide independent interface and assistant language choices, with assistant language governing responses and speech, initially English.
 
@@ -19,3 +19,5 @@ Verified [Linux branding CI](https://github.com/realfulvio/decky-pilot/actions/r
 Review fixes now preserve usable OpenAI text/usage when max_output_tokens is exhausted without retrying or increasing spend, and synchronize mounted game/onboarding drafts when context changes while retaining unsaved edits during normal polling. Both are covered by reproducing regression tests.
 
 The final GitHub presentation includes bilingual README, labelled AI concept cover, editable manual-flow diagrams and twenty actual browser captures from committed fixed source. Presentation-only files are independently committed on main, without merging this MVP or PR #2. The owner explicitly authorized PUBLIC visibility after file/history/image audit and final verification. Application/device readiness stays subject to the NOT RUN hardware gate. See WORK_CHECKPOINT and the existing PR checks for final evidence.
+
+Repository is now **PUBLIC**. Main (`dd8c222`) contains only 33 presentation files; the application remains in this open PR. Original branding is preserved; relative images load on actual anonymous GitHub pages in both languages at desktop/phone widths. Public file/history/image audit passed. [Final implementation/presentation CI](https://github.com/realfulvio/decky-pilot/actions/runs/38315934418), [push CI](https://github.com/realfulvio/decky-pilot/actions/runs/38315928211) and [gallery CI](https://github.com/realfulvio/decky-pilot/actions/runs/38315935922) passed full checks including extracted ZIP runtime; the evidence-only follow-up is also covered by this PR's current checks. No merge, release, store publication or device installation.
