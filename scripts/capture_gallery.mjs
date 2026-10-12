@@ -15,7 +15,10 @@ try {
   page.on('pageerror', error => errors.push(error.message));
   const load = () => page.goto('http://127.0.0.1:5173');
   const button = name => page.getByRole('button', {name,exact:true});
-  const shot = name => page.screenshot({path:join(output,name)});
+  const shot = async name => {
+    await page.screenshot({path:join(output,name)});
+    await page.locator('.dp').screenshot({path:join(output,`panel-${name}`)});
+  };
   await load(); await button('Help me now').waitFor();
   await shot('01-play.png');
   await button('Game').click(); await shot('02-game.png');
@@ -49,6 +52,6 @@ try {
   await button('Stop').scrollIntoViewIfNeeded(); await shot('08-play-720.png');
   if (errors.length) throw new Error('Gallery encountered browser errors');
   const commit = execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim();
-  await writeFile(join(output,'source.json'),JSON.stringify({commit,mode:'offline harness; synthetic data; no provider or device capture',images:10},null,2)+'\n');
-  process.stdout.write(`Saved ten English previews from ${commit} to ${output}\n`);
+  await writeFile(join(output,'source.json'),JSON.stringify({commit,mode:'offline harness; synthetic data; no provider or device capture',images:20,fullViewportImages:10,panelImages:10,browser:process.env.PLAYWRIGHT_CHANNEL === 'chromium' ? 'Chromium' : 'Microsoft Edge',capturedAt:new Date().toISOString()},null,2)+'\n');
+  process.stdout.write(`Saved ten English views and ten panel screenshots from ${commit} to ${output}\n`);
 } finally { await browser.close(); }
