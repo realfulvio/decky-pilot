@@ -318,6 +318,11 @@ class Service:
             # Refuse unavailable acquisition before credential refresh/catalog traffic.
             require(await self.capture.probe(), "CAPTURE_UNAVAILABLE")
         settings = copy.deepcopy(self.config.settings)
+        ref = None
+        if payload.get("imageRef"):
+            ref = string(payload["imageRef"], 100, 1)
+            require(settings["imagesEnabled"], "CONSENT_REQUIRED")
+            self.images.validate_send(ref, self.context["sessionId"], self.destination())
         secrets = await self.credentials(settings)
         provider = self.registry.get(settings["provider"])
         provider.validate_config(settings, secrets)
@@ -329,9 +334,7 @@ class Service:
             reply = string(payload["clarificationReply"], 1000, 1)
             require(bool(self.pending_clarification), "CONTEXT_STALE")
         image = None
-        if payload.get("imageRef"):
-            ref = string(payload["imageRef"], 100, 1)
-            require(settings["imagesEnabled"], "CONSENT_REQUIRED")
+        if ref is not None:
             require(provider.capabilities(settings)["images"], "IMAGE_UNSUPPORTED")
             image = self.images.take(ref, self.context["sessionId"], self.destination())
         context = dict(self.context)
@@ -574,13 +577,23 @@ class Service:
                         (self.context["sessionId"], self.context["revision"]) ==
                         (context["sessionId"], context["revision"]) and
                         destination == self.destination(), "CONTEXT_STALE")
-                return await asyncio.to_thread(self.images.prepare, base64.b64encode(raw).decode("ascii"),
+                return await self.prepare_pending_image(base64.b64encode(raw).decode("ascii"),
                     "image/png", context["sessionId"], destination)
         except asyncio.CancelledError as exc:
             raise RpcError("CANCELLED") from exc
         finally:
             if self.capture_task is task:
                 self.capture_task = None
+
+    async def prepare_pending_image(self, data, mime, session, destination):
+        # Caller holds self.lock. A cancelled to_thread keeps running, so it must
+        # never mutate the shared store after revocation, deletion or shutdown.
+        pending = Images(self.clock)
+        result = await asyncio.to_thread(pending.prepare, data, mime, session, destination)
+        require(not self.closed, "CANCELLED")
+        self.images.clear()
+        self.images.items.update(pending.items)
+        return result
 
     async def prepare_image(self, payload):
         fields(payload, ("dataBase64", "mime", "sessionId"))
@@ -591,7 +604,7 @@ class Service:
             require(self.context and payload.get("sessionId") == self.context["sessionId"],
                     "CONTEXT_STALE")
             require(self.config.settings["imagesEnabled"], "CONSENT_REQUIRED")
-            return await asyncio.to_thread(self.images.prepare, payload.get("dataBase64"),
+            return await self.prepare_pending_image(payload.get("dataBase64"),
                 payload.get("mime"), self.context["sessionId"], self.destination())
 
     async def approve_image_send(self, payload):
@@ -624,7 +637,7 @@ class Service:
                     "CONTEXT_STALE")
             require(self.config.settings["imagesEnabled"], "CONSENT_REQUIRED")
             data, mime = await asyncio.to_thread(self.read_import, payload.get("filename"))
-            return await asyncio.to_thread(self.images.prepare, data, mime,
+            return await self.prepare_pending_image(data, mime,
                                            self.context["sessionId"], self.destination())
 
     async def discard_image(self, payload):
