@@ -314,6 +314,9 @@ class Service:
         require(self.clock() >= self.retry_until, "RATE_LIMITED")
         text = string(payload.get("text"), 4000, 1)
         require(bool(text))
+        if auto and self.auto_visual:
+            # Refuse unavailable acquisition before credential refresh/catalog traffic.
+            require(await self.capture.probe(), "CAPTURE_UNAVAILABLE")
         settings = copy.deepcopy(self.config.settings)
         secrets = await self.credentials(settings)
         provider = self.registry.get(settings["provider"])
@@ -555,6 +558,7 @@ class Service:
                     "CONSENT_REQUIRED")
             require(self.context and payload.get("sessionId") == self.context["sessionId"], "CONTEXT_STALE")
             require(not self.active and not self.capture_task, "BUSY")
+            require(await self.capture.probe(), "CAPTURE_UNAVAILABLE")
             provider = self.registry.get(self.config.settings["provider"])
             credentials = await self.credentials(self.config.settings)
             provider.validate_config(self.config.settings, credentials)
