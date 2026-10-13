@@ -310,4 +310,63 @@ describe('manual image path without a configured AI service', () => {
     expect(bridge.calls.some(c => c.method === 'start_assistant_request')).toBe(false);
     await controller.close();
   });
+  it('keeps the prepared image across a panel unmount while the file picker is open', async () => {
+    const bridge = new FakeBridge();
+    Object.assign(bridge.status.settings, {imagesEnabled: true});
+    const controller = new Controller(bridge, {show: vi.fn(), clear: vi.fn()}, {play: vi.fn(), stop: vi.fn()}); await controller.start();
+    let choose!: (name: string | null) => void;
+    const pickImage = () => new Promise<string | null>(resolve => { choose = resolve; });
+    const first = render(<App controller={controller} controls={harnessControls} pickImage={pickImage} />);
+    fireEvent.click(button('Add game image'));
+    await waitFor(() => expect(choose).toBeTypeOf('function'));
+    // Decky removes the plugin panel while its modal is open; the controller and its page stay alive.
+    first.unmount();
+    expect(screen.queryByText('Add game image')).toBeNull();
+    await act(async () => { choose('deckpilot-synthetic-test.png'); });
+    await waitFor(() => expect(bridge.calls.some(c => c.method === 'prepare_import_image')).toBe(true));
+    // Panel comes back: preview, no-recipient notice and the remove control are all still there.
+    render(<App controller={controller} controls={harnessControls} pickImage={pickImage} />);
+    await screen.findByAltText('Image to be shared, with metadata removed');
+    expect(screen.getByText(en.imageNoRecipient)).toBeTruthy();
+    expect(button('Remove image').disabled).toBe(false);
+    expect(button('Allow this image to be shared').disabled).toBe(true);
+    expect(screen.queryByRole('alert')).toBeNull();
+    // Unmounting must not discard the backend image; only Remove (or a close) does.
+    expect(bridge.calls.some(c => c.method === 'discard_image')).toBe(false);
+    fireEvent.click(button('Remove image'));
+    await waitFor(() => expect(screen.queryByAltText('Image to be shared, with metadata removed')).toBeNull());
+    expect(bridge.calls.filter(c => c.method === 'discard_image')).toHaveLength(1);
+    await controller.close();
+  });
+  it('shows the preparing state after a remount before the picked file is prepared', async () => {
+    const bridge = new FakeBridge();
+    Object.assign(bridge.status.settings, {imagesEnabled: true});
+    const controller = new Controller(bridge, {show: vi.fn(), clear: vi.fn()}, {play: vi.fn(), stop: vi.fn()}); await controller.start();
+    let choose!: (name: string | null) => void;
+    const pickImage = () => new Promise<string | null>(resolve => { choose = resolve; });
+    const first = render(<App controller={controller} controls={harnessControls} pickImage={pickImage} />);
+    fireEvent.click(button('Add game image'));
+    await waitFor(() => expect(choose).toBeTypeOf('function'));
+    first.unmount();
+    render(<App controller={controller} controls={harnessControls} pickImage={pickImage} />);
+    expect(button('Add game image').disabled).toBe(true);
+    await act(async () => { choose('deckpilot-synthetic-test.png'); });
+    await screen.findByAltText('Image to be shared, with metadata removed');
+    expect(button('Add game image').disabled).toBe(false);
+    await controller.close();
+  });
+  it('drops a prepared image when the game session changes and discards a late result', async () => {
+    const bridge = new FakeBridge();
+    Object.assign(bridge.status.settings, {imagesEnabled: true});
+    const controller = new Controller(bridge, {show: vi.fn(), clear: vi.fn()}, {play: vi.fn(), stop: vi.fn()}); await controller.start();
+    let choose!: (name: string | null) => void;
+    render(<App controller={controller} controls={harnessControls} pickImage={() => new Promise<string | null>(resolve => { choose = resolve; })} />);
+    fireEvent.click(button('Add game image'));
+    await waitFor(() => expect(choose).toBeTypeOf('function'));
+    await act(async () => { await controller.setContext({title: 'Other game', source: 'manual', newSession: true}); });
+    await act(async () => { choose('deckpilot-synthetic-test.png'); });
+    await waitFor(() => expect(bridge.calls.some(c => c.method === 'discard_image')).toBe(true));
+    expect(screen.queryByAltText('Image to be shared, with metadata removed')).toBeNull();
+    await controller.close();
+  });
 });
