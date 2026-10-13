@@ -229,3 +229,85 @@ describe('English-first UI and complete Italian localization', () => {
     await controller.close();
   });
 });
+describe('manual image path without a configured AI service', () => {
+  const button = (name: string) => screen.getByRole('button', {name}) as HTMLButtonElement;
+  async function manualSetup(pickImage = vi.fn(async () => 'deckpilot-synthetic-test.png')) {
+    const bridge = new FakeBridge();
+    const controller = new Controller(bridge, {show: vi.fn(), clear: vi.fn()}, {play: vi.fn(), stop: vi.fn()}); await controller.start();
+    render(<App controller={controller} controls={harnessControls} pickImage={pickImage} />);
+    return {bridge, controller, pickImage};
+  }
+  it('saves the game, enables images only, previews an import without a recipient and removes it', async () => {
+    const {bridge, controller, pickImage} = await manualSetup();
+    fireEvent.click(button('Game'));
+    fireEvent.change(screen.getByLabelText('Game title'), {target: {value: 'Test'}});
+    fireEvent.change(screen.getByLabelText('What are you trying to do?'), {target: {value: 'prova'}});
+    fireEvent.click(button('Save game'));
+    await waitFor(() => expect(bridge.status.context?.title).toBe('Test'));
+    fireEvent.click(button('Settings'));
+    expect((screen.getByLabelText('AI service') as HTMLSelectElement).value).toBe('');
+    fireEvent.click(screen.getByLabelText(/Allow adding game images/));
+    expect((screen.getByLabelText(en.chatConsent) as HTMLInputElement).checked).toBe(false);
+    fireEvent.click(button('Save settings'));
+    await waitFor(() => expect(bridge.status.settings.imagesEnabled).toBe(true));
+    expect(bridge.status.settings).toMatchObject({provider: null, model: '', remoteConsent: false, endpointConsent: false});
+    fireEvent.click(button('Play'));
+    expect(screen.getByText('Test')).toBeTruthy();
+    expect(button('Help me now').disabled).toBe(true);
+    fireEvent.click(button('Add game image'));
+    await screen.findByAltText('Image to be shared, with metadata removed');
+    expect(pickImage).toHaveBeenCalledTimes(1);
+    expect(bridge.calls.find(c => c.method === 'prepare_import_image')?.payload).toEqual({filename: 'deckpilot-synthetic-test.png', sessionId: bridge.status.context!.sessionId});
+    expect(screen.getByText(en.imageNoRecipient)).toBeTruthy();
+    expect(document.body.textContent).not.toMatch(/\{provider\}|\{model\}/);
+    expect(button('Allow this image to be shared').disabled).toBe(true);
+    expect(button('Help me now').disabled).toBe(true);
+    fireEvent.click(button('Remove image'));
+    await waitFor(() => expect(screen.queryByAltText('Image to be shared, with metadata removed')).toBeNull());
+    expect(bridge.calls.find(c => c.method === 'discard_image')?.payload).toEqual({imageRef: 'harness-image'});
+    for (const method of ['approve_image_send', 'start_assistant_request', 'list_models', 'set_api_key', 'prepare_capture', 'test_provider'])
+      expect(bridge.calls.some(c => c.method === method)).toBe(false);
+    await controller.close();
+  });
+  it('keeps image import disabled until image consent is saved and a game exists', async () => {
+    const {bridge, controller, pickImage} = await manualSetup();
+    expect(button('Add game image').disabled).toBe(true);
+    bridge.status.settings.imagesEnabled = true; bridge.status.context = null;
+    await act(async () => { await controller.refresh(); });
+    expect(button('Add game image').disabled).toBe(true);
+    expect(pickImage).not.toHaveBeenCalled();
+    await controller.close();
+  });
+  it('shows a localized no-recipient notice in Italian', async () => {
+    const {bridge, controller} = await manualSetup();
+    bridge.status.settings.imagesEnabled = true; bridge.status.settings.uiLanguage = 'it';
+    await act(async () => { await controller.refresh(); });
+    fireEvent.click(button('Aggiungi immagine del gioco'));
+    await screen.findByText(itCatalog.imageNoRecipient);
+    expect(button('Consenti l’invio di questa immagine').disabled).toBe(true);
+    await controller.close();
+  });
+  it('reports a picker failure without preparing an image', async () => {
+    const {bridge, controller} = await manualSetup(vi.fn(async () => { throw new Error('Outside import root'); }));
+    bridge.status.settings.imagesEnabled = true;
+    await act(async () => { await controller.refresh(); });
+    fireEvent.click(button('Add game image'));
+    expect((await screen.findByRole('alert')).textContent).toBe(en.imageUnreadable);
+    expect(bridge.calls.some(c => c.method === 'prepare_import_image')).toBe(false);
+    expect(button('Add game image').disabled).toBe(false);
+    await controller.close();
+  });
+  it('names the saved recipient and confirms per-image approval', async () => {
+    const {bridge, controller} = await manualSetup();
+    Object.assign(bridge.status.settings, {provider: 'openai', model: 'sample', configured: {...bridge.status.settings.configured, openai: true}, remoteConsent: true, imagesEnabled: true, visionConfirmed: true});
+    await act(async () => { await controller.refresh(); });
+    fireEvent.click(button('Add game image'));
+    await screen.findByText('Share with OpenAI · sample');
+    expect(screen.queryByText(/^Approved for/)).toBeNull();
+    fireEvent.click(button('Allow this image to be shared'));
+    await screen.findByText('Approved for OpenAI · sample. It is sent only with your next request.');
+    expect(bridge.calls.find(c => c.method === 'approve_image_send')?.payload.destination).toEqual({provider: 'openai', model: 'sample', endpoint: 'cloud'});
+    expect(bridge.calls.some(c => c.method === 'start_assistant_request')).toBe(false);
+    await controller.close();
+  });
+});

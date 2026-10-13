@@ -9,6 +9,7 @@ import logo from '../../assets/brand/decky-pilot-logo-dark.png';
 import menuIcon from '../../assets/brand/decky-pilot-menu.svg';
 
 interface Props {controller: Controller; controls: Controls; detectGame?: () => Partial<GameContext> | null; pickImage?: () => Promise<string | null>; closeMenus?: () => void; openExternal?: (url: string) => void}
+const PROVIDER_NAMES: Record<ProviderId, string> = {chatgpt: 'ChatGPT', openai: 'OpenAI', claude: 'Claude', gemini: 'Gemini', grok: 'Grok', ollama: 'Ollama'};
 function useText(controller: Controller) {
   const {status} = useSyncExternalStore(controller.subscribe, controller.snapshot);
   return (key: MessageKey, values: Record<string, string | number> = {}) => translate(status?.settings.uiLanguage ?? 'en', key, values);
@@ -115,6 +116,8 @@ function Chat({controller, controls: C, pickImage, closeMenus, ready}: Props & {
     } finally { setBusy(false); setConfirmCapture(false); setCaptureDialog(false); }
   };
   const disabled = !ready || !status.context || !!status.active || busy || (!!image && !approved);
+  // The backend reports a null provider/empty model when no service is chosen yet.
+  const recipient = image?.destination.provider && image.destination.model ? {provider: PROVIDER_NAMES[image.destination.provider] ?? image.destination.provider, model: image.destination.model} : undefined;
   return <>
     <div className="dp-primary"><C.Button disabled={disabled} onClick={() => {
       if (!image && status.capabilities.capture && status.settings.captureEnabled) setCaptureDialog(true);
@@ -125,8 +128,9 @@ function Chat({controller, controls: C, pickImage, closeMenus, ready}: Props & {
     {captureDialog && <div className="dp-card"><p>{t('captureConsent')}</p><C.Toggle label={t('captureConfirm')} checked={confirmCapture} onChange={setConfirmCapture} />
       <C.Button disabled={!confirmCapture || busy} onClick={() => { void capture(); }}>{t('captureAction')}</C.Button></div>}
     {imageError && <p role="alert">{t(imageError)}</p>}
-    {image && <div className="dp-card"><img src={image.preview} alt={t('imagePreview')} /><p>{t('imageDestination', image.destination)}</p><p className="dp-subtle">{t('imageSafety')}</p>
-      <C.Button onClick={() => { void controller.act('approve_image_send', {imageRef: image.imageRef, sessionId: status.context?.sessionId, destination: image.destination}).then(value => setApproved(value !== undefined)); }}>{t('approveImage')}</C.Button>
+    {image && <div className="dp-card"><img src={image.preview} alt={t('imagePreview')} /><p>{recipient ? t('imageDestination', recipient) : t('imageNoRecipient')}</p><p className="dp-subtle">{t('imageSafety')}</p>
+      {approved && recipient && <p role="status">{t('imageApproved', recipient)}</p>}
+      <C.Button disabled={!recipient} onClick={() => { void controller.act('approve_image_send', {imageRef: image.imageRef, sessionId: status.context?.sessionId, destination: image.destination}).then(value => setApproved(value !== undefined)); }}>{t('approveImage')}</C.Button>
       <C.Button onClick={() => { void controller.act('discard_image', {imageRef: image.imageRef}); prepared(); }}>{t('removeImage')}</C.Button>
     </div>}
     <C.Input label={t('question')} value={text} onChange={setText} />

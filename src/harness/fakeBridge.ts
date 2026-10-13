@@ -2,6 +2,7 @@
 import type { AssistantResult, Bridge, GameContext, Settings, Status } from '../domain/types';
 import fixture from '../../tests/fixtures/contract.json';
 import { SafeError } from '../services/controller';
+const SYNTHETIC_PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aF9sAAAAASUVORK5CYII=';
 export function fixtureStatus(): Status {
   return {
     schemaVersion: 1, context: fixture.context as GameContext, history: [], requests: [], active: null,
@@ -77,9 +78,21 @@ export class FakeBridge implements Bridge {
       this.status.active = null;
       return {} as T;
     }
-    if (method === 'prepare_image') return {imageRef: 'harness-image', preview: `data:${payload.mime};base64,${payload.dataBase64}`, width: 128, height: 80,
-      destination: {provider: this.status.settings.provider, model: this.status.settings.model, endpoint: 'HARNESS'}} as T;
-    if (method === 'approve_image_send' || method === 'discard_image') return {} as T;
+    if (method === 'prepare_image' || method === 'prepare_import_image' || method === 'approve_image_send') {
+      // Mirrors the backend gates: current session, image consent, destination from saved settings.
+      if (!this.status.context || payload.sessionId !== this.status.context.sessionId) throw new SafeError('CONTEXT_STALE');
+      if (!this.status.settings.imagesEnabled) throw new SafeError('CONSENT_REQUIRED');
+      const {provider, model, ollamaEndpoint} = this.status.settings;
+      const destination = {provider, model, endpoint: provider === 'ollama' ? ollamaEndpoint : 'cloud'};
+      if (method === 'approve_image_send') {
+        if (JSON.stringify(payload.destination) !== JSON.stringify(destination)) throw new SafeError('CONSENT_REQUIRED');
+        return {approved: true} as T;
+      }
+      // Imports are read from the device import folder; the harness substitutes a synthetic 1x1 PNG.
+      const preview = method === 'prepare_image' ? `data:${payload.mime};base64,${payload.dataBase64}` : `data:image/png;base64,${SYNTHETIC_PNG}`;
+      return {imageRef: 'harness-image', preview, width: 128, height: 80, destination} as T;
+    }
+    if (method === 'discard_image') return {discarded: true} as T;
     if (method === 'start_tts') { this.status.tts = {state: 'error', requestId: String(payload.requestId), sessionId: this.status.context?.sessionId,
       contextRevision: this.status.context?.revision, error: {code: 'VOICE_UNAVAILABLE', message: 'Voice unavailable (offline preview)', retryable: false}}; return this.status.tts as T; }
     if (method === 'stop_tts') { this.status.tts = {state: 'idle'}; return this.status.tts as T; }

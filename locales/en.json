@@ -34,6 +34,8 @@
   "imagePreview": "Image to be shared, with metadata removed",
   "imageSafety": "Share gameplay only. Remove keys, sign-in screens and account details before adding an image.",
   "imageDestination": "Share with {provider} · {model}",
+  "imageNoRecipient": "No AI service chosen yet. This image stays on this device and cannot be shared until you choose a service and model in Settings.",
+  "imageApproved": "Approved for {provider} · {model}. It is sent only with your next request.",
   "approveImage": "Allow this image to be shared",
   "removeImage": "Remove image",
   "imageLimit": "Choose a PNG or JPEG up to 5 MiB.",
