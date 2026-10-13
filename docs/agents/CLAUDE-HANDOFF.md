@@ -1,5 +1,18 @@
 # Claude Code — handoff frontend e percorso manuale immagini
 
+## Esito riferito da Grok (nota di chiusura, 13 ottobre 2026)
+
+Riferimento per la ripresa: branch `grok/decky-pilot-integrate-20261013`, checkpoint
+`c2a296d32fa37f3ce7eac767aacae56bbe8c3983` (contiene `c79ce2b` e i commit di Codex).
+
+- **Osservato da Grok** sul Quick Access reale del mini-PC (non la Deck), come comunicato a me:
+  anteprima presente dopo il selettore, avviso senza destinatario, rimozione persistente,
+  layout non tagliato. Non l'ho osservato io né ho rieseguito test dopo `c79ce2b`.
+- **Non verificati:** D-pad fisico e Steam Deck.
+- **Solo simulato da me** (vitest/Playwright, harness offline): il modello della colonna
+  (rotaia 56 px, padding, `nowrap`) era un'ipotesi; la causa reale del ritaglio non è stata
+  misurata da me e non so quale parte delle modifiche CSS sia stata necessaria.
+
 ## Aggiornamento 2: anteprima persa dal selettore, ritaglio (13 ottobre 2026, notte)
 
 Branch `claude/decky-pilot-frontend-20261013`. Commit nuovo: `6bc33dd` (più questa nota).
