@@ -14,7 +14,10 @@ stored at `artifacts/deckpilot-0.1.0.zip` in this worktree and at
 `/srv/dev/scratch/deckpilot-0.1.0.zip` on the mini-PC. Plugin backup:
 `/srv/dev/scratch/DeckPilot-backup-before-integrate-2bf5d37.tar.gz`.
 Those artifacts stay off GitHub. Claude through `c79ce2b` and Codex through
-`7cd1f6f` are ancestors. `CAPTURE_SAFETY_VALIDATED=False`. On mini-PC `hcokcachy`
+`7cd1f6f` are ancestors. During close-out the remote
+`claude/decky-pilot-frontend-20261013` moved to
+`438dd04494fe1cc2932af2fbbfaa213df97895f2`; that commit is not in this package
+and this checkout did not move the branch. `CAPTURE_SAFETY_VALIDATED=False`. On mini-PC `hcokcachy`
 the synthetic PNG import shows the preview, the no-recipient sentence and Remove;
 Remove survives a panel reopen; the approve control stays visually disabled and
 was not pressed. Tabs fit the 300 px column. After replacing plugin files, reload
