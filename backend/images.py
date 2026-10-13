@@ -75,12 +75,16 @@ class Images:
         item["approved"] = True
         return {"approved": True}
 
-    def take(self, ref, session, destination):
+    def validate_send(self, ref, session, destination):
+        """Check consent/freshness without consuming the image during admission."""
         self.prune()
         item = self.items.get(ref)
         require(item is not None and item["approved"] and item["session"] == session and
                 item["destination"] == destination, "CONSENT_REQUIRED")
         require(self.clock() - item["preparedAt"] <= 45, "CONTEXT_STALE")
+
+    def take(self, ref, session, destination):
+        self.validate_send(ref, session, destination)
         return self.items.pop(ref)
 
     def discard(self, ref):

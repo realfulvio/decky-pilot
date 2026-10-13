@@ -86,3 +86,59 @@ async def test_closed_gate_refuses_new_automatic_consent(tmp_path, clock, transp
         assert not transport.calls
     finally:
         await service.close()
+
+
+@pytest.mark.parametrize('failure,code', [
+    ('writer-error', 'CAPTURE_UNAVAILABLE'), ('writer-timeout', 'CAPTURE_UNAVAILABLE'),
+    ('oversized', 'INVALID_INPUT'), ('cancel', None),
+])
+async def test_synthetic_capture_failure_removes_private_partial_files(
+        tmp_path, monkeypatch, failure, code):
+    import asyncio
+    from pathlib import Path
+
+    # Test-only override: injected command writes synthetic bytes, never spawns a process.
+    monkeypatch.setattr('backend.capture.CAPTURE_SAFETY_VALIDATED', True)
+    capture = GameCapture(tmp_path / 'frames')
+    capture.probe = AsyncMock(return_value=True)
+    capture.assert_game = AsyncMock()
+    started = asyncio.Event()
+    target = None
+
+    def write_partial(path):
+        path.write_bytes(b'synthetic partial image')
+        if failure == 'oversized':
+            with path.open('wb') as file:
+                file.truncate(5 * 1024 * 1024 + 1)
+
+    async def command(*args):
+        nonlocal target
+        target = Path(args[-1])
+        await asyncio.to_thread(write_partial, target)
+        started.set()
+        if failure == 'writer-error':
+            raise OSError('synthetic writer failure')
+        if failure == 'writer-timeout':
+            raise TimeoutError('synthetic deadline')
+        if failure == 'cancel':
+            await asyncio.Event().wait()
+
+    capture.command = command
+    task = asyncio.create_task(capture.capture({'source': 'steam_internal', 'appId': '123'}))
+    try:
+        await asyncio.wait_for(started.wait(), 2)
+        if failure == 'cancel':
+            task.cancel()
+            with pytest.raises(asyncio.CancelledError):
+                await task
+        else:
+            with pytest.raises(RpcError) as error:
+                await task
+            assert error.value.code == code
+        assert target is not None and not target.exists()
+        assert not list(capture.root.iterdir())
+        assert capture.process is None
+    finally:
+        if not task.done():
+            task.cancel()
+        await asyncio.gather(task, return_exceptions=True)
