@@ -11,6 +11,9 @@ The capture release gate now overrides stale availability and is enforced at acq
 unavailable capture is rejected before provider credential/catalog work. Automatic and direct
 production capture remain disabled. Manual import and existing preferences are preserved.
 The handoff records current-session checks, environment limits and the next device experiment.
+Evening continuation: an opt-in Wayland registry probe (no bind/pixels) found no target-bound
+capture protocol in headless Gamescope 3.16.25; gamescope_pipewire AppID selection was rejected.
+See the handoff's first section for the matrix and the next non-destructive Deck step.
 Earlier local paths, test counts and publication permissions below are historical, not this
 session's state or authorization. No merge/release/store publication is authorized.
 

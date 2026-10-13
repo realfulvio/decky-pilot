@@ -36,6 +36,14 @@ lifecycle test temporarily overrides the gate only inside its isolated test, wit
 subprocess producing synthetic pixels; it does not validate safety or run Gamescope.
 Changing the boolean alone remains insufficient: the current CLI has no target binding.
 
+### 13 October 2026 evening: registry probe
+
+`scripts/probe_capture_protocols.py` (development only, not packaged) sends only
+`get_registry`/`sync`, never binds. On headless Gamescope 3.16.25 (mini-PC, not a Deck) it found
+`gamescope_control` v6 and `gamescope_pipewire` v1 only; the ext foreign-toplevel/image-copy
+capture globals are absent. PipeWire AppID selection can pick any focus/override window of that
+AppID without frame provenance, so it is rejected. Details: [handoff](HANDOFF-2026-10-13.md).
+
 ### Next device experiment (not run)
 
 1. Record SteamOS, Gamescope, Decky and plugin Python versions, effective UID, local socket
