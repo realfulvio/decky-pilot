@@ -1,4 +1,91 @@
-# Claude Code — handoff frontend e percorso manuale immagini (13 ottobre 2026)
+# Claude Code — handoff frontend e percorso manuale immagini
+
+## Aggiornamento 2: anteprima persa dal selettore, ritaglio (13 ottobre 2026, notte)
+
+Branch `claude/decky-pilot-frontend-20261013`. Commit nuovo: `6bc33dd` (più questa nota).
+Backend, gate (`CAPTURE_SAFETY_VALIDATED = False`) e sessione grafica non toccati; nessuna richiesta AI.
+
+**Pacchetto provato da Grok:** base `19de507`, quindi **senza** `eda133c`, `1718eb5` e senza i commit
+backend di Codex (lo dice l'handoff di Grok `f8033d8`; non ho ispezionato il pacchetto installato).
+La prova reale non dice nulla sulla versione corretta.
+
+### Causa (dal codice, riprodotta nei test, non misurata sul mini-PC)
+
+1. `image`, `approved`, `imageError` erano `useState` in `Chat`. Decky toglie il pannello dal
+   documento mentre `openFilePicker` è aperto: la promessa del picker si risolve, la
+   `prepare_import_image` parte (una sola, come visto), ma l'esito finisce in `setState` di un
+   componente smontato e si perde. Nessuna anteprima, nessun errore.
+2. Aggravante: il cleanup di `Chat` all'unmount chiamava `discard_image`. Anche se l'esito fosse
+   stato conservato, il rimontaggio avrebbe trovato l'immagine già scartata sul backend.
+3. Il `Controller` invece è creato in `definePlugin` e vive oltre i mount del pannello
+   (`onDismount` lo chiude solo quando il plugin viene scaricato): è il posto giusto per lo stato.
+
+### Correzione (`src/services/controller.ts`, `src/components/App.tsx`)
+
+- Slot immagine nel controller: `view.image = {image, approved, error, busy}`.
+  Metodi: `importImage(pick)`, `prepareImage(method, payload, before)`, `approveImage()`,
+  `clearImage()`. Il selettore e la cattura (chiusura menu + attesa 700 ms) usano lo stesso slot.
+- Invalidazione: cambio sessione/revisione, consenso immagini, provider o modello; riferimento
+  non più in `pendingImageRef` del backend. Un risultato in ritardo per contesto vecchio viene
+  scartato (`discard_image`). Scarto anche a `controller.close()`, **non** più all'unmount.
+- «Rimuovi immagine» → `clearImage()` (una sola `discard_image`). Dopo l'invio la scheda si chiude
+  senza scarto (immagine consumata).
+- Mentre il file viene preparato il pulsante «Aggiungi immagine» resta disabilitato, anche dopo
+  un rimontaggio.
+
+### Layout
+
+Causa del ritaglio sul Quick Access reale **non misurata** (la sessione grafica è di Grok). Ipotesi
+coerente con il sintomo: i pulsanti Decky aggiungono padding orizzontale e tagliano le etichette
+`nowrap`; la griglia a 3 colonne fissa lasciava a «Impostazioni» meno spazio del testo.
+Cambiamenti in `styles` (nessuna funzione o opzione tolta): tab e righe di azioni in `flex-wrap`
+(vanno a capo invece di essere tagliate), etichette dei pulsanti a capo, `.dp` con larghezza 100%,
+`min-width:0` e piccolo margine iniziale (6 px). Nessun container query né `contain`, per non
+rischiare di collassare la larghezza nel contenitore reale.
+
+### Prove nuove (che fallivano sul codice precedente dove indicato)
+
+| Prova | Cosa copre |
+| --- | --- |
+| vitest «keeps the prepared image across a panel unmount while the file picker is open» (fallisce prima) | smonta durante il picker in sospeso, risolve, rimonta: anteprima, avviso destinatario, «Rimuovi», nessun `discard_image` all'unmount, una sola alla rimozione |
+| vitest «shows the preparing state after a remount…» (fallisce prima) | rimontaggio mentre il file non è ancora preparato |
+| vitest «drops a prepared image when the game session changes…» (fallisce prima) | risultato tardivo per sessione vecchia scartato |
+| Playwright `/?picker=1`: pannello rimosso dal documento durante il selettore simulato | il flusso osservato da Grok, con `aside` assente (`toHaveCount(0)`) e ritorno con anteprima |
+| Playwright `/?picker=1&qam=1`: colonna 300 px con rotaia da 56 px | nessun elemento fuori dal contenitore, nessun testo che esce dal proprio rettangolo (misurato con `Range`), inglese e italiano, tutte le schede; il test falliva con il CSS precedente |
+
+Limiti: il modello della colonna (rotaia 56 px, padding, `nowrap`) è un'**ipotesi** nel harness
+(`index.html`, opt-in `?qam=1`), non il DOM reale. Il picker simulato smonta il pannello ma non è
+`openFilePicker` di Decky. `pnpm verify` verde (vitest 35, tooling 13, build), Playwright 9/9
+(Chromium locale), pytest backend 213/213 invariato, scan segreti e `git diff --check` verdi.
+
+### Per la nuova prova di Grok (non la eseguo io)
+
+1. Costruire il pacchetto da **questo** branch. Per includere anche i fix backend di Codex serve
+   un'integrazione di prova a parte (un merge di prova tra i due branch non dà conflitti, verificato
+   con `git merge-tree`); questo branch non contiene `43e2b12`. Ricontrollare i commit del pacchetto.
+2. Stessi passi 1-5 (Test/prova, solo immagini consentite, provider assente, selettore, PNG
+   sintetico, nessun invio). Attesi al ritorno del pannello: anteprima, «Nessun servizio AI
+   scelto…», «Consenti l'invio» disabilitato, «Rimuovi immagine» funzionante, nessun errore.
+3. Misura **in sola lettura** nel Quick Access reale, da DevTools, prima e dopo l'installazione:
+
+```js
+(() => { const q = el => el && (r => ({l: Math.round(r.left), r: Math.round(r.right), w: Math.round(r.width)}))(el.getBoundingClientRect());
+  const dp = document.querySelector('.dp'); const out = {viewport: innerWidth, dp: q(dp), chain: []};
+  for (let e = dp; e && e !== document.body; e = e.parentElement) { const c = getComputedStyle(e);
+    out.chain.push({tag: e.tagName, cls: String(e.className).slice(0, 50), ...q(e), ov: c.overflowX, pl: c.paddingLeft, ml: c.marginLeft}); }
+  out.nav = [...dp.querySelectorAll('.dp-nav button')].map(b => ({t: b.textContent, ...q(b), ws: getComputedStyle(b).whiteSpace, ov: getComputedStyle(b).overflow, sw: b.scrollWidth, cw: b.clientWidth}));
+  return JSON.stringify(out); })()
+```
+
+   Se il bordo sinistro è ancora tagliato, mandare quel JSON: dirà se la causa è la rotaia (offset di un
+   antenato) o il padding dei controlli, e aggiusterò solo quello.
+4. Nessun cambiamento backend richiesto. Se in futuro serve recuperare l'anteprima dopo il
+   riavvio della pagina JS (non coperto: lo slot è in memoria), servirebbe un RPC che restituisca
+   la miniatura di `pendingImageRef`; **non** richiesto ora.
+
+---
+
+## Aggiornamento 1 (13 ottobre 2026, sera)
 
 Documento di Claude Code, separato dall'handoff canonico gestito da Grok
 ([HANDOFF-2026-10-13.md](../HANDOFF-2026-10-13.md), non modificato).
