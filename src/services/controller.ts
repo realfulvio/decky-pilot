@@ -2,9 +2,13 @@ import type { AudioPort, AssistantResult, Bridge, GameContext, PopupPort, Prepar
 import { type MessageKey, errorKey, translate } from '../domain/i18n';
 import { isCurrent, isObject, isResult } from '../domain/validation';
 
-export interface ViewState { status: Status | null; error: MessageKey | ''; voice: MessageKey }
+// The prepared image lives here, not in a component: Decky unmounts the Quick Access panel while
+// its file picker or the capture overlay is open, but this controller outlives panel mounts.
+export interface ImageSlot { image?: PreparedImage; approved: boolean; error: MessageKey | ''; busy: boolean }
+export interface ViewState { status: Status | null; error: MessageKey | ''; voice: MessageKey; image: ImageSlot }
 export class Controller {
-  private state: ViewState = {status: null, error: '', voice: 'voiceIdle'};
+  private state: ViewState = {status: null, error: '', voice: 'voiceIdle', image: {approved: false, error: '', busy: false}};
+  private imageToken = 0;
   private subscribers = new Set<() => void>();
   private cleanups: (() => void)[] = [];
   private shown = new Set<string>();
@@ -56,6 +60,7 @@ export class Controller {
         this.audio.stop(); this.popup.clear();
       }
       this.update({status});
+      this.reconcileImage(previous, status);
       if (!previous) for (const record of status.requests) {
         if (record.state === 'completed') this.shown.add(record.requestId);
       }
@@ -128,6 +133,53 @@ export class Controller {
     const prompt = translate(language, image ? 'visualPrompt' : 'hintPrompt');
     return this.send(question.trim() ? `${prompt}\n${question.trim()}` : prompt, image, question);
   }
+  private setImageSlot(patch: Partial<ImageSlot>) { this.update({image: {...this.state.image, ...patch}}); }
+  // A new game/session/revision, image consent or recipient invalidates any prepared or in-flight image.
+  private reconcileImage(previous: GameContext | null | undefined, status: Status) {
+    const before = this.previousSettings; this.previousSettings = status.settings;
+    const changed = !!previous && (previous.sessionId !== status.context?.sessionId || previous.revision !== status.context?.revision) ||
+      !!before && (before.imagesEnabled !== status.settings.imagesEnabled || before.provider !== status.settings.provider || before.model !== status.settings.model);
+    const held = this.state.image.image;
+    if (changed) { this.clearImage(false); return; }
+    if (held && status.pendingImageRef !== undefined && status.pendingImageRef !== held.imageRef) this.clearImage(false);
+  }
+  private previousSettings?: Settings;
+  clearImage(discard = true) {
+    const ref = this.state.image.image?.imageRef;
+    this.imageToken++;
+    this.setImageSlot({image: undefined, approved: false, error: '', busy: false});
+    if (discard && ref) void this.act('discard_image', {imageRef: ref});
+  }
+  private commitImage(token: number, value: PreparedImage | undefined) {
+    if (!value) return;
+    if (token !== this.imageToken || this.closed) { void this.bridge.rpc('discard_image', {imageRef: value.imageRef}).catch(() => undefined); return; }
+    this.setImageSlot({image: value, approved: false});
+  }
+  /** Prepare an image for review; `before` runs first (e.g. closing menus). The result survives panel remounts. */
+  async prepareImage(method: 'prepare_image' | 'prepare_capture', payload: Record<string, unknown>, before?: () => Promise<void>) {
+    return this.runImage(async () => { await before?.(); return this.act<PreparedImage>(method, {...payload, sessionId: this.state.status?.context?.sessionId}); });
+  }
+  /** `pick` opens the Decky file picker, which unmounts the panel; the outcome is stored here, not in React. */
+  async importImage(pick: () => Promise<string | null>) {
+    return this.runImage(async () => {
+      const filename = await pick();
+      return filename ? this.act<PreparedImage>('prepare_import_image', {filename, sessionId: this.state.status?.context?.sessionId}) : undefined;
+    });
+  }
+  private async runImage(task: () => Promise<PreparedImage | undefined>) {
+    const token = ++this.imageToken;
+    this.setImageSlot({busy: true, error: '', image: undefined, approved: false});
+    try { this.commitImage(token, await task()); }
+    catch { if (token === this.imageToken) this.setImageSlot({error: 'imageUnreadable'}); }
+    finally { if (token === this.imageToken) this.setImageSlot({busy: false}); }
+  }
+  setImageError(error: MessageKey | '') { this.setImageSlot({error}); }
+  async approveImage() {
+    const image = this.state.image.image;
+    if (!image) return;
+    const value = await this.act('approve_image_send', {imageRef: image.imageRef, sessionId: this.state.status?.context?.sessionId, destination: image.destination});
+    if (this.state.image.image?.imageRef === image.imageRef) this.setImageSlot({approved: value !== undefined});
+  }
   async updateSettings(settings: Partial<Settings>) { return this.act<Settings>('update_settings', settings); }
   async setContext(context: Partial<GameContext> & {newSession?: boolean}) { return this.act<GameContext>('set_game_context', context); }
   async stopVoice() { this.audio.stop(); this.played.clear(); await this.act('stop_tts'); }
@@ -144,6 +196,8 @@ export class Controller {
     this.cleanups.forEach(remove => remove());
     this.cleanups = [];
     this.popup.clear(); this.audio.stop();
+    const held = this.state.image.image;
+    if (held) await this.bridge.rpc('discard_image', {imageRef: held.imageRef}).catch(() => undefined);
     await this.bridge.rpc('stop_tts').catch(() => undefined);
     this.subscribers.clear();
   }

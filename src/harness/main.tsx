@@ -1,5 +1,5 @@
 import { createRoot } from 'react-dom/client';
-import { useSyncExternalStore } from 'react';
+import { useState, useSyncExternalStore } from 'react';
 import { App } from '../components/App';
 import { harnessControls } from './controls';
 import { FakeBridge, fixtureStatus } from './fakeBridge';
@@ -27,7 +27,16 @@ const previewAnswer = (answer: string) => {
 previewAnswer(syntheticAnswer);
 const controller = new Controller(bridge, {show() {}, clear() {}}, {async play() {}, stop() {}});
 await controller.start();
+// ?picker=1 mimics Decky: the plugin panel is removed from the document while a modal file picker is open.
+// ?qam=1 renders the panel in a narrow Quick Access-like column.
+const query = new URLSearchParams(location.search);
+let finishPick: ((name: string | null) => void) | undefined;
 function Preview() {
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const pickImage = query.has('picker') ? () => new Promise<string | null>(resolve => {
+    finishPick = name => { setPickerOpen(false); resolve(name); };
+    setPickerOpen(true);
+  }) : undefined;
   const view = useSyncExternalStore(controller.subscribe, controller.snapshot);
   const t = (key: Parameters<typeof translate>[1]) => translate(view.status?.settings.uiLanguage ?? 'en', key);
   return <><header><strong>{PRODUCT_NAME}</strong><span>{t('harnessBadge')}</span></header>
@@ -38,6 +47,7 @@ function Preview() {
         <button onClick={() => {previewAnswer('Visible (synthetic scene):\nA door with three symbols.\n\nPossible explanation:\nThe route is unclear.\n\nWhich objective are you trying to complete?\n\nSimulated clarification; no live model.');void controller.refresh();}}>Preview clarification</button>
         <button onClick={() => {bridge.status.capabilities.capture=true;bridge.status.settings.captureEnabled=true;void controller.refresh();}}>Preview capture controls (simulated)</button>
       </div>
-    </article><aside><App openExternal={() => { /* Offline harness never opens a real sign-in. */ }} controller={controller} controls={harnessControls} /></aside></main></>;
+    </article>{pickerOpen && <div role="dialog" aria-label="Simulated file picker" style={{padding:16}}><p>deckpilot-synthetic-test.png</p><button onClick={() => finishPick?.('deckpilot-synthetic-test.png')}>Select this file</button></div>}
+      {!pickerOpen && <aside className={query.has('qam') ? 'qam' : undefined}><App openExternal={() => { /* Offline harness never opens a real sign-in. */ }} pickImage={pickImage} controller={controller} controls={harnessControls} /></aside>}</main></>;
 }
 createRoot(document.getElementById('root')!).render(<Preview />);

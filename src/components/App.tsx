@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import type { GameContext, PreparedImage, ProviderId, Settings } from '../domain/types';
+import type { GameContext, ProviderId, Settings } from '../domain/types';
 import { translate, type Language, type MessageKey } from '../domain/i18n';
 import { validateContext } from '../domain/validation';
 import type { Controller } from '../services/controller';
@@ -15,7 +15,7 @@ function useText(controller: Controller) {
   return (key: MessageKey, values: Record<string, string | number> = {}) => translate(status?.settings.uiLanguage ?? 'en', key, values);
 }
 const styles = `
-.dp{color:#f2f5fa;font-size:16px;line-height:1.5;overflow-wrap:anywhere}.dp p{margin:8px 0}.dp h2{font-size:19px}.dp-nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}.dp-card{padding:12px;border:1px solid #344c61;border-radius:14px;margin:12px 0;background:linear-gradient(135deg,#17283d,#122336)}.dp-hero{background:linear-gradient(125deg,#214666,#183448);border-color:#4d889b}.dp-eyebrow{color:#88e0d0;font-size:12px;font-weight:700;letter-spacing:1.3px}.dp-game{font-size:22px;font-weight:750;line-height:1.2;margin:4px 0}.dp-subtle{color:#b9ccdb;font-size:14px}.dp-primary{border-radius:9px;background:#236b72;border:1px solid #83e1cd;padding:1px 5px;margin:12px 0}.dp-answer{border-left:3px solid #82e2cc;padding:3px 14px;white-space:pre-wrap}.dp-status{padding:8px 12px;border-radius:8px;background:#172f41}.dp section{min-width:0}.dp-scroll{max-height:68vh;overflow-y:auto;padding:0 2px 18px}.dp img{max-width:100%;max-height:180px;border-radius:10px}.dp button:focus-visible{outline:3px solid #a1f4df;outline-offset:3px}.dp-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+.dp{box-sizing:border-box;width:100%;max-width:100%;min-width:0;padding-inline:6px 4px;color:#f2f5fa;font-size:16px;line-height:1.5;overflow-wrap:anywhere}.dp p{margin:8px 0}.dp h2{font-size:19px}.dp-nav{display:flex;flex-wrap:wrap;gap:5px}.dp-nav>*{flex:1 1 auto}.dp button{white-space:normal;overflow:visible;text-overflow:clip}.dp-card{padding:12px;border:1px solid #344c61;border-radius:14px;margin:12px 0;background:linear-gradient(135deg,#17283d,#122336)}.dp-hero{background:linear-gradient(125deg,#214666,#183448);border-color:#4d889b}.dp-eyebrow{color:#88e0d0;font-size:12px;font-weight:700;letter-spacing:1.3px}.dp-game{font-size:22px;font-weight:750;line-height:1.2;margin:4px 0}.dp-subtle{color:#b9ccdb;font-size:14px}.dp-primary{border-radius:9px;background:#236b72;border:1px solid #83e1cd;padding:1px 5px;margin:12px 0}.dp-answer{border-left:3px solid #82e2cc;padding:3px 14px;white-space:pre-wrap}.dp-status{padding:8px 12px;border-radius:8px;background:#172f41}.dp section{min-width:0}.dp-scroll{max-height:68vh;overflow-y:auto;padding:0 2px 18px}.dp img{max-width:100%;max-height:180px;border-radius:10px}.dp button:focus-visible{outline:3px solid #a1f4df;outline-offset:3px}.dp-actions{display:flex;flex-wrap:wrap;gap:5px}.dp-actions>*{flex:1 1 auto}
 `;
 export function App(props: Props) {
   const {controller, controls: C} = props;
@@ -61,61 +61,43 @@ function Chat({controller, controls: C, pickImage, closeMenus, ready}: Props & {
   const status = view.status!;
   const t = useText(controller);
   const [text, setText] = useState('');
-  const [image, setImage] = useState<PreparedImage>();
-  const [approved, setApproved] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [imageError, setImageError] = useState<MessageKey | ''>('');
   const [showHistory, setShowHistory] = useState(false);
   const [autoInfo, setAutoInfo] = useState(false);
   const [captureDialog, setCaptureDialog] = useState(false);
   const [confirmCapture, setConfirmCapture] = useState(false);
   const input = useRef<HTMLInputElement>(null);
-  const imageRef = useRef<string | undefined>(undefined);
   const latest = [...status.history].reverse().find(message => message.role === 'assistant');
   const latestResult = [...status.requests].reverse().find(record => record.state === 'completed')?.result;
   const readable = !!latest && status.requests.some(record => record.state === 'completed' && record.sessionId === status.context?.sessionId && record.contextRevision === status.context?.revision);
-  useEffect(() => { setImage(undefined); setApproved(false); imageRef.current = undefined; }, [status.context?.revision, status.context?.sessionId, status.settings.imagesEnabled, status.settings.provider, status.settings.model]);
-  useEffect(() => () => { if (imageRef.current) void controller.act('discard_image', {imageRef: imageRef.current}); }, [controller]);
-  useEffect(() => {
-    if (image && status.pendingImageRef !== undefined && status.pendingImageRef !== image.imageRef) {
-      setImage(undefined); setApproved(false); imageRef.current = undefined;
-    }
-  }, [status.pendingImageRef, image]);
-  const prepared = (value?: PreparedImage) => { setImage(value); imageRef.current = value?.imageRef; setApproved(false); };
+  const {image, approved, error: imageError, busy: imageBusy} = view.image;
   const send = async (help = false) => {
     setBusy(true);
-    try { if (await (help ? controller.helpNow(image, text) : controller.send(text, image))) { setText(''); prepared(); } }
+    try { if (await (help ? controller.helpNow(image, text) : controller.send(text, image))) { setText(''); controller.clearImage(false); } }
     finally { setBusy(false); }
   };
   const pick = async () => {
     if (!pickImage) { input.current?.click(); return; }
-    setBusy(true); setImageError('');
-    try {
-      const filename = await pickImage();
-      if (filename) prepared(await controller.act<PreparedImage>('prepare_import_image', {filename, sessionId: status.context?.sessionId}));
-    } catch { setImageError('imageUnreadable'); }
-    finally { setBusy(false); }
+    await controller.importImage(pickImage);
   };
   const selectFile = async (file?: File) => {
     if (!file || !status.context) return;
-    if (!['image/png', 'image/jpeg'].includes(file.type) || file.size > 5 * 1024 * 1024) { setImageError('imageLimit'); return; }
-    setImageError(''); setBusy(true);
+    if (!['image/png', 'image/jpeg'].includes(file.type) || file.size > 5 * 1024 * 1024) { controller.setImageError('imageLimit'); return; }
+    controller.setImageError('');
     try {
       const bytes = new Uint8Array(await file.arrayBuffer()); let binary = '';
       for (let i = 0; i < bytes.length; i += 16384) binary += String.fromCharCode(...bytes.subarray(i, i + 16384));
-      prepared(await controller.act<PreparedImage>('prepare_image', {dataBase64: btoa(binary), mime: file.type, sessionId: status.context.sessionId}));
-    } catch { setImageError('imageUnreadable'); }
-    finally { setBusy(false); if (input.current) input.current.value = ''; }
+      await controller.prepareImage('prepare_image', {dataBase64: btoa(binary), mime: file.type});
+    } catch { controller.setImageError('imageUnreadable'); }
+    finally { if (input.current) input.current.value = ''; }
   };
   const capture = async () => {
     setBusy(true);
     try {
-      closeMenus?.();
-      await new Promise(resolve => setTimeout(resolve, 700));
-      prepared(await controller.act<PreparedImage>('prepare_capture', {sessionId: status.context?.sessionId, confirmGameplay: confirmCapture}));
+      await controller.prepareImage('prepare_capture', {confirmGameplay: confirmCapture}, async () => { closeMenus?.(); await new Promise(resolve => setTimeout(resolve, 700)); });
     } finally { setBusy(false); setConfirmCapture(false); setCaptureDialog(false); }
   };
-  const disabled = !ready || !status.context || !!status.active || busy || (!!image && !approved);
+  const disabled = !ready || !status.context || !!status.active || busy || imageBusy || (!!image && !approved);
   // The backend reports a null provider/empty model when no service is chosen yet.
   const recipient = image?.destination.provider && image.destination.model ? {provider: PROVIDER_NAMES[image.destination.provider] ?? image.destination.provider, model: image.destination.model} : undefined;
   return <>
@@ -126,16 +108,16 @@ function Chat({controller, controls: C, pickImage, closeMenus, ready}: Props & {
     }}>{t('helpNow')}</C.Button></div>
     {!status.capabilities.capture && <p className="dp-subtle">{t('captureUnavailable')}</p>}
     {captureDialog && <div className="dp-card"><p>{t('captureConsent')}</p><C.Toggle label={t('captureConfirm')} checked={confirmCapture} onChange={setConfirmCapture} />
-      <C.Button disabled={!confirmCapture || busy} onClick={() => { void capture(); }}>{t('captureAction')}</C.Button></div>}
+      <C.Button disabled={!confirmCapture || busy || imageBusy} onClick={() => { void capture(); }}>{t('captureAction')}</C.Button></div>}
     {imageError && <p role="alert">{t(imageError)}</p>}
     {image && <div className="dp-card"><img src={image.preview} alt={t('imagePreview')} /><p>{recipient ? t('imageDestination', recipient) : t('imageNoRecipient')}</p><p className="dp-subtle">{t('imageSafety')}</p>
       {approved && recipient && <p role="status">{t('imageApproved', recipient)}</p>}
-      <C.Button disabled={!recipient} onClick={() => { void controller.act('approve_image_send', {imageRef: image.imageRef, sessionId: status.context?.sessionId, destination: image.destination}).then(value => setApproved(value !== undefined)); }}>{t('approveImage')}</C.Button>
-      <C.Button onClick={() => { void controller.act('discard_image', {imageRef: image.imageRef}); prepared(); }}>{t('removeImage')}</C.Button>
+      <C.Button disabled={!recipient} onClick={() => { void controller.approveImage(); }}>{t('approveImage')}</C.Button>
+      <C.Button onClick={() => { controller.clearImage(); }}>{t('removeImage')}</C.Button>
     </div>}
     <C.Input label={t('question')} value={text} onChange={setText} />
     <div className="dp-actions"><C.Button disabled={disabled || !text.trim() || text.length > 4000} onClick={() => { void send(); }}>{t('ask')}</C.Button>
-      <C.Button disabled={!status.settings.imagesEnabled || !status.capabilities.images || !status.context || busy} onClick={() => { void pick(); }}>{t('importImage')}</C.Button></div>
+      <C.Button disabled={!status.settings.imagesEnabled || !status.capabilities.images || !status.context || busy || imageBusy} onClick={() => { void pick(); }}>{t('importImage')}</C.Button></div>
     <input ref={input} type="file" accept="image/png,image/jpeg" aria-label={t('imageFile')} style={{display: 'none'}} onChange={e => { void selectFile(e.target.files?.[0]); }} />
     {status.active && <div className="dp-status"><p role="status">{t('pending')}</p><C.Button onClick={() => { void controller.act('cancel_request', {requestId: status.active, sessionId: status.context?.sessionId}); }}>{t('cancel')}</C.Button></div>}
     <div className="dp-card"><C.Section title={t(latestResult?.situation?.clarification ? 'clarificationTitle' : 'latestAnswer')}><p className="dp-answer">{latest?.content ?? t('emptyAnswer')}</p>
