@@ -4,16 +4,23 @@ Resume here before historical CODEX_HANDOFF. Current extension supersedes earlie
 
 ## Latest continuation: 13 October 2026, trial integration on the mini-PC
 
-Resume from `grok/decky-pilot-integrate-20261013`. Read the first section of
-[the 13 October handoff](HANDOFF-2026-10-13.md) and
-[AGENT_COORDINATION.md](AGENT_COORDINATION.md). The installed package is the tree at
-`2bf5d37e3a1e750337b4e7b2b865fd31ba71b987`
-(SHA256 `0309916e16fbc4bc173bc67e1d4e2e9b52e06ac1587c48fe10ff888cb759e416`).
-It contains Claude through `c79ce2b` and Codex through `7cd1f6f` as ancestors.
-`CAPTURE_SAFETY_VALIDATED=False`. On mini-PC `hcokcachy` the synthetic PNG import
-shows the preview, the no-recipient sentence and Remove; Remove survives a panel
-reopen; the approve control stays visually disabled and was not pressed. Tabs fit
-the 300 px column. Steam Deck was not retested. No merge.
+Resume from the tip of `grok/decky-pilot-integrate-20261013`. The proof note is
+`c2a296d32fa37f3ce7eac767aacae56bbe8c3983`; the following close-out commit only
+adds the references below. Read the first section of
+[the 13 October handoff](HANDOFF-2026-10-13.md). The installed package is the tree at
+`2bf5d37e3a1e750337b4e7b2b865fd31ba71b987`,
+SHA256 `0309916e16fbc4bc173bc67e1d4e2e9b52e06ac1587c48fe10ff888cb759e416`,
+stored at `artifacts/deckpilot-0.1.0.zip` in this worktree and at
+`/srv/dev/scratch/deckpilot-0.1.0.zip` on the mini-PC. Plugin backup:
+`/srv/dev/scratch/DeckPilot-backup-before-integrate-2bf5d37.tar.gz`.
+Those artifacts stay off GitHub. Claude through `c79ce2b` and Codex through
+`7cd1f6f` are ancestors. `CAPTURE_SAFETY_VALIDATED=False`. On mini-PC `hcokcachy`
+the synthetic PNG import shows the preview, the no-recipient sentence and Remove;
+Remove survives a panel reopen; the approve control stays visually disabled and
+was not pressed. Tabs fit the 300 px column. After replacing plugin files, reload
+the Decky frontend in the open Quick Access before judging the UI. Steam Deck and
+a physical D-pad were not tested. CI did not start: pushes run only for `main`
+and `codex/**`, and no pull request was opened. No merge.
 
 ## Earlier continuation: 13 October 2026, mini-PC manual import on 19de507
 
