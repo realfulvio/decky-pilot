@@ -18,6 +18,43 @@ The UI and backend have explicit-action preview/approval and separate per-sessio
 
 ## Criteria before enabling acquisition
 
+### 13 October 2026: fail-closed enforcement
+
+The pinned control protocol and CLI sources above were re-read on 13 October 2026.
+They still provide no screenshot argument binding acquisition to an app/window/surface.
+This verifies that revision only, not the Gamescope version shipped on a particular Deck.
+
+The release gate is now checked before cached availability/runtime discovery in `probe()`
+and independently at entry to `capture()`. A stale `available=True`/`probed=True` must not
+authorize acquisition. The service rejects explicit capture and each automatic visual
+request before credential refresh, catalog discovery or inference when capture is unavailable.
+The existing session/consent/context checks and manual image-import path remain in place.
+
+This is defense in depth, not evidence of a user-reachable bypass or an observed private
+screen capture. Regression tests deliberately inject inconsistent internal state. The CLI
+lifecycle test temporarily overrides the gate only inside its isolated test, with an injected
+subprocess producing synthetic pixels; it does not validate safety or run Gamescope.
+Changing the boolean alone remains insufficient: the current CLI has no target binding.
+
+### Next device experiment (not run)
+
+1. Record SteamOS, Gamescope, Decky and plugin Python versions, effective UID, local socket
+   ownership and CLI availability. Do not log credentials, full environment or screenshots.
+2. Inspect the protocol/source matching the installed compositor. Establish whether a
+   supported request can select the authorized game's surface and bind the returned frame
+   to that same surface atomically. AppID/title/focus observations alone do not qualify.
+3. If no such mechanism exists, stop at this finding: leave the production gate closed and
+   design a separate compositor-side prototype. Do not fall back to desktop screenshots.
+4. Only for a reviewed target-bound candidate, use synthetic game and sensitive-test windows
+   (no actual password manager/account secrets), with no AI provider configured. Exercise
+   focus changes, game exit/restart/switch, Steam/QAM overlays and suspend/resume. Instrument
+   acquisition itself: forbidden surfaces must never be read, not merely discarded later.
+5. Record target identity/generation and frame provenance without pixel data in logs. Verify
+   timeout, cancellation, refusal, private temporary-file cleanup and zero provider calls.
+   Sampling many successful screenshots cannot substitute for an atomicity guarantee.
+
+### Acceptance criteria
+
 1. Find or implement an audited compositor-side mechanism that atomically binds acquisition to the confirmed game's surface/frame and refuses Steam/QAM/sign-in/account/other surfaces. A system screenshot helper without targeting is insufficient. Determine required privileges, package availability, licenses and version support.
 2. Verify the actual SteamOS/Gamescope version, socket, installed CLI, Decky UID/runtime and ABI. Do not claim upstream master is the shipped SteamOS version.
 3. Demonstrate sensitive-screen refusal before acquisition under rapid focus changes, settings/key entry, sign-in, Steam/QAM overlays, game exit/switch, non-Steam games, multiple apps and sleep/resume. Instrument with synthetic privacy test screens; do not capture real secrets.

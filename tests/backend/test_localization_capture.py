@@ -117,7 +117,7 @@ async def test_production_capture_gate_is_closed():
     assert error.value.code == 'CAPTURE_UNAVAILABLE'
 
 
-async def test_real_cli_adapter_fixed_arguments_focus_guard_and_private_cleanup(tmp_path):
+async def test_real_cli_adapter_fixed_arguments_focus_guard_and_private_cleanup(tmp_path, monkeypatch):
     calls = []
     class Output:
         async def read(self, limit):
@@ -133,7 +133,8 @@ async def test_real_cli_adapter_fixed_arguments_focus_guard_and_private_cleanup(
             await asyncio.to_thread(Path(args[2]).write_bytes, frame())
         return Process()
     capture = GameCapture(tmp_path / 'capture', spawn=spawn)
-    # Explicitly exercise the real adapter with a synthetic process, never hardware.
+    # Test-local gate override with synthetic subprocesses only; not safety validation.
+    monkeypatch.setattr('backend.capture.CAPTURE_SAFETY_VALIDATED', True)
     capture.available = capture.probed = True
     capture.cli, capture.xprop = '/usr/bin/gamescopectl', '/usr/bin/xprop'
     data = await capture.capture({'source': 'steam_internal', 'appId': '123'})

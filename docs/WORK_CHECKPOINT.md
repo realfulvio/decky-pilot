@@ -2,6 +2,18 @@
 
 Resume here before historical CODEX_HANDOFF. Current extension supersedes earlier completion claims.
 
+## Latest continuation: 13 October 2026, safe capture checkpoint
+
+Continue from `codex/decky-pilot-safe-capture-20261013`, based on verified MVP
+`d33edb731b94404beba2995ae876e88cb9aca1ea`. Read
+[the current session handoff](HANDOFF-2026-10-13.md) before the historical sections below.
+The capture release gate now overrides stale availability and is enforced at acquisition;
+unavailable capture is rejected before provider credential/catalog work. Automatic and direct
+production capture remain disabled. Manual import and existing preferences are preserved.
+The handoff records current-session checks, environment limits and the next device experiment.
+Earlier local paths, test counts and publication permissions below are historical, not this
+session's state or authorization. No merge/release/store publication is authorized.
+
 ## Current scope and implementation
 
 Existing workspace `C:/Users/Admin/deckpilot`, branch `codex/deckpilot-mvp`; gallery worktree

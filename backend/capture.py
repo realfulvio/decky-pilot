@@ -50,6 +50,10 @@ class GameCapture:
             self.process = None
 
     async def probe(self):
+        # Runtime discovery/cache is not evidence of atomic game-surface binding.
+        if not CAPTURE_SAFETY_VALIDATED:
+            self.available = False
+            return False
         if self.probed:
             return self.available
         self.probed = True
@@ -84,6 +88,8 @@ class GameCapture:
         require(len(values) == 2 and all(int(value) == int(app_id) for value in values), "CAPTURE_BLOCKED")
 
     async def capture(self, context):
+        # Enforce the release gate at acquisition, even if a probe is stale/wrong.
+        require(CAPTURE_SAFETY_VALIDATED, "CAPTURE_UNAVAILABLE")
         await self.probe()
         await self.assert_game(context)
         store = PrivateStore(self.root)
