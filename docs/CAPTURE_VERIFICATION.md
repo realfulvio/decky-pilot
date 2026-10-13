@@ -43,6 +43,9 @@ Changing the boolean alone remains insufficient: the current CLI has no target b
 `gamescope_control` v6 and `gamescope_pipewire` v1 only; the ext foreign-toplevel/image-copy
 capture globals are absent. PipeWire AppID selection can pick any focus/override window of that
 AppID without frame provenance, so it is rejected. Details: [handoff](HANDOFF-2026-10-13.md).
+On the actual Deck (SteamOS 3.8.28, Gamescope 3.16.23.6) the device was in Desktop Mode: KWin
+`wayland-0` advertised none of the three ext globals; `gamescope-0` was absent, so Gamescope on the
+Deck is not yet probed. No install, session change or pixel acquisition.
 
 ### Next device experiment (not run)
 
