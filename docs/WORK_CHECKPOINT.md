@@ -2,6 +2,17 @@
 
 Resume here before historical CODEX_HANDOFF. Current extension supersedes earlier completion claims.
 
+## Latest continuation: 13 October 2026, mini-PC manual import
+
+Resume from `grok/decky-pilot-ui-verify-20261013`. Read the first section of
+[the 13 October handoff](HANDOFF-2026-10-13.md) and
+[AGENT_COORDINATION.md](AGENT_COORDINATION.md). The reference branch
+`codex/decky-pilot-safe-capture-20261013` remains `19de5071b5b7f42a7cfa557c62c1d8dd36706a1f`.
+`CAPTURE_SAFETY_VALIDATED=False`. On the mini-PC the file picker sends `prepare_import_image`,
+then the Quick Access panel returns without a preview, a destination line, a remove control
+or an error. Steam Deck was not retested. Codex and Claude branches listed in the coordination
+note are ready for review and are not integrated.
+
 ## Latest continuation: 13 October 2026, safe capture checkpoint
 
 Continue from `codex/decky-pilot-safe-capture-20261013`, based on verified MVP
