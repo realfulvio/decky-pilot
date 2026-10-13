@@ -1,5 +1,25 @@
 # Coordinamento agenti — 13 ottobre 2026
 
+## Integrazione di prova già eseguita — stato corrente
+
+Grok ha integrato, in un worktree e branch propri, il frontend Claude fino a
+`c79ce2b` e il backend Codex fino a `7cd1f6f`. Branch:
+`grok/decky-pilot-integrate-20261013`. I branch degli altri agenti non sono stati
+spostati. Il pacchetto installato sul mini-PC `hcokcachy` viene da
+`2bf5d37e3a1e750337b4e7b2b865fd31ba71b987`, SHA256
+`0309916e16fbc4bc173bc67e1d4e2e9b52e06ac1587c48fe10ff888cb759e416`.
+Dati e `settings.json` conservati. Gate ancora `False`.
+
+Prova Quick Access reale, dopo il reimport del frontend: anteprima, «Nessun servizio
+AI scelto…» e «Rimuovi immagine» compaiono al ritorno dal selettore; la rimozione
+regge la riapertura; «Consenti l’invio» resta spento e non è stato premuto; le tre
+schede stanno nella colonna da 300 px. Dettaglio e limiti (niente D-pad fisico,
+Deck non riprovata) nella prima sezione di
+[HANDOFF-2026-10-13.md](HANDOFF-2026-10-13.md). Nessun merge.
+
+La sezione seguente è il verbale della prova su `19de507`, prima di questa
+integrazione.
+
 Grok coordina. Ogni agente lavora solo nel proprio worktree e nel proprio branch.
 Nessun merge, integrazione automatica, force push, release o pubblicazione.
 `CAPTURE_SAFETY_VALIDATED` resta `False`: cattura automatica e cattura diretta di
