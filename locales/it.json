@@ -34,6 +34,8 @@
   "imagePreview": "Immagine da condividere, senza metadati",
   "imageSafety": "Condividi soltanto il gioco. Rimuovi chiavi, schermate di accesso e dati account prima di aggiungere un'immagine.",
   "imageDestination": "Condividi con {provider} · {model}",
+  "imageNoRecipient": "Nessun servizio AI scelto. L’immagine resta su questo dispositivo e non può essere inviata finché non scegli servizio e modello in Impostazioni.",
+  "imageApproved": "Invio consentito a {provider} · {model}. Parte solo con la tua prossima richiesta.",
   "approveImage": "Consenti l’invio di questa immagine",
   "removeImage": "Rimuovi immagine",
   "imageLimit": "Scegli un PNG o JPEG fino a 5 MiB.",

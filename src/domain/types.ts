@@ -47,7 +47,7 @@ export interface Status {
 }
 export interface PreparedImage {
   imageRef: string; preview: string; width: number; height: number;
-  destination: {provider: ProviderId; model: string; endpoint: string};
+  destination: {provider: ProviderId | null; model: string; endpoint: string};
 }
 export interface Bridge {
   rpc<T>(method: string, payload?: Record<string, unknown>): Promise<T>;

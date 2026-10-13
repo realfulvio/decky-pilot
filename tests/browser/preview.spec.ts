@@ -51,6 +51,36 @@ test('image review shows destination and sends only after approval', async ({pag
   await expect(page.getByText('Look at the symbol on the door. If a detail is missing, describe it.', {exact:true})).toBeVisible();
 });
 
+test('manual image without an AI service names no recipient and can be removed', async ({page}) => {
+  await page.goto('/');
+  await page.getByRole('button',{name:'Preview first-time setup',exact:true}).click();
+  await page.setViewportSize({width:360,height:720});
+  const panel = page.locator('aside');
+  await panel.getByRole('button',{name:'Game',exact:true}).click();
+  await panel.getByLabel('Game title').fill('Test');
+  await panel.getByLabel('What are you trying to do?').fill('prova');
+  await panel.getByRole('button',{name:'Save game',exact:true}).click();
+  await panel.getByRole('button',{name:'Settings',exact:true}).click();
+  await expect(panel.getByRole('combobox',{name:/^AI service/})).toHaveValue('');
+  await panel.getByLabel(/Allow adding game images/).check();
+  await panel.getByRole('button',{name:'Save settings',exact:true}).click();
+  await panel.getByRole('button',{name:'Play',exact:true}).click();
+  await expect(panel.getByText('Test',{exact:true})).toBeVisible();
+  const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aF9sAAAAASUVORK5CYII=', 'base64');
+  await panel.getByLabel('Game image file').setInputFiles({name:'deckpilot-synthetic-test.png', mimeType:'image/png', buffer:png});
+  await expect(panel.getByAltText('Image to be shared, with metadata removed')).toBeVisible();
+  await expect(panel.getByText(/^No AI service chosen yet\./)).toBeVisible();
+  await expect(panel).not.toContainText('{provider}');
+  await expect(panel.getByRole('button',{name:'Allow this image to be shared',exact:true})).toBeDisabled();
+  await expect(panel.getByRole('button',{name:'Help me now',exact:true})).toBeDisabled();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
+  await panel.locator('.dp-card', {has: page.getByAltText('Image to be shared, with metadata removed')}).screenshot({path:'artifacts/preview-manual-image-no-recipient.png'});
+  // Keyboard/D-pad style traversal reaches the remove action without a pointer.
+  await panel.getByRole('button',{name:'Remove image',exact:true}).focus();
+  await page.keyboard.press('Enter');
+  await expect(panel.getByAltText('Image to be shared, with metadata removed')).toHaveCount(0);
+});
+
 for (const height of [800,720]) {
   test(`narrow quick-access preview, branding and usable controls 360x${height}`, async ({page}) => {
     await page.setViewportSize({width:360,height}); await page.goto('/');
