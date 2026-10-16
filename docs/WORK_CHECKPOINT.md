@@ -11,7 +11,7 @@ The owner authorized unattended device testing over SSH until 03:00 CEST, then a
 - Fixed `prepare_capture` to report `CAPTURE_UNAVAILABLE` before guard checks, plus a Decky-environment regression.
 - Fixed espeak-ng streamed WAV placeholder sizes, with a regression on the bytes captured on the Deck.
 - Added DP-026 (competitive-play guard before release) and DP-027 (upstream Decky SIGKILL on stop).
-- The final build with these fixes is left installed on the Deck with empty data. Test images, logs, caches and the 15 October temporary plugin's leftovers were removed. Its panel appears after the next Steam/Deck restart (frontend import events were not delivered during the run).
+- The integration build (`claude/steamdeck-run-20261017`, HARDWARE_VALIDATION second pass) is left installed on the Deck with empty data. Test images, logs, caches and the 15 October temporary plugin's leftovers were removed. Its panel appears after the next Steam/Deck restart (frontend import events were not delivered during the run).
 - The CachyOS mini PC was not used. It also has the owner's Steam account, so the same rules apply there.
 - Next: owner-present visual/controller/audio pass, game detection with a single-player title chosen by the owner, then DP-026 before any release. No game may be launched remotely.
 
