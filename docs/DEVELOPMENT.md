@@ -4,7 +4,7 @@
 
 A Decky game assistant that helps you find your next step. English is the default; the complete Italian interface is available in Settings. [Leggi in italiano](../README.it.md).
 
-Decky Pilot is an MVP under review in [PR #1](https://github.com/realfulvio/decky-pilot/pull/1). The [UI gallery in PR #2](https://github.com/realfulvio/decky-pilot/pull/2) uses the same React screens in an explicitly labelled offline preview. A Steam Deck is not available, so device compatibility is still pending.
+Decky Pilot is an MVP under review in [PR #1](https://github.com/realfulvio/decky-pilot/pull/1). The [UI gallery in PR #2](https://github.com/realfulvio/decky-pilot/pull/2) uses the same React screens in an explicitly labelled offline preview. A first Steam Deck run on 17 October 2026 verified installation, storage and the backend; the on-screen panel, controller and audio are still pending ([device evidence](HARDWARE_VALIDATION.md)).
 
 ## Get help
 
@@ -63,7 +63,7 @@ python scripts/verify_package.py artifacts/deckpilot-0.1.0.zip --runtime
 
 The generated installable ZIP contains one `DeckPilot/` root, the frontend/backend, both locale catalogs and hash-pinned Linux x86_64 CPython 3.11 Pillow, PyJWT, cryptography, cffi and pycparser wheels with licenses. Auth pins/hashes are in `contracts/auth-wheels.json`. Linux CI verifies extracted RSA signing/verification and Pillow/plugin lifecycle. The source ZIP comes from the committed revision; checksums sit beside both archives. These are review artifacts, not a release.
 
-Before future installation, confirm the Decky's Python ABI, SteamOS/glibc, UID and Loader versions using the hardware checklist. Use the installed Loader's developer ZIP installation flow if desired. No project script installs on or changes SteamOS. No device, mini PC, store or release was used in this work.
+Before installation, confirm the Decky's Python ABI, SteamOS/glibc, UID and Loader versions using the hardware checklist; Decky Loader 3.2.10 on SteamOS 3.8.28 embeds CPython 3.11, matching the vendored wheels. Use the installed Loader's developer ZIP installation flow. No project script installs on or changes SteamOS. The 17 October 2026 device run installed only this plugin, through the Loader's own ZIP flow; no store publication or release took place. A test client on Decky's websocket preempts the Steam UI's connection, so never resend calls (see HARDWARE_VALIDATION).
 
 ## Your data
 

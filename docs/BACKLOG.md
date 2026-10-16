@@ -18,7 +18,7 @@ Closed means implemented and verified offline/CI, not hardware certified. IDs ar
 | DP-012 | P0 voice/Stop | Closed offline: existing espeak-ng/OpenAI Speech, assistant-language speech, cleanup/fallback; routing pending |
 | DP-013 | P0 tests/CI/package | Closed: Linux tests and isolated extracted-package smoke; TEST_PLAN |
 | DP-014 | P0 privacy/security | Closed: conservative defaults/consents/deletion/retention; vulnerable build chain removed, no audit exception |
-| DP-015 | P1 device compatibility | Open: ABI/UID/install/real Decky controller/picker/popup/audio/IPC, HARDWARE_VALIDATION |
+| DP-015 | P1 device compatibility | Partly verified on Steam Deck 17 Oct 2026: CPython 3.11 ABI, UID, install/upgrade/uninstall, storage permissions, safe errors, idle CPU/RAM. Open: rendering, controller, picker, popup, audio, game detection; HARDWARE_VALIDATION |
 | DP-016 | P1 Gaming Mode acquisition / automatic visual help | Open: real adapter and session flow implemented, production disabled; atomic safe game targeting and hardware evidence required, CAPTURE_VERIFICATION |
 | DP-017 | P1 performance/resume | Open: actual CPU/RAM/latency/frame rate/wakeup measurements |
 | DP-018 | P2 streaming | Open: native parsers/backpressure/cancel/tests; no fake tokens |
@@ -28,6 +28,8 @@ Closed means implemented and verified offline/CI, not hardware certified. IDs ar
 | DP-022 | P0 review gallery | Existing PR #2 coordinated with PR #1, English offline images; never presented as actual Deck capture |
 | DP-023 | P0 ChatGPT plan access | Implemented offline: official OSS OAuth, dynamic client, JWT/JWKS, refresh/revoke/limits and account catalog; real eligibility/browser/device acceptance NOT RUN |
 | DP-024 | P0 xAI/Grok and returned catalogs | Implemented offline: native Responses/language-model modalities, six catalog routes and bounded pagination; live provider acceptance NOT RUN |
+| DP-026 | P0 competitive-play guard before release | Open: warn for online PvP / anti-cheat titles and keep automatic visual help unavailable there; never memory, injection or input automation; ACCOUNT_SAFETY |
+| DP-027 | P2 Decky 3.2.10 shutdown | Open/upstream: Loader SIGKILLs plugins 5 s after stop once they served a call (seen for all installed plugins); cleanup not guaranteed on Deck |
 | DP-025 | P0 situation and clarification | Implemented offline: structured observations/deductions, one question and retained player answer, fresh-frame gates/menu/loading abstention; real model-quality/device evaluation NOT RUN |
 
 Remote: `https://github.com/realfulvio/decky-pilot.git`. MVP branch `codex/deckpilot-mvp`, [PR #1](https://github.com/realfulvio/decky-pilot/pull/1). Gallery branch `docs/ui-gallery`, [PR #2](https://github.com/realfulvio/decky-pilot/pull/2), based on the MVP. Neither is merged.

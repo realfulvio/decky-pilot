@@ -2,7 +2,7 @@
 
 > **Your AI copilot for Steam Deck. Get help tailored to your game, your screen, and the moment you’re playing.**
 
-**Our product goal.** The MVP is in review. Situation-aware help, account connections and automatic gameplay capture are not yet validated on Steam Deck. This page describes what is implemented, what has been tested, and what remains.
+**Our product goal.** The MVP is in review. On 17 October 2026, installation, storage and the backend were first checked on an actual Steam Deck. Situation-aware help, account connections, the on-screen panel and automatic gameplay capture are not yet validated there. This page describes what is implemented, what has been tested, and what remains.
 
 <p align="center"><img src="assets/brand/decky-pilot-logo-dark.png?raw=true" alt="Decky Pilot logo" width="320"></p>
 
@@ -28,13 +28,14 @@ The diagram illustrates the intended end-to-end flow. Images do not reveal hidde
 
 ## What works today
 
-**Status meanings:** “Available” means verified in the offline browser/backend review path on the MVP branch, not a released or device-certified plugin. “Implemented — awaiting Steam Deck validation” means code and simulated protocol tests exist, but device acceptance is still NOT RUN. “Planned” means work remains beyond the existing implementation.
+**Status meanings:** “Available” means verified in the offline browser/backend review path on the MVP branch, not a released or device-certified plugin. “Verified on device (backend)” means checked on an actual Steam Deck without the on-screen panel. “Implemented — awaiting Steam Deck validation” means code and simulated protocol tests exist, but device acceptance is still NOT RUN. “Planned” means work remains beyond the existing implementation.
 
 | Feature | Status | Evidence and practical limit |
 |---|---|---|
 | English-first UI, complete Italian, separate assistant/voice language | Available | Actual React browser rendering, localization tests and layout checks. |
 | Manual game title, objective and session conversation | Available | Non-Steam/unknown titles, correction and session reset tested. |
 | Manual image import, cleaned preview, named recipient approval | Available | PNG/JPEG validation, metadata removal, one-use image and 45-second send freshness tested. Device picker still needs validation. |
+| Install, upgrade, uninstall, private storage and safe errors on Steam Deck | Verified on device (backend) | Decky Loader 3.2.10 and its CPython 3.11, `deck` user, 0700/0600 files, no keys in logs, idle CPU 0%. On-screen panel, controller and audio still pending. [Device evidence →](docs/HARDWARE_VALIDATION.md) |
 | Active Steam game detection and game-switch handling | Implemented — awaiting Steam Deck validation | Guarded Steam/Decky information only; unknown/ambiguous detection suspends automation. Controller/device checks pending. |
 | Contextual image estimates, concrete steps and one clarification | Implemented — awaiting Steam Deck validation | Structured visual replies validated; observations/deductions separated; session answers retained. Live-model quality not evaluated. |
 | ChatGPT OAuth, developer APIs, catalogs and image gates | Implemented — awaiting Steam Deck validation | Native integrations and offline authentication/protocol tests. Real-account authorization and inference NOT RUN. |
@@ -42,6 +43,10 @@ The diagram illustrates the intended end-to-end flow. Images do not reveal hidde
 | Safe atomic game-only acquisition and automatic capture enabled during play | Planned | Existing focus checks cannot prevent sensitive-screen acquisition during a transition. This is a central delivery blocker, not solved by manual import. |
 | Six-second popup and optional local/online voice | Implemented — awaiting Steam Deck validation | Text fallback, consent and cancellation tested; actual QAM/controller/audio routing pending. |
 | Consumer-account logins for Claude, Gemini or Grok | Planned | No compatible third-party consumer-plan flow has been established; no invented login is offered. |
+
+## Fair play and your Steam account
+
+Decky Pilot is not a cheat. It never reads or changes game memory or files, never injects code into a game, never sends controller or keyboard input, and never automates Steam. It runs as a separate Decky process and talks only to the AI service you choose. Even so, Steam's Subscriber Agreement and many games forbid outside help that gives an unfair advantage in multiplayer. Use Decky Pilot for single-player or non-competitive play, and follow each game's rules. [Account safety assessment →](docs/ACCOUNT_SAFETY.md)
 
 ## Choose your AI
 

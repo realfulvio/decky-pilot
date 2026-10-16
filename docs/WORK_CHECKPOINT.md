@@ -2,6 +2,17 @@
 
 Resume here before historical CODEX_HANDOFF. Current extension supersedes earlier completion claims.
 
+## Steam Deck run, 17 October 2026 (latest)
+
+The owner authorized unattended device testing over SSH until 03:00 CEST, then a repository update. Their absolute constraint is the safety of the Steam account. Device: Steam Deck LCD, SteamOS 3.8.28, Decky Loader 3.2.10 (CPython 3.11). Results are in HARDWARE_VALIDATION, the capture environment finding in CAPTURE_VERIFICATION, and the anti-cheat and ToS analysis in ACCOUNT_SAFETY.
+
+- Fixed `prepare_capture` to report `CAPTURE_UNAVAILABLE` before guard checks, plus a Decky-environment regression.
+- Fixed espeak-ng streamed WAV placeholder sizes, with a regression on the bytes captured on the Deck.
+- Added DP-026 (competitive-play guard before release) and DP-027 (upstream Decky SIGKILL on stop).
+- The final build with these fixes is left installed on the Deck with empty data. Test images, logs, caches and the 15 October temporary plugin's leftovers were removed. Its panel appears after the next Steam/Deck restart (frontend import events were not delivered during the run).
+- The CachyOS mini PC was not used. It also has the owner's Steam account, so the same rules apply there.
+- Next: owner-present visual/controller/audio pass, game detection with a single-player title chosen by the owner, then DP-026 before any release. No game may be launched remotely.
+
 ## Current scope and implementation
 
 Existing workspace `C:/Users/Admin/deckpilot`, branch `codex/deckpilot-mvp`; gallery worktree
