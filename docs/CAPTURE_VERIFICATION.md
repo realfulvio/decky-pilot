@@ -16,6 +16,15 @@ The [control protocol](https://github.com/ValveSoftware/gamescope/blob/1b17fcc1b
 
 The UI and backend have explicit-action preview/approval and separate per-session automatic consent, visible status and pause. These paths are implemented but unavailable pending a safe capture mechanism. Automatic attempts require fresh useful context, at least 90 seconds, deduplication and budget/error controls; no continuous screenshot polling is provided.
 
+## Steam Deck observations, 17 October 2026
+
+Read-only checks on SteamOS 3.8.28 with Gamescope 3.16.23.6; no screenshot was taken.
+
+- `gamescopectl` and `xprop` are installed. With `XDG_RUNTIME_DIR=/run/user/1000`, `gamescopectl help` lists `screenshot`; the `gamescope-0` socket is owned by `deck`, mode 0755.
+- In the Steam UI, `GAMESCOPE_FOCUSED_APP` and `_GFX` on `:0` are both `769`, the ID the adapter already excludes; `:1` has no focus properties.
+- **Decky plugins do not inherit the session environment.** The Loader is a root system service whose unit sets only `UNPRIVILEGED_PATH`, `PRIVILEGED_PATH` and `LOG_LEVEL`. Its sandbox adds `HOME`, `USER` and `DECKY_*`, with no `DISPLAY`, `XDG_RUNTIME_DIR` or `GAMESCOPE_WAYLAND_DISPLAY`. So `GameCapture.probe()` returns false at its first environment check even before `CAPTURE_SAFETY_VALIDATED`, and `gamescopectl` fails without `XDG_RUNTIME_DIR`. A future adapter would have to supply a verified session environment explicitly; values from `/run/user/1000/gamescope-environment` must be validated, not trusted.
+- `prepare_capture` used to answer `CAPTURE_BLOCKED` ("paused, return to the game"), which suggested capture would work later. It now checks availability first and answers `CAPTURE_UNAVAILABLE`, verified on the device.
+
 ## Criteria before enabling acquisition
 
 ### 13 October 2026: fail-closed enforcement

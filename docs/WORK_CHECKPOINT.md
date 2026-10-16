@@ -2,6 +2,19 @@
 
 Resume here before historical CODEX_HANDOFF. Current extension supersedes earlier completion claims.
 
+## Steam Deck run, 17 October 2026 (latest)
+
+Branch `claude/steamdeck-run-20261017` = tip of `grok/decky-pilot-integrate-20261013` (`69ab88f`) plus this run's fix and documentation commits, also pushed to MVP PR #1 (`40b5147`, `398a1c3`). The device ran the PR #1 tree, not this integration tree; the integration frontend fixes (`6bc33dd`, `eda133c`) still need their own Deck pass. Pushes to `claude/**` do not start CI. Backend suite on this branch: 228 passed, 20 Linux-only skips.
+
+The owner authorized unattended device testing over SSH until 03:00 CEST, then a repository update. Their absolute constraint is the safety of the Steam account. Device: Steam Deck LCD, SteamOS 3.8.28, Decky Loader 3.2.10 (CPython 3.11). Results are in HARDWARE_VALIDATION, the capture environment finding in CAPTURE_VERIFICATION, and the anti-cheat and ToS analysis in ACCOUNT_SAFETY.
+
+- Fixed `prepare_capture` to report `CAPTURE_UNAVAILABLE` before guard checks, plus a Decky-environment regression.
+- Fixed espeak-ng streamed WAV placeholder sizes, with a regression on the bytes captured on the Deck.
+- Added DP-026 (competitive-play guard before release) and DP-027 (upstream Decky SIGKILL on stop).
+- The final build with these fixes is left installed on the Deck with empty data. Test images, logs, caches and the 15 October temporary plugin's leftovers were removed. Its panel appears after the next Steam/Deck restart (frontend import events were not delivered during the run).
+- The CachyOS mini PC was not used. It also has the owner's Steam account, so the same rules apply there.
+- Next: owner-present visual/controller/audio pass, game detection with a single-player title chosen by the owner, then DP-026 before any release. No game may be launched remotely.
+
 ## Latest continuation: 13 October 2026, trial integration on the mini-PC
 
 Resume from the tip of `grok/decky-pilot-integrate-20261013`. The proof note is
