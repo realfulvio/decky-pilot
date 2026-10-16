@@ -9,7 +9,7 @@ from backend.errors import RpcError
 from backend.images import Images
 from backend.storage import DEFAULTS
 from backend.transport import Response, Transport, check_response, resolve, validate_address, validate_endpoint
-from backend.tts import TTS
+from backend.tts import TTS, normalize_wav
 from conftest import FakeTransport
 from test_service import configured, finish, request
 
@@ -142,6 +142,19 @@ async def test_remote_tts_consent_no_implicit_fallback_and_audio():
     call = transport.calls[0]
     assert call["url"].endswith("/v1/audio/speech")
     assert len(call["body"]["input"]) == 1000 and call["body"]["voice"] == "coral"
+
+
+def test_espeak_streamed_wav_sizes_are_rewritten():
+    # Header bytes captured from espeak-ng 1.52.0 --stdout on a Steam Deck (SteamOS 3.8.28).
+    header = bytes.fromhex("52494646" "24f0ff7f" "57415645" "666d7420" "10000000" "01000100"
+                           "22560000" "44ac0000" "02001000" "64617461" "00f0ff7f")
+    samples = b"\x01\x00" * 16263
+    fixed = normalize_wav(header + samples)
+    assert fixed[44:] == samples and fixed[:4] == b"RIFF" and fixed[8:12] == b"WAVE"
+    assert int.from_bytes(fixed[4:8], "little") == len(fixed) - 8
+    assert int.from_bytes(fixed[40:44], "little") == len(samples)
+    # Non-canonical or synthetic payloads are passed through unchanged.
+    assert normalize_wav(b"RIFF0000WAVEsynthetic") == b"RIFF0000WAVEsynthetic"
 
 
 @pytest.mark.parametrize("language", ["en", "it"])
