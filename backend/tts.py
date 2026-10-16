@@ -7,6 +7,18 @@ from .transport import check_response
 from .i18n import translate
 
 
+def normalize_wav(audio):
+    # espeak-ng --stdout streams placeholder RIFF/data sizes (0x7FFFF024/0x7FFFF000, observed
+    # on SteamOS 3.8.28 with espeak-ng 1.52.0). Rewrite them for a canonical 44-byte PCM header.
+    if (len(audio) >= 44 and audio[:4] == b"RIFF" and audio[8:16] == b"WAVEfmt " and
+            audio[16:20] == (16).to_bytes(4, "little") and audio[36:40] == b"data"):
+        fixed = bytearray(audio)
+        fixed[4:8] = (len(audio) - 8).to_bytes(4, "little")
+        fixed[40:44] = (len(audio) - 44).to_bytes(4, "little")
+        return bytes(fixed)
+    return audio
+
+
 class TTS:
     def __init__(self, transport, executable=None, spawn=asyncio.create_subprocess_exec):
         self.transport = transport
@@ -52,7 +64,7 @@ class TTS:
                         chunks.extend(chunk)
                         require(len(chunks) <= 8_000_000, "VOICE_UNAVAILABLE")
                     require(await self.process.wait() == 0, "VOICE_UNAVAILABLE")
-                    audio = bytes(chunks)
+                    audio = normalize_wav(bytes(chunks))
             except OSError as exc:
                 raise RpcError("VOICE_UNAVAILABLE") from exc
             finally:
