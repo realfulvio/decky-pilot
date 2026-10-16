@@ -1,6 +1,6 @@
 # Steam Deck validation
 
-**First device run: 17 October 2026, 01:08–01:30 CEST.** Backend, packaging, storage and lifecycle checks ran on an actual Steam Deck over SSH, with the owner's authorization and no physical interaction. Visual rendering, controller, audio playback, live providers and in-game detection are still **NOT RUN**. Do not tick a row from source review, mock processes, DOM previews or Linux CI.
+**First plugin installation on a Steam Deck: 17 October 2026, 01:08–01:30 CEST.** (A read-only compositor protocol probe, without installing anything, ran on 13 October on the parallel `codex/decky-pilot-safe-capture-20261013` line.) Backend, packaging, storage and lifecycle checks ran on an actual Steam Deck over SSH, with the owner's authorization and no physical interaction. Visual rendering, controller, audio playback, live providers and in-game detection are still **NOT RUN**. Do not tick a row from source review, mock processes, DOM previews or Linux CI.
 
 ## Device and method
 
