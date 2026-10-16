@@ -45,6 +45,15 @@ Installation used the Loader's own local-ZIP path (`utilities/install_plugin` wi
 | [ ] | Real ambiguous scene gives one useful question, player answer retained | NOT RUN / situation quality |
 | [ ] | Once safe capture exists: session consent/indicator/pause, >=90 s, useful context only | Blocked by DP-016 |
 
+## Second pass: integration build, 01:38–01:45 CEST
+
+The tree of `claude/steamdeck-run-20261017` (integration tip `69ab88f` plus this run's fixes; package SHA256 `a37f3d14…`, 440 files) was installed as an UPDATE and exercised the same way. It is the build left installed on the Deck, with empty data.
+
+- Codex's image admission order holds on device: an unapproved imported image gets `CONSENT_REQUIRED` before any network, and an invalid import keeps the previous valid preview.
+- A consented text request to an unreachable Ollama ends `NETWORK_ERROR` (retryable). The record is kept, no request stays active, and there is no fallback. Capture answers `CAPTURE_UNAVAILABLE`.
+- Larger images: a 2560×1600 PNG takes 170–195 ms per RPC and a 4000×3000 JPEG 266–294 ms, both downscaled to a 1280-pixel cleaned preview; about 60 ms of each is RPC overhead.
+- Memory: RSS rises from about 82 MB to 141 MB after the first large decode, then stays exactly constant over 20 more 12-megapixel imports (no growth). Idle afterwards: 1 CPU tick in 60 s, two threads.
+
 ## Decky Loader 3.2.10 platform findings
 
 - **One websocket only.** The Loader keeps a single client socket, and a new connection closes the Steam frontend's. The frontend reconnects after about five seconds with a `FULL_SYNC` that drops the other client's pending replies. A test client must never resend a call, or the call runs twice; this caused a duplicated confirm/uninstall during this run, both harmless. Events emitted while the test client is connected (for example `loader/import_plugin`) do not reach the Steam UI.
