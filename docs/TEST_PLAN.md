@@ -1,5 +1,9 @@
 # Test plan and evidence
 
+## Steam Deck run, 17 October 2026
+
+First plugin installation on an actual Steam Deck, over SSH with synthetic data: install, upgrade and uninstall through Decky Loader 3.2.10, the backend RPC on the Deck's CPython 3.11, storage permissions, safe errors, the OAuth loopback lifecycle and idle CPU/RAM. Results and NOT RUN rows are in [HARDWARE_VALIDATION](HARDWARE_VALIDATION.md). Two device findings were fixed with reproducing regressions that fail before the fix: `prepare_capture` reports `CAPTURE_UNAVAILABLE` in the Decky plugin environment, and espeak-ng's streamed WAV header sizes are rewritten using the bytes captured on the Deck. Local Windows checks after the fixes: **184 backend passed, two Linux-only checks skipped; 27 frontend; 13 tooling; six browser**. Ruff, ESLint, types, build, secret scan and both dependency audits pass. Account-safety analysis: [ACCOUNT_SAFETY](ACCOUNT_SAFETY.md).
+
 ## Current situation-aware extension
 
 This section supersedes historical counts below. Local Windows checks: **182 backend passed, two Linux-only process checks skipped; 27 frontend; 13 tooling; six browser tests**. Lint, TypeScript, Ruff and build pass. JavaScript audit and OSV audit of five shipped Python pins report zero advisories. Commands: `corepack pnpm verify`, `.venv/Scripts/python.exe -m ruff check backend main.py scripts tests/backend`, `.venv/Scripts/python.exe -m pytest -q --basetemp artifacts/pytest-context`, `corepack pnpm exec playwright test`, `node scripts/audit.mjs`, `.venv/Scripts/python.exe scripts/audit_python.py`. Stop the Vite preview before backend tests: its watcher can interfere with atomic temporary-file replacement on Windows.
