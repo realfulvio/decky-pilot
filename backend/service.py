@@ -548,6 +548,8 @@ class Service:
 
     async def prepare_capture(self, payload):
         fields(payload, ("sessionId", "confirmGameplay"))
+        # Report the build/device limitation first, rather than a misleading guard pause.
+        require(await self.capture.probe(), "CAPTURE_UNAVAILABLE")
         async with self.lock:
             require(payload.get("confirmGameplay") is True and not self.capture_blocked,
                     "CAPTURE_BLOCKED")
