@@ -1,0 +1,74 @@
+{
+  "reviewed": "2026-10-13",
+  "providers": {
+    "openai": [
+      {
+        "id": "gpt-4.1-2025-04-14",
+        "label": "GPT-4.1",
+        "source": "https://developers.openai.com/api/docs/models/gpt-4.1"
+      },
+      {
+        "id": "gpt-4.1",
+        "label": "GPT-4.1 (alias)",
+        "source": "https://developers.openai.com/api/docs/models/gpt-4.1"
+      },
+      {
+        "id": "gpt-6.1-sol",
+        "label": "GPT-6.1 Sol",
+        "source": "https://developers.openai.com/api/docs/models"
+      },
+      {
+        "id": "gpt-6-astra",
+        "label": "GPT-6 Astra",
+        "source": "https://developers.openai.com/api/docs/models"
+      },
+      {
+        "id": "gpt-6-luna",
+        "label": "GPT-6 Luna",
+        "source": "https://developers.openai.com/api/docs/models"
+      }
+    ],
+    "claude": [
+      {
+        "id": "claude-sonnet-4-6",
+        "label": "Claude Sonnet 4.6",
+        "source": "https://platform.claude.com/docs/en/models/sonnet-4-6/overview"
+      }
+    ],
+    "gemini": [
+      {
+        "id": "gemini-3.1-flash-lite",
+        "label": "Gemini 3.1 Flash-Lite",
+        "source": "https://ai.google.dev/gemini-api/docs/models/gemini-3.1-flash-lite"
+      }
+    ],
+    "chatgpt": [
+      {
+        "id": "gpt-4.1-2025-04-14",
+        "label": "GPT-4.1",
+        "source": "https://developers.openai.com/api/docs/models/gpt-4.1"
+      },
+      {
+        "id": "gpt-4.1",
+        "label": "GPT-4.1 (alias)",
+        "source": "https://developers.openai.com/api/docs/models/gpt-4.1"
+      },
+      {
+        "id": "gpt-6.1-sol",
+        "label": "GPT-6.1 Sol",
+        "source": "https://developers.openai.com/api/docs/models"
+      },
+      {
+        "id": "gpt-6-astra",
+        "label": "GPT-6 Astra",
+        "source": "https://developers.openai.com/api/docs/models"
+      },
+      {
+        "id": "gpt-6-luna",
+        "label": "GPT-6 Luna",
+        "source": "https://developers.openai.com/api/docs/models"
+      }
+    ],
+    "grok": []
+  }
+}

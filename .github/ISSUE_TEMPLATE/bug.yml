@@ -1,0 +1,21 @@
+name: Bug report
+description: Reproducible problem without private data
+body:
+  - type: textarea
+    id: versions
+    attributes:
+      label: Versions and environment
+      description: SteamOS, Steam client, Decky and plugin versions; state whether this is an offline test.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps, expected behavior and actual result
+      description: Never include keys, private screenshots, account details, real notes or history.
+    validations:
+      required: true
+  - type: textarea
+    id: safe_diagnostics
+    attributes:
+      label: Sanitized diagnostics reviewed before sharing

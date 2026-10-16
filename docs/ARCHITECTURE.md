@@ -1,0 +1,38 @@
+# Architecture
+
+The React/TypeScript frontend uses the official Decky controls through `DeckyControls`. The labelled offline harness injects DOM controls into the same App. `main.py` connects Loader lifecycle to an independently importable Python domain. One Decky callable, `rpc(method,payload)`, exposes a backend allowlist with validated fields/ranges and `{ok,data}` or `{ok:false,error}` envelopes.
+
+```mermaid
+flowchart LR
+  UI[Decky UI / en and it] --> C[Persistent controller]
+  C --> RPC[Callable RPC and events]
+  RPC --> S[Service / lock / session / consent]
+  S --> P[Native provider adapters]
+  P --> H[Bounded TLS / DNS-pinned transport]
+  S --> I[Image decode / preview / one-use approval]
+  S --> G[Gamescope adapter / safety gate closed]
+  S --> T[Local voice / OpenAI Speech]
+  S --> D[Atomic private storage]
+  S --> E[Events / status recovery]
+  E --> C
+```
+
+App has Play, Game and Settings plus a three-step onboarding flow. Play contains game title, primary action, question, image review, latest answer, voice and automatic status. Keys/consents/provider/languages/limits live in Settings; diagnostics are not rendered in the normal UI. Optional AppID is under Game's Advanced options. Shared `locales/en.json` and `it.json` supply UI/errors/prompts, checked for key and interpolation parity. Independent language defaults migrate missing schema-1 fields without discarding valid settings/secrets.
+
+`providers.py` implements six connections: ChatGPT plan, OpenAI API, Claude, Gemini, Grok and Ollama, through their native protocols. `catalog.py` uses service-returned names/IDs and documented bounded cursors; image capabilities are checked independently. `chatgpt_auth.py` owns temporary loopback/PKCE/OIDC, dynamic client registration, private account records and serialized refresh/revoke. ChatGPT uses terminal SSE with preview-compatible fields, distinct from developer API billing. `transport.py` uses bounded stdlib HTTP in a worker, pins validated DNS addresses, verifies TLS and refuses redirects/proxies. Cancellation is best effort; remote work cannot be recalled. No paid retries or provider fallback.
+
+Service serializes admission under a lock, permits one global generation, and remembers the last 100 request IDs/session for idempotence. Changing game or explicitly starting fresh creates a session; meaningful context edits increment revision. Results/events carry request/session/revision. Context/settings/key changes cancel tasks, clear image approval and stop voice. Frontend listeners and presenters survive panel mounts; serialized refreshes recover status every five seconds and ignore stale results. Completed history does not repay TTS after reload.
+
+Automatic assistance requires ephemeral current-session consent, separate from saved settings. Minimum monotonic interval is 90 seconds, reserved before work. Useful session context must be at most 300 seconds old. An actual matching active-game observation renews presence without inventing progress; unchanged status polling does not. Active voice/requests, duplicate content/images, unknown game and capture guard block work. Menus/loading pause; uncertain/useless visual estimates abstain. Scheduler gaps over 15 seconds postpone attempts for a full interval. Three errors pause; twenty attempts need reauthorization. The visual path stays disabled until safe capture is established.
+
+`capture.py` implements fixed-argument Gamescope CLI invocation, local compositor and focused-app checks, a private unique output folder, bounded asynchronous completion and cleanup. These checks are insufficient for atomic game targeting, so `CAPTURE_SAFETY_VALIDATED=False`. See [the source-backed findings](CAPTURE_VERIFICATION.md). RPC requires explicit gameplay confirmation; returning a preview never approves sending it. Settings navigation blocks/cancels pending acquisition. Offline test doubles exercise this lifecycle without enabling production capture.
+
+Images are explicitly imported through the Decky picker from a dedicated runtime root, or uploaded as bytes in the harness. Pillow verifies static PNG/JPEG, MIME, 5 MiB/20 MP limits, decodes, transposes EXIF, resizes and re-encodes without metadata. The preview is the send copy. Approval is bound to session/provider/model/endpoint and consumed once; sending requires preparation within 45 seconds. Pending retention is bounded to 300 seconds; original file capture time cannot be verified. Images never enter history. Original files remain user-owned.
+
+Prompts separate trusted policy from untrusted JSON context, question, history and image. Limits: 12 recent messages/8,000 history characters, 4,000-character question, 8,000 notes characters, plus four bounded clarification question/answer pairs. Structured visual results separate observations/inferences/goal/obstacle/steps or one clarification; observations without an image are refused. The latest clarification reply is retained beyond rolling history and cleared on game change/history deletion. Response language is explicit. No shell/tools/browsing/memory reads/STT/OCR/retrieval; accuracy and spoiler compliance remain model-dependent.
+
+TTS reads only a completed answer from the current revision/session, bounded to 1,000 characters and 8 MB WAV. Local espeak-ng receives fixed argv and stdin; OpenAI Speech needs its own key/consent. `responseLanguage` selects both generation policy and local voice/remote pronunciation instructions, independently of `uiLanguage`. The legacy `ttsLanguage` setting remains stored and validated for compatibility, without overriding assistant speech or resetting other data. Unsupported remote instruction models fail explicitly. Audio/object URLs/task state are cleared on completion, Stop, revocation and unload; missing audio leaves text available. There is no additional HTTP audio server.
+
+Storage is schema 1, with validated migration from baseline 0; corrupt/future files fail without reset. Atomic writes/fsync/replace and POSIX permissions protect separate plaintext secrets. Persistent history is opt-in: seven days, 100 messages/game, 20 games/1.8 MB overall, pruned at load and every scheduler tick. `contracts/rpc-v1.schema.json`, actual backend results and shared fixtures are checked in Python and TypeScript.
+
+Brand source commit 1b5cc03 was cherry-picked from PR #2; original opaque PNGs are preserved. The hand-drawn SVG menu mark is separate. `src/domain/brand.ts` owns the display name; manifest `DeckPilot`, directory/RPC/storage IDs remain unchanged. A shared source-linked vision catalog allows documented cloud image models and refuses undocumented image sends before transport; Ollama still checks `/api/show`.
