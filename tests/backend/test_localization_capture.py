@@ -151,6 +151,26 @@ async def test_real_cli_adapter_fixed_arguments_focus_guard_and_private_cleanup(
         assert len([args for args in calls if args[0] == capture.cli]) == before
 
 
+async def test_decky_plugin_environment_reports_capture_unavailable_without_spawning(tmp_path, clock, transport, monkeypatch):
+    # Observed on Steam Deck (SteamOS 3.8.28, Decky 3.2.10): plugins inherit the root service
+    # environment, so DISPLAY/XDG_RUNTIME_DIR/GAMESCOPE_WAYLAND_DISPLAY are absent.
+    calls = []
+    async def spawn(*args, **kwargs):
+        calls.append(args)
+        raise AssertionError('no process expected')
+    service, _ = await configured(tmp_path, clock, transport)
+    capture = service.capture = GameCapture(tmp_path / 'capture', spawn=spawn)
+    capture.cli, capture.xprop = '/usr/bin/gamescopectl', '/usr/bin/xprop'
+    monkeypatch.setattr('backend.capture.sys.platform', 'linux')
+    for name in ('DISPLAY', 'XDG_RUNTIME_DIR', 'GAMESCOPE_WAYLAND_DISPLAY'):
+        monkeypatch.delenv(name, raising=False)
+    await service.rpc('update_settings', {'imagesEnabled': True, 'captureEnabled': True})
+    result = await service.rpc('prepare_capture', {'sessionId': service.context['sessionId'], 'confirmGameplay': True})
+    assert result['error']['code'] == 'CAPTURE_UNAVAILABLE' and not calls
+    assert (await service.rpc('get_status', {}))['data']['capabilities']['capture'] is False
+    await service.close()
+
+
 async def capture_ready(tmp_path, clock, transport):
     service, _ = await configured(tmp_path, clock, transport)
     service.capture = FakeCapture()
