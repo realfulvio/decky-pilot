@@ -1,0 +1,42 @@
+{
+  "request": {
+    "requestId": "request-fixture",
+    "sessionId": "session-fixture",
+    "contextRevision": 1,
+    "kind": "manual",
+    "text": "How do I open the door?"
+  },
+  "result": {
+    "schemaVersion": 1,
+    "requestId": "request-fixture",
+    "sessionId": "session-fixture",
+    "contextRevision": 1,
+    "provider": "ollama",
+    "model": "synthetic-model",
+    "answer": "Look at the symbol on the door. If a detail is missing, describe it.",
+    "popupText": "Look at the symbol on the door.",
+    "speechText": "Look at the symbol on the door.",
+    "usage": {
+      "inputTokens": 10,
+      "outputTokens": 20
+    }
+  },
+  "context": {
+    "gameKey": "synthetic-game",
+    "appId": "",
+    "title": "The Blue Door",
+    "source": "manual",
+    "sessionId": "session-fixture",
+    "revision": 1,
+    "observedAt": "2026-10-12T20:00:00+00:00",
+    "objective": "Open the sealed door",
+    "location": "Blue chamber",
+    "userNotes": "Three symbols are visible on the door."
+  },
+  "error": {
+    "code": "RATE_LIMITED",
+    "message": "The service is busy. Wait before trying again.",
+    "retryable": true,
+    "retryAfterMs": 90000
+  }
+}

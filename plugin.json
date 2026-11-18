@@ -1,0 +1,13 @@
+{
+  "name": "DeckPilot",
+  "author": "Decky Pilot contributors",
+  "version": "0.1.0",
+  "api_version": 1,
+  "flags": [],
+  "publish": {
+    "tags": [
+      "assistant"
+    ],
+    "description": "Decky Pilot: game help, approved visual context and voice, with your choice of AI service."
+  }
+}

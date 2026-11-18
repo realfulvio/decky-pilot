@@ -1,0 +1,16 @@
+node_modules/
+.venv/
+.api-cache/
+dist/
+artifacts/
+vendor/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+coverage/
+test-results/
+playwright-report/
+.env*
+*.log
+# Local OAuth credentials (normally outside the checkout).
+chatgpt-auth.json
