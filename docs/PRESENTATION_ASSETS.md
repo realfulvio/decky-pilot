@@ -7,10 +7,9 @@ All presentation assets are committed and use working relative links. No private
 | Original dark logo/icon PNGs in `assets/brand/` | Owner-supplied original branding from `1b5cc03`; bytes preserved | Brand identity; no device proof |
 | `assets/brand/decky-pilot-menu.svg` | Original editable menu mark | Compact identity |
 | `assets/presentation/cover-v2.png` | Built-in image generation output | Concept: fictional unbranded handheld, puzzle, screen consent, clarification and voice |
-| Earlier `cover-concept.png`, `cover.png` | Original generated concept and typography edit, retained | Earlier artwork; not product screenshots |
 | `how-it-works-v2-en.svg`, `how-it-works-v2-it.svg` | Editable authored SVG diagrams | Intended game → Help me now → separate permissions → recent context → steps/question/voice flow |
 | Earlier `how-it-works-en.svg`, `how-it-works-it.svg` | Retained editable diagrams | Earlier manual-import illustration |
-| `docs/images/ui/*.png` | 15 full browser views and 15 directly captured panels; commit/time/browser in [source metadata](images/ui/source.json) | Implemented React App, synthetic data and HTML stand-ins; no live account/inference/capture/speech |
+| `docs/images/ui/*.png` | 15 full browser views and 9 directly captured panels (unused panels removed); commit/time/browser in [source metadata](images/ui/source.json) | Implemented React App, synthetic data and HTML stand-ins; no live account/inference/capture/speech |
 
 The cover is visibly labelled concept artwork and hardware validation pending. The workflow is a diagram. UI gallery images are real browser captures, with capture availability explicitly simulated for the permission dialog. None proves Steam Deck compatibility.
 

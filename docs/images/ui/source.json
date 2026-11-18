@@ -1,9 +1,9 @@
 {
   "commit": "205a861f423678fb2cefde0b287df9ae6c6ee070",
   "mode": "actual React browser harness; synthetic data, AI replies and capture availability; no sign-in, live inference, speech or device capture",
-  "images": 30,
+  "images": 24,
   "fullViewportImages": 15,
-  "panelImages": 15,
+  "panelImages": 9,
   "browser": "Microsoft Edge",
   "capturedAt": "2026-10-12T23:06:15.632Z"
 }
